@@ -1,0 +1,42 @@
+#!/bin/sh
+
+export LANG="en_US.UTF-8"
+[ -n "$SHELL" ] || export SHELL="/bin/zsh"
+
+# ls color
+PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+alias ls='ls -F --show-control-chars --color=auto'
+eval `gdircolors -b $HOME/.dir_colors`
+
+# man color
+export LESS_TERMCAP_mb=$'\E[01;31m'
+export LESS_TERMCAP_md=$'\E[01;31m'
+export LESS_TERMCAP_me=$'\E[0m'
+export LESS_TERMCAP_se=$'\E[0m'
+export LESS_TERMCAP_so=$'\E[01;44;33m'
+export LESS_TERMCAP_ue=$'\E[0m'
+export LESS_TERMCAP_us=$'\E[01;32m'
+
+colorbar() {
+    awk 'BEGIN{
+        s="               "; s=s s s s s s s s;
+        for (colnum = 0; colnum<77; colnum++) {
+            r = 255-(colnum*255/76);
+            g = (colnum*510/76);
+            b = (colnum*255/76);
+            if (g>255) g = 510-g;
+            printf "\033[48;2;%d;%d;%dm", r,g,b;
+            printf "\033[38;2;%d;%d;%dm", 255-r,255-g,255-b;
+            printf "%s\033[0m", substr(s,colnum+1,1);
+        }
+        printf "\n";
+    }'
+}
+
+z() {
+dst=$( autojump -s | head -n -7 | tac | awk '{print $2}' | fzf +s )
+if [ "$dst" != "" ]; then
+ cd $dst
+fi
+# source echo $dst
+}
