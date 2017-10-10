@@ -1,4 +1,6 @@
 #local start_time=$(date "+%s.%N")
+# theFuck
+eval $(thefuck --alias)
 
 # alias
 alias py="/usr/local/bin/python3"
