@@ -1,0 +1,58 @@
+# Your keymap
+#
+# Atom keymaps work similarly to style sheets. Just as style sheets use
+# selectors to apply styles to elements, Atom keymaps use selectors to associate
+# keystrokes with events in specific contexts. Unlike style sheets however,
+# each selector can only be declared once.
+#
+# You can create a new keybinding in this file by typing "key" and then hitting
+# tab.
+#
+# Here's an example taken from Atom's built-in keymap:
+#
+# 'atom-text-editor':
+#   'enter': 'editor:newline'
+#
+# 'atom-workspace':
+#   'ctrl-shift-p': 'core:move-up'
+#   'ctrl-p': 'core:move-down'
+#
+# You can find more information about keymaps in these guides:
+# * http://flight-manual.atom.io/using-atom/sections/basic-customization/#_customizing_keybindings
+# * http://flight-manual.atom.io/behind-atom/sections/keymaps-in-depth/
+#
+# If you're having trouble with your keybindings not working, try the
+# Keybinding Resolver: `Cmd+.` on macOS and `Ctrl+.` on other platforms. See the
+# Debugging Guide for more information:
+# * http://flight-manual.atom.io/hacking-atom/sections/debugging/#check-the-keybindings
+#
+# This file uses CoffeeScript Object Notation (CSON).
+# If you are unfamiliar with CSON, you can read more about it in the
+# Atom Flight Manual:
+# http://flight-manual.atom.io/using-atom/sections/basic-customization/#_cson
+'atom-text-editor.vim-mode.insert-mode':
+  'k': 'exit-insert-mode-if-proceeded-by-j'
+
+# 'atom-text-editor.vim-mode.normal-mode':
+#   'ctrl-;': 'smalls:start'
+
+'atom-workspace':
+  'cmd-o': 'advanced-open-file:toggle'
+  'cmd-ctrl-o': 'recent-files-fuzzy-finder:toggle-finder'
+
+  # 'cmd-;': 'editor:toggle-line-comments'
+'atom-text-editor':
+  'ctrl-s': 'dash:shortcut'
+  'ctrl-alt-shift-D': 'dash:shortcut-alt'
+  'ctrl-alt-d': 'dash:shortcut-alt'
+  'ctrl-shift-D': 'dash:shortcut-background'
+  'ctrl-;': 'easy-motion-redux:letter'
+  'ctrl-backspace': 'editor:delete-to-beginning-of-word'
+  'alt-backspace': 'editor:delete-to-end-of-word'
+  'ctrl-r': 'run:file'
+
+'.platform-darwin atom-workspace':
+  'ctrl-.':'platformio-ide-terminal:toggle'
+  'alt-shift-backspace': 'hydrogen:clear-results'
+# 'body':
+  # 'ctrl-h': 'core:backspace'

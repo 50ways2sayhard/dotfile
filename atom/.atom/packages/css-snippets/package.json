@@ -1,0 +1,68 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117116-12153-19d5y5o/package.tgz",
+        "scope": null,
+        "escapedName": null,
+        "name": null,
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117116-12153-19d5y5o/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117116-12153-19d5y5o/package.tgz",
+        "type": "local"
+      },
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117116-12153-u2d37x"
+    ]
+  ],
+  "_from": "../d-117116-12153-19d5y5o/package.tgz",
+  "_id": "css-snippets@1.1.0",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/css-snippets",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117116-12153-19d5y5o/package.tgz",
+    "scope": null,
+    "escapedName": null,
+    "name": null,
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117116-12153-19d5y5o/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117116-12153-19d5y5o/package.tgz",
+    "type": "local"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "file:../d-117116-12153-19d5y5o/package.tgz",
+  "_shasum": "476db5412aac1fd421d07201c11352608d35b029",
+  "_shrinkwrap": null,
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117116-12153-19d5y5o/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117116-12153-u2d37x",
+  "activationCommands": {},
+  "bugs": {
+    "url": "https://github.com/dsandstrom/atom-css-snippets/issues"
+  },
+  "dependencies": {},
+  "description": "CSS, SCSS, Sass, and Less Snippets",
+  "devDependencies": {},
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "homepage": "https://github.com/dsandstrom/atom-css-snippets#readme",
+  "keywords": [
+    "snippets",
+    "css",
+    "less",
+    "scss",
+    "sass"
+  ],
+  "license": "MIT",
+  "main": "./lib/main",
+  "name": "css-snippets",
+  "optionalDependencies": {},
+  "readme": "# CSS Snippets\n\n###### An Atom Package - [Atom.io](https://atom.io/packages/css-snippets) : [Github](https://github.com/dsandstrom/atom-css-snippets)\n\nShorthand [snippets](https://atom.io/packages/snippets) for CSS, SCSS, Sass, and Less.  \n\n### Whats Included?\nToo many to name, but you can see a [complete list](https://github.com/dsandstrom/atom-css-snippets/blob/master/snippets/css-snippets.cson) on Github.  Or, install the package and view the snippets with Settings View.  Basically, it's snippets like `bg` for *background* and `ff` for *font-family*.\n\n### Notes\nIssues and Pull Requests are welcome.\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dsandstrom/atom-css-snippets.git"
+  },
+  "version": "1.1.0"
+}

@@ -1,0 +1,93 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44029-18cko4k.ozku51att9/package.tgz",
+        "scope": null,
+        "escapedName": null,
+        "name": null,
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44029-18cko4k.ozku51att9/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44029-18cko4k.ozku51att9/package.tgz",
+        "type": "local"
+      },
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117730-44029-sabgu5.g2m0z1if6r"
+    ]
+  ],
+  "_from": "../d-117730-44029-18cko4k.ozku51att9/package.tgz",
+  "_id": "bracket-close-jump@0.2.0",
+  "_inCache": true,
+  "_location": "/bracket-close-jump",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44029-18cko4k.ozku51att9/package.tgz",
+    "scope": null,
+    "escapedName": null,
+    "name": null,
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44029-18cko4k.ozku51att9/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44029-18cko4k.ozku51att9/package.tgz",
+    "type": "local"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "file:../d-117730-44029-18cko4k.ozku51att9/package.tgz",
+  "_shasum": "18b3fe09176e46fef5a0b37cc88299375e6a8525",
+  "_shrinkwrap": null,
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44029-18cko4k.ozku51att9/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117730-44029-sabgu5.g2m0z1if6r",
+  "activationCommands": {
+    "atom-workspace": "bracket-close-jump:trigger"
+  },
+  "bugs": {
+    "url": "https://github.com/telzul/atom-bracket-close-jump/issues"
+  },
+  "configSchema": {
+    "jumpCharacters": {
+      "description": "Recognized Jumpable Characters",
+      "type": "array",
+      "default": [
+        ")",
+        "]",
+        "}",
+        "'",
+        ">",
+        "\""
+      ],
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "dependencies": {},
+  "description": "Moves the cursor behind the closing bracket next to it",
+  "devDependencies": {},
+  "engines": {
+    "atom": ">=0.174.0 <2.0.0"
+  },
+  "homepage": "https://github.com/telzul/atom-bracket-close-jump#readme",
+  "keywords": [],
+  "license": "MIT",
+  "main": "./lib/bracket-close-jump",
+  "name": "bracket-close-jump",
+  "optionalDependencies": {},
+  "readme": "# bracket-close-jump package\n\nThis moves the cursor behind the closing brackets next to it.\nBy now this only saves you from using the arrow keys.\n\nVersion 0.2.0 now allows you to add jumpage characters\n\n\n# TODOs\n* check if more cleverness is needed :)\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/telzul/atom-bracket-close-jump.git"
+  },
+  "version": "0.2.0",
+  "_atomModuleCache": {
+    "version": 1,
+    "dependencies": [],
+    "extensions": {
+      ".coffee": [
+        "lib/bracket-close-jump.coffee"
+      ],
+      ".json": [
+        "package.json"
+      ]
+    },
+    "folders": []
+  }
+}

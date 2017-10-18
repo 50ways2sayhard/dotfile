@@ -1,0 +1,63 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-12004-oyh5lh/package.tgz",
+        "scope": null,
+        "escapedName": null,
+        "name": null,
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-12004-oyh5lh/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-12004-oyh5lh/package.tgz",
+        "type": "local"
+      },
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117113-12004-1dc45q"
+    ]
+  ],
+  "_from": "../d-117113-12004-oyh5lh/package.tgz",
+  "_id": "easy-motion-redux@1.1.1",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/easy-motion-redux",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-12004-oyh5lh/package.tgz",
+    "scope": null,
+    "escapedName": null,
+    "name": null,
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-12004-oyh5lh/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-12004-oyh5lh/package.tgz",
+    "type": "local"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "file:../d-117113-12004-oyh5lh/package.tgz",
+  "_shasum": "79d79e884ee55b5d720d11b554df24c5952f9f2b",
+  "_shrinkwrap": null,
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-12004-oyh5lh/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117113-12004-1dc45q",
+  "bugs": {
+    "url": "https://github.com/leny/atom-easy-motion-redux/issues"
+  },
+  "dependencies": {
+    "atom-space-pen-views": "^2.0.5",
+    "underscore-plus": "^1.6.6"
+  },
+  "description": "MovementSpeed++. Jump to any word in your current view super fast. (redux)",
+  "devDependencies": {},
+  "engines": {
+    "atom": ">=1.2"
+  },
+  "homepage": "https://github.com/leny/atom-easy-motion-redux#readme",
+  "license": "MIT",
+  "main": "./lib/main",
+  "name": "easy-motion-redux",
+  "optionalDependencies": {},
+  "readme": "# atom easy-motion (redux) package\n\n> MovementSpeed++. Jump to any word in your current view super fast.\n\n* * *\n\n**Note:** this package is a partial rewrite of the great [easy-motion package](https://github.com/adrian-budau/easy-motion) from Adrian Budau.\n\nThe original package seems dead and, with the deprecation of the atom API pre-1.0, it's sad that we can't use easy-motion in atom anymore. So, i rewrite the package, waiting for news from Adrian.\n\n* * *\n\nCheck out that repository to better understand what this plugin does.\n\n## Modes\n\nBy default the characters used for markers are **ABC....Z**. You can replace this if you want, also from settings.\n\n### Jump to words\n\n**Command:** `easy-motion-redux:words`  \nJump to words.\n\n<img src=\"./caps/mode-words.gif\" styles=\"text-align:center;\">\n\n#### Select to words\n\n**Command:** `easy-motion-redux:words-select`  \nSelect from current cursor position to word.\n\n### Jump to letter\n\n**Command:** `easy-motion-redux:letter`  \nJump to given letter.\n\n<img src=\"./caps/mode-letter.gif\" styles=\"text-align:center;\">\n\n#### Select to letter\n\n**Command:** `easy-motion-redux:letter-select`  \nSelect from current cursor position to given letter.\n\n### Jump to words starting by letter\n\n**Command:** `easy-motion-redux:words_starting`  \nJump to words starting by given letter.\n\n<img src=\"./caps/mode-words-starting.gif\" styles=\"text-align:center;\">\n\n#### Select to words starting by letter\n\n**Command:** `easy-motion-redux:words_starting-select`  \nSelect from current cursor position to words starting by given letter.\n\n## Keybindings\n\nWith the success of Atom, it's really difficult to choose keybindings that will not enter in conflict whit anyone else's packages, so I have removed the default keystrokes and let the keymap empty to let you set your own keybindings.\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leny/atom-easy-motion-redux.git"
+  },
+  "version": "1.1.1"
+}

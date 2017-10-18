@@ -1,0 +1,64 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11709-10629-1lv03s4/package.tgz",
+        "scope": null,
+        "escapedName": null,
+        "name": null,
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11709-10629-1lv03s4/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11709-10629-1lv03s4/package.tgz",
+        "type": "local"
+      },
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-11709-10629-6249ar"
+    ]
+  ],
+  "_from": "../d-11709-10629-1lv03s4/package.tgz",
+  "_id": "trans-en-zh@0.2.5",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/trans-en-zh",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11709-10629-1lv03s4/package.tgz",
+    "scope": null,
+    "escapedName": null,
+    "name": null,
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11709-10629-1lv03s4/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11709-10629-1lv03s4/package.tgz",
+    "type": "local"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "file:../d-11709-10629-1lv03s4/package.tgz",
+  "_shasum": "085fbe41262908bd2ecb79868cca753a4b391601",
+  "_shrinkwrap": null,
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11709-10629-1lv03s4/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-11709-10629-6249ar",
+  "activationCommands": {
+    "atom-workspace": "trans-en-zh:toggle"
+  },
+  "bugs": {
+    "url": "https://github.com/alim0x/atom-trans-en-zh/issues"
+  },
+  "dependencies": {},
+  "description": "A simple translator.",
+  "devDependencies": {},
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "homepage": "https://github.com/alim0x/atom-trans-en-zh#readme",
+  "keywords": [],
+  "license": "MIT",
+  "main": "./lib/trans-en-zh",
+  "name": "trans-en-zh",
+  "optionalDependencies": {},
+  "readme": "# trans-en-zh package\n\nA simple way to lookup words via Youdao API.\n\n![A screenshot of trans-en-zh](http://ww1.sinaimg.cn/large/005BPazgjw1ewv3eyqz6sj30yx0lowi1.jpg)\n\n### Installation\n\n```\napm install trans-en-zh\n```\n\n### Key Bindings\n\n*by default*\n\n`alt-q` : **lookup selected word** and **close result panel**\n\n### License\n\nMIT\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alim0x/atom-trans-en-zh.git"
+  },
+  "version": "0.2.5"
+}

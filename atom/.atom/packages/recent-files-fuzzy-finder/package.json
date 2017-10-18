@@ -1,0 +1,70 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117410-38525-56fv7z.56dvn7y14i/package.tgz",
+        "scope": null,
+        "escapedName": null,
+        "name": null,
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117410-38525-56fv7z.56dvn7y14i/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117410-38525-56fv7z.56dvn7y14i/package.tgz",
+        "type": "local"
+      },
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117410-38525-1dsjzs4.s19c29ms4i"
+    ]
+  ],
+  "_from": "../d-117410-38525-56fv7z.56dvn7y14i/package.tgz",
+  "_id": "recent-files-fuzzy-finder@0.3.2",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/recent-files-fuzzy-finder",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117410-38525-56fv7z.56dvn7y14i/package.tgz",
+    "scope": null,
+    "escapedName": null,
+    "name": null,
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117410-38525-56fv7z.56dvn7y14i/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117410-38525-56fv7z.56dvn7y14i/package.tgz",
+    "type": "local"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "file:../d-117410-38525-56fv7z.56dvn7y14i/package.tgz",
+  "_shasum": "b7f4dd1a73189bb2a161825e8237a6b60ed93a40",
+  "_shrinkwrap": null,
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117410-38525-56fv7z.56dvn7y14i/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117410-38525-1dsjzs4.s19c29ms4i",
+  "bugs": {
+    "url": "https://github.com/viddo/recent-files-fuzzy-finder/issues"
+  },
+  "dependencies": {
+    "semver": "5.3.0",
+    "underscore-plus": "1.6.6"
+  },
+  "description": "Find recently opened files easier",
+  "devDependencies": {
+    "coffeelint": "1.16.0",
+    "fs-extra": "2.0.0",
+    "temp": "0.8.3"
+  },
+  "engines": {
+    "atom": ">=1.16.0 <2.0.0"
+  },
+  "homepage": "https://github.com/viddo/recent-files-fuzzy-finder#readme",
+  "license": "MIT",
+  "main": "./lib/main",
+  "name": "recent-files-fuzzy-finder",
+  "optionalDependencies": {},
+  "readme": "# Recent files fuzzy finder Atom package [![Travis Build Status](http://travis-ci.org/viddo/recent-files-fuzzy-finder.png?branch=master)](http://travis-ci.org/viddo/recent-files-fuzzy-finder)\n\nQuickly find recently opened files through the default [Fuzzy Finder](https://github.com/atom/fuzzy-finder) in [Atom](https://atom.io/).\n\nSee the [changelog](CHANGELOG.md) for what have changed recently. :rocket:\n\n![demo](https://cloud.githubusercontent.com/assets/978461/6547149/df374dd4-c5cf-11e4-9523-fd892b6ec3e5.gif)\n\n## Why?\nThe motivation is similar to [navigating to recently opened files](http://blog.jetbrains.com/webide/2013/02/navigating-between-files-in-the-ide-best-practices/) in the [Jetbrains IDEs](https://www.jetbrains.com/).\n\nPersonally, I find it more useful to be able to quickly find recently opened files, than having to first check the buffer list and then search the whole project if wasn't already open.\n\nBTW, this plays very well in combination with [zentabs](https://atom.io/packages/zentabs) (_Keep your opened tabs below a maximum limit, closing the oldest one first_), so you don't have to close files manually so the tab bar is actually usable.\n\n## Usage\nOpen the recent files finder through `alt-T` (i.e. `alt+shift+t`).\n\nSince this plugin basically is an improved buffer list, I  recommend to override the default buffer list shortcut since its more comfortable to use:\n\n```coffee\n# ~/.atom/keymap.cson\n'atom-workspace':\n  'cmd-b': 'recent-files-fuzzy-finder:toggle-finder'\n```\n\nYou can also clear closed files from the list by calling the command `recent-files-fuzzy-finder:remove-closed-files` (useful when finished on some task and committed changed files).\n\nThanks to [@forceuser](https://github.com/forceuser) [#18](https://github.com/viddo/recent-files-fuzzy-finder/pull/18) you can also get a Netbeans-like behavior by [customizing your keybindings](http://flight-manual.atom.io/using-atom/sections/basic-customization/#customizing-keybindings):\n\n```coffeescript\n'atom-workspace':\n  'ctrl-tab': 'recent-files-fuzzy-finder:toggle-finder'\n  'ctrl-tab ^ctrl': 'unset!'\n'.recent-files-fuzzy-finder':\n  'ctrl-tab': 'recent-files-fuzzy-finder:select-next-item'\n  'ctrl-escape': 'recent-files-fuzzy-finder:toggle-finder'\n  '^ctrl': 'recent-files-fuzzy-finder:confirm-selection'\n```\n\n### Behavior\n- The files are listed in order of last usage.\n- Current file is excluded from the list.\n- The list of recent files is cyclic, i.e. if you have opened more files than the [amount of files to remember](#Configuration) (50 by default) the oldest files will be removed from the list.\n\n## Installation\n `apm install recent-files-fuzzy-finder` in a terminal.\n\n_- or -_\n\nOpen Preferences > Packages, and search for `recent-files-fuzzy-finder` package.\n\n\n## Configuration\nThese are the configuration values set by default, if you want to you can override them in your own config:\n\n```coffee\n# ~/.atom/config.cson\n\"recent-files-fuzzy-finder\":\n  maxFilesToRemember: 50\n```\n\n## Development\n\n- Read [CONTRIBUTING.md](CONTRIBUTING.md)\n- `npm install` for dependencies\n- `npm run lint` to check that your changes follow the styles, [see coffeelint.json](./coffeelint.json)\n- `apm test` to run tests in the console\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/viddo/recent-files-fuzzy-finder.git"
+  },
+  "scripts": {
+    "lint": "coffeelint lib spec"
+  },
+  "version": "0.3.2"
+}
