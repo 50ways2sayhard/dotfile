@@ -2,45 +2,68 @@
   "_args": [
     [
       {
-        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44080-1piw7sm.g7mt43g14i/package.tgz",
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
         "scope": null,
         "escapedName": null,
         "name": null,
-        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44080-1piw7sm.g7mt43g14i/package.tgz",
-        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44080-1piw7sm.g7mt43g14i/package.tgz",
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
         "type": "local"
       },
-      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117730-44080-er0tab.d9mwkoi529"
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117924-39248-1rz5fye.cew58hyqfr"
     ]
   ],
-  "_from": "../d-117730-44080-1piw7sm.g7mt43g14i/package.tgz",
-  "_id": "no-title-bar@1.6.0",
+  "_from": "../d-117924-39248-zbnf10.mah908jjor/package.tgz",
+  "_id": "no-title-bar@1.11.3",
   "_inCache": true,
   "_location": "/no-title-bar",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44080-1piw7sm.g7mt43g14i/package.tgz",
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
     "scope": null,
     "escapedName": null,
     "name": null,
-    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44080-1piw7sm.g7mt43g14i/package.tgz",
-    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44080-1piw7sm.g7mt43g14i/package.tgz",
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
     "type": "local"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "file:../d-117730-44080-1piw7sm.g7mt43g14i/package.tgz",
-  "_shasum": "f38dc60f0c82e676e93f2189c28f577585230450",
+  "_resolved": "file:../d-117924-39248-zbnf10.mah908jjor/package.tgz",
+  "_shasum": "c70e66c90998935184a003379c1e51de1c107b23",
   "_shrinkwrap": null,
-  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117730-44080-1piw7sm.g7mt43g14i/package.tgz",
-  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117730-44080-er0tab.d9mwkoi529",
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117924-39248-1rz5fye.cew58hyqfr",
   "author": {
     "name": "lexicalunit",
     "email": "lexicalunit@lexicalunit.com"
   },
   "bugs": {
     "url": "https://github.com/lexicalunit/no-title-bar/issues"
+  },
+  "configSchema": {
+    "trafficLightsPadding": {
+      "description": "A padding width, in pixels, to accommodate the window traffic lights.",
+      "type": "integer",
+      "minimum": 0,
+      "default": 80
+    },
+    "automaticTrafficLightsPadding": {
+      "description": "Use the width of your left dock as the width for the traffic lights padding.",
+      "type": "boolean",
+      "default": false
+    },
+    "automaticTrafficLightsPaddingOffset": {
+      "description": "An offset adjustment width, in pixels, when using automatic padding.",
+      "type": "integer",
+      "default": 0
+    },
+    "enableLiberalWindowDragging": {
+      "description": "Liberally allow window dragging from any \"empty\" space.",
+      "type": "boolean",
+      "default": true
+    }
   },
   "dependencies": {},
   "description": "Provides support for a hidden Atom title bar.",
@@ -51,7 +74,7 @@
     "eslint-plugin-standard": "^2.1.1"
   },
   "engines": {
-    "atom": ">=1.19.0 <2.0.0"
+    "atom": ">=1.20.0 <2.0.0"
   },
   "homepage": "https://github.com/lexicalunit/no-title-bar#readme",
   "keywords": [
@@ -69,19 +92,5 @@
     "type": "git",
     "url": "git+https://github.com/lexicalunit/no-title-bar.git"
   },
-  "version": "1.6.0",
-  "_atomModuleCache": {
-    "version": 1,
-    "dependencies": [],
-    "extensions": {
-      ".js": [
-        ".eslintrc.js",
-        "lib/no-title-bar.js"
-      ],
-      ".json": [
-        "package.json"
-      ]
-    },
-    "folders": []
-  }
+  "version": "1.11.3"
 }

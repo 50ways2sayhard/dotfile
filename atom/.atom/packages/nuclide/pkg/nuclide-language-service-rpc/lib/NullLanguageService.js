@@ -49,6 +49,10 @@ class NullLanguageService {
     return Promise.resolve(null);
   }
 
+  getAdditionalLogFiles(expire) {
+    return Promise.resolve([]);
+  }
+
   getCodeActions(fileVersion, range, diagnostics) {
     return Promise.resolve([]);
   }
@@ -91,6 +95,14 @@ class NullLanguageService {
 
   isFileInProject(fileUri) {
     return Promise.resolve(false);
+  }
+
+  getExpandedSelectionRange(fileVersion, currentSelection) {
+    return Promise.resolve(null);
+  }
+
+  getCollapsedSelectionRange(fileVersion, currentSelection, originalCursorPosition) {
+    return Promise.resolve(null);
   }
 
   dispose() {}

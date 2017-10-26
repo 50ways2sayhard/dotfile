@@ -7,6 +7,12 @@ exports.default = observeLanguageTextEditors;
 
 var _atom = require('atom');
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _observeGrammarForTextEditors;
 
 function _load_observeGrammarForTextEditors() {
@@ -15,18 +21,17 @@ function _load_observeGrammarForTextEditors() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const START_OBSERVING_TEXT_EDITOR_EVENT = 'start-observing-text-editor'; /**
+                                                                          * Copyright (c) 2015-present, Facebook, Inc.
+                                                                          * All rights reserved.
+                                                                          *
+                                                                          * This source code is licensed under the license found in the LICENSE file in
+                                                                          * the root directory of this source tree.
+                                                                          *
+                                                                          * 
+                                                                          * @format
+                                                                          */
 
-const START_OBSERVING_TEXT_EDITOR_EVENT = 'start-observing-text-editor';
 const STOP_OBSERVING_TEXT_EDITOR_EVENT = 'stop-observing-text-editor';
 
 /**
@@ -78,7 +83,7 @@ class LanguageTextEditorsListener {
     // gets called with one arg (i.e. it matches the Flow annotation).
     .forEach(textEditor => fn(textEditor));
 
-    return new _atom.CompositeDisposable(this._emitter.on(START_OBSERVING_TEXT_EDITOR_EVENT, fn), this._emitter.on(STOP_OBSERVING_TEXT_EDITOR_EVENT, cleanupFn));
+    return new (_UniversalDisposable || _load_UniversalDisposable()).default(this._emitter.on(START_OBSERVING_TEXT_EDITOR_EVENT, fn), this._emitter.on(STOP_OBSERVING_TEXT_EDITOR_EVENT, cleanupFn));
   }
 
   dispose() {
@@ -99,7 +104,7 @@ class LanguageTextEditorsListener {
  * grammars or is destroyed.
  */
 function observeLanguageTextEditors(grammarScopes, fn, cleanupFn) {
-  const subscriptions = new _atom.CompositeDisposable();
+  const subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
   const listener = new LanguageTextEditorsListener(new Set(grammarScopes));
   subscriptions.add(listener);
   subscriptions.add(listener.observeLanguageTextEditors(fn, cleanupFn || (() => {})));

@@ -7,7 +7,11 @@ exports.BufferSubscription = undefined;
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _log4js;
 
@@ -61,9 +65,11 @@ class BufferSubscription {
     this._changeCount = 1;
     this._sentOpen = false;
 
-    const subscriptions = new _atom.CompositeDisposable();
+    const subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
 
-    subscriptions.add(buffer.onDidChange((() => {
+    subscriptions.add(
+    // TODO: (hansonw) T22837054 Use buffer.onDidChangeText here.
+    buffer.onDidChange((() => {
       var _ref = (0, _asyncToGenerator.default)(function* (event) {
         _this._changeCount++;
         if (_this._notifier == null) {

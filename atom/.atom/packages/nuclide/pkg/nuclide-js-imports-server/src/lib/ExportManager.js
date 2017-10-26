@@ -37,28 +37,20 @@ function _load_nuclideUri() {
   return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
 }
 
-var _Settings;
-
-function _load_Settings() {
-  return _Settings = require('../Settings');
-}
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const logger = (0, (_log4js || _load_log4js()).getLogger)();
+const logger = (0, (_log4js || _load_log4js()).getLogger)(); /**
+                                                              * Copyright (c) 2015-present, Facebook, Inc.
+                                                              * All rights reserved.
+                                                              *
+                                                              * This source code is licensed under the license found in the LICENSE file in
+                                                              * the root directory of this source tree.
+                                                              *
+                                                              * 
+                                                              * @format
+                                                              */
 
 function getExportsFromAst(fileUri, ast) {
   const exports = [];
@@ -158,30 +150,28 @@ function specifierToExport(node, fileUri, isTypeExport, isDefault) {
 }
 
 function expressionToExports(expression, isTypeExport, fileUri) {
-  if (expression.id || expression.name) {
-    return [{
-      id: expression.name || expression.id.name,
+  // Index the entire 'module.exports' as a default export.
+  const defaultId = idFromFileName(fileUri);
+  const result = [{
+    id: defaultId,
+    uri: fileUri,
+    type: 'ObjectExpression',
+    isTypeExport,
+    isDefault: true
+  }];
+
+  const ident = expression.id != null ? expression.id.name : expression.name;
+  if (ident && ident !== defaultId) {
+    result.push({
+      id: ident,
       uri: fileUri,
       type: expression.type,
       isTypeExport,
-      isDefault: true }];
-  }
-  if ((_babelTypes || _load_babelTypes()).isObjectExpression(expression)) {
-    const {
-      shouldIndexObjectAsDefault,
-      shouldIndexEachObjectProperty
-    } = (_Settings || _load_Settings()).Settings.moduleExportsSettings;
-
-    // Index the entire object as a default export
-    const defaultExport = shouldIndexObjectAsDefault ? [{
-      id: idFromFileName(fileUri),
-      uri: fileUri,
-      type: 'ObjectExpression',
-      isTypeExport,
-      isDefault: true }] : [];
-
+      isDefault: true // Treated as default export
+    });
+  } else if ((_babelTypes || _load_babelTypes()).isObjectExpression(expression)) {
     // Index each property of the object
-    const propertyExports = shouldIndexEachObjectProperty ? (0, (_collection || _load_collection()).arrayCompact)(expression.properties.map(property => {
+    const propertyExports = (0, (_collection || _load_collection()).arrayCompact)(expression.properties.map(property => {
       if (property.type === 'SpreadProperty' || property.computed) {
         return null;
       }
@@ -192,19 +182,18 @@ function expressionToExports(expression, isTypeExport, fileUri) {
         isTypeExport,
         isDefault: false
       };
-    })) : [];
-
-    return defaultExport.concat(propertyExports);
-  }
-  if ((_babelTypes || _load_babelTypes()).isAssignmentExpression(expression) && (_babelTypes || _load_babelTypes()).isIdentifier(expression.left)) {
-    return [{
+    }));
+    return result.concat(propertyExports);
+  } else if ((_babelTypes || _load_babelTypes()).isAssignmentExpression(expression) && (_babelTypes || _load_babelTypes()).isIdentifier(expression.left) && expression.left.name !== defaultId) {
+    result.push({
       id: expression.left.name,
       uri: fileUri,
       type: expression.type,
       isTypeExport,
-      isDefault: true }];
+      isDefault: true // Treated as default export
+    });
   }
-  return [];
+  return result;
 }
 
 function declarationToExport(declaration, isTypeExport, fileUri, isDefault) {

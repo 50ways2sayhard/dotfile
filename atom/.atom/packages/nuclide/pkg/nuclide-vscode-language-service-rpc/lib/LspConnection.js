@@ -52,6 +52,10 @@ class LspConnection {
     this._jsonRpcConnection.sendNotification('exit');
   }
 
+  rage() {
+    return this._jsonRpcConnection.sendRequest('telemetry/rage');
+  }
+
   showMessageNotification(params) {
     this._jsonRpcConnection.sendNotification('window/showMessage', params);
   }
@@ -62,10 +66,6 @@ class LspConnection {
 
   logMessage(params) {
     this._jsonRpcConnection.sendNotification('window/logMessage', params);
-  }
-
-  telemetry(params) {
-    this._jsonRpcConnection.sendNotification('telemetry/event', params);
   }
 
   didChangeConfiguration(params) {

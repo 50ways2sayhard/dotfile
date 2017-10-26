@@ -182,7 +182,8 @@ class ExpressionEvaluationManager {
         const scopeVariables = _this._propertiesToExpansionResult(response.result);
         return {
           name: scope.object.description,
-          scopeVariables
+          scopeVariables,
+          scopeObjectId
         };
       });
 

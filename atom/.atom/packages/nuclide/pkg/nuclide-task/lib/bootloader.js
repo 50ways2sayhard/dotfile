@@ -78,9 +78,11 @@ class Task {
   _fork() {
     // The transpiler is only loaded in development.
     if ((_runtimeInfo || _load_runtimeInfo()).__DEV__) {
-      return _child_process.default.fork('--require', [TRANSPILER_PATH, BOOTSTRAP_PATH], { silent: true });
+      return _child_process.default.fork('--require', [TRANSPILER_PATH, BOOTSTRAP_PATH], { silent: true } // Needed so stdout/stderr are available.
+      );
     } else {
-      return _child_process.default.fork(BOOTSTRAP_PATH, [], { silent: true });
+      return _child_process.default.fork(BOOTSTRAP_PATH, [], { silent: true } // Needed so stdout/stderr are available.
+      );
     }
   }
 

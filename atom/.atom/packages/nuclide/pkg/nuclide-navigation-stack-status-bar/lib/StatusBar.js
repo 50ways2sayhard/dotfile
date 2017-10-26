@@ -79,27 +79,29 @@ function consumeStatusBar(statusBar, navigationStack) {
   });
 }
 
-function NavStackStatusBarTile(props) {
-  return _react.createElement(
-    (_ButtonGroup || _load_ButtonGroup()).ButtonGroup,
-    { size: 'EXTRA_SMALL' },
-    _react.createElement((_Button || _load_Button()).Button, {
-      icon: 'chevron-left',
-      onClick: props.onBack,
-      disabled: !props.enableBack,
-      tooltip: {
-        title: 'Navigate Backwards',
-        keyBindingCommand: 'nuclide-navigation-stack:navigate-backwards'
-      }
-    }),
-    _react.createElement((_Button || _load_Button()).Button, {
-      icon: 'chevron-right',
-      onClick: props.onForward,
-      disabled: !props.enableForward,
-      tooltip: {
-        title: 'Navigate Forwards',
-        keyBindingCommand: 'nuclide-navigation-stack:navigate-forwards'
-      }
-    })
-  );
+class NavStackStatusBarTile extends _react.Component {
+  render() {
+    return _react.createElement(
+      (_ButtonGroup || _load_ButtonGroup()).ButtonGroup,
+      { size: 'EXTRA_SMALL' },
+      _react.createElement((_Button || _load_Button()).Button, {
+        icon: 'chevron-left',
+        onClick: this.props.onBack,
+        disabled: !this.props.enableBack,
+        tooltip: {
+          title: 'Navigate Backwards',
+          keyBindingCommand: 'nuclide-navigation-stack:navigate-backwards'
+        }
+      }),
+      _react.createElement((_Button || _load_Button()).Button, {
+        icon: 'chevron-right',
+        onClick: this.props.onForward,
+        disabled: !this.props.enableForward,
+        tooltip: {
+          title: 'Navigate Forwards',
+          keyBindingCommand: 'nuclide-navigation-stack:navigate-forwards'
+        }
+      })
+    );
+  }
 }

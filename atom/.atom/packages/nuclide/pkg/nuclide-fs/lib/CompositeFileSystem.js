@@ -137,7 +137,7 @@ class CompositeFileSystem {
       return _this2._resolveFs((yield _this2._archiveAsDirectory(fullPath)), (() => {
         var _ref2 = (0, _asyncToGenerator.default)(function* (segFs, pth) {
           return (yield segFs.readdir(pth)).map(function ([name, isFile, isLink]) {
-            return [name, isFile && !(_nuclideUri || _load_nuclideUri()).default.hasKnownArchiveExtension(name), isLink];
+            return [name, isFile, isLink];
           });
         });
 
@@ -187,6 +187,10 @@ class CompositeFileSystem {
   }
 
   isNfs(fullPath) {
+    return this._resolveFs(fullPath, (segFs, pth) => segFs.isNfs(pth));
+  }
+
+  isFuse(fullPath) {
     return this._resolveFs(fullPath, (segFs, pth) => segFs.isNfs(pth));
   }
 

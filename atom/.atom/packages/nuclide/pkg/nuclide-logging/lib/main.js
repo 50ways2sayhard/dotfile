@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.initialUpdateConfig = exports.getAdditionalLogFiles = exports.addAdditionalLogFile = exports.getServerLogAppenderConfig = exports.FileAppender = exports.getPathToLogFile = exports.getDefaultConfig = undefined;
+exports.initialUpdateConfig = exports.getServerLogAppenderConfig = exports.FileAppender = exports.getPathToLogFile = exports.getDefaultConfig = undefined;
 exports.flushLogsAndExit = flushLogsAndExit;
 exports.flushLogsAndAbort = flushLogsAndAbort;
 exports.initializeLogging = initializeLogging;
@@ -28,16 +28,19 @@ function _load_config() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+exports.getDefaultConfig = (_config || _load_config()).getDefaultConfig;
+exports.getPathToLogFile = (_config || _load_config()).getPathToLogFile;
+exports.FileAppender = (_config || _load_config()).FileAppender;
+exports.getServerLogAppenderConfig = (_config || _load_config()).getServerLogAppenderConfig; /**
+                                                                                              * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                              * All rights reserved.
+                                                                                              *
+                                                                                              * This source code is licensed under the license found in the LICENSE file in
+                                                                                              * the root directory of this source tree.
+                                                                                              *
+                                                                                              * 
+                                                                                              * @format
+                                                                                              */
 
 /**
  * This designed for logging on both Nuclide client and Nuclide server. It is based on [log4js]
@@ -46,12 +49,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * To make sure we only have one instance of log4js logger initialized globally, we save the logger
  * to `global` object.
  */
-exports.getDefaultConfig = (_config || _load_config()).getDefaultConfig;
-exports.getPathToLogFile = (_config || _load_config()).getPathToLogFile;
-exports.FileAppender = (_config || _load_config()).FileAppender;
-exports.getServerLogAppenderConfig = (_config || _load_config()).getServerLogAppenderConfig;
-exports.addAdditionalLogFile = (_config || _load_config()).addAdditionalLogFile;
-exports.getAdditionalLogFiles = (_config || _load_config()).getAdditionalLogFiles;
+
 function flushLogsAndExit(exitCode) {
   (_log4js || _load_log4js()).default.shutdown(() => process.exit(exitCode));
 }

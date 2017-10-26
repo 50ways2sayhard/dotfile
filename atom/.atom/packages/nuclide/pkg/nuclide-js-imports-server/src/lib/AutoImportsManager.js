@@ -128,7 +128,7 @@ class AutoImportsManager {
       return [];
     }
 
-    const missingImports = undefinedSymbolsToMissingImports(this.undefinedSymbolsManager.findUndefined(ast), this.exportsManager);
+    const missingImports = undefinedSymbolsToMissingImports(fileUri, this.undefinedSymbolsManager.findUndefined(ast), this.exportsManager);
     this.suggestedImports.set(fileUri, missingImports);
     return missingImports;
   }
@@ -170,15 +170,21 @@ function parseFile(code) {
   }
 }
 
-function undefinedSymbolsToMissingImports(undefinedSymbols, exportsManager) {
-  return undefinedSymbols.filter(symbol => {
-    return exportsManager.hasExport(symbol.id);
-  }).map(symbol => {
+function undefinedSymbolsToMissingImports(fileUri, undefinedSymbols, exportsManager) {
+  return undefinedSymbols.map(symbol => {
+    const isValue = symbol.type === 'value';
     return {
       symbol,
-      filesWithExport: exportsManager.getExportsIndex().getExportsFromId(symbol.id)
+      filesWithExport: exportsManager.getExportsIndex().getExportsFromId(symbol.id).filter(jsExport => {
+        // Value imports cannot use type exports.
+        if (isValue && jsExport.isTypeExport) {
+          return false;
+        }
+        // No self imports.
+        return jsExport.uri !== fileUri;
+      })
     };
-  });
+  }).filter(result => result.filesWithExport.length > 0);
 }
 
 function checkEslint(ast) {

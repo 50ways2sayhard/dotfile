@@ -88,12 +88,20 @@ function _load_redux() {
 
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
 
+var _ToolbarUtils;
+
+function _load_ToolbarUtils() {
+  return _ToolbarUtils = require('../../nuclide-ui/ToolbarUtils');
+}
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // TODO: use a more general versioning mechanism.
 // Perhaps Atom should provide packages with some way of doing this.
+const SERIALIZED_VERSION = 2;
+// These match task types with shortcuts defined in nuclide-task-runner.json
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -105,8 +113,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @format
  */
 
-const SERIALIZED_VERSION = 2;
-// These match task types with shortcuts defined in nuclide-task-runner.json
 const COMMON_TASK_TYPES = ['build', 'run', 'test', 'debug'];
 
 function getVisible(event) {
@@ -229,13 +235,13 @@ class Activation {
     toolBar.addSpacer({
       priority: 400
     });
-    const { element } = toolBar.addButton({
+    const { element } = toolBar.addButton((0, (_ToolbarUtils || _load_ToolbarUtils()).makeToolbarButtonSpec)({
       callback: 'nuclide-task-runner:toggle-toolbar-visibility',
       tooltip: 'Toggle Task Runner Toolbar',
       iconset: 'ion',
       icon: 'play',
       priority: 401
-    });
+    }));
     element.className += ' nuclide-task-runner-tool-bar-button';
 
     const buttonUpdatesDisposable = new (_UniversalDisposable || _load_UniversalDisposable()).default(

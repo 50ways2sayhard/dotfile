@@ -9,13 +9,19 @@ exports.consumeTaskRunnerServiceApi = consumeTaskRunnerServiceApi;
 exports.serialize = serialize;
 exports.createAutocompleteProvider = createAutocompleteProvider;
 
-var _atom = require('atom');
-
 var _SwiftPMTaskRunner;
 
 function _load_SwiftPMTaskRunner() {
   return _SwiftPMTaskRunner = require('./taskrunner/SwiftPMTaskRunner');
 }
+
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
@@ -38,11 +44,11 @@ function activate(rawState) {
   }
 
   _initialState = rawState;
-  _disposables = new _atom.CompositeDisposable(new _atom.Disposable(() => {
+  _disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
     _taskRunner = null;
-  }), new _atom.Disposable(() => {
+  }, () => {
     _initialState = null;
-  }));
+  });
 }
 
 function deactivate() {

@@ -36,9 +36,9 @@ class KeyboardShortcuts {
     const first = () => this.setIndex(0);
     const last = () => this.setIndex(this._diagnostics.length - 1);
     this._subscriptions.add((0, (_event || _load_event()).observableFromSubscribeFunction)(diagnosticUpdater.observeMessages).subscribe(diagnostics => {
-      this._diagnostics = diagnostics.filter(diagnostic => diagnostic.scope === 'file');
       this._index = null;
       this._traceIndex = null;
+      this._diagnostics = diagnostics;
     }), atom.commands.add('atom-workspace', 'diagnostics:go-to-first-diagnostic', first), atom.commands.add('atom-workspace', 'diagnostics:go-to-last-diagnostic', last), atom.commands.add('atom-workspace', 'diagnostics:go-to-next-diagnostic', () => {
       this._index == null ? first() : this.setIndex(this._index + 1);
     }), atom.commands.add('atom-workspace', 'diagnostics:go-to-previous-diagnostic', () => {
@@ -74,7 +74,10 @@ class KeyboardShortcuts {
     if (range == null) {
       (0, (_goToLocation || _load_goToLocation()).goToLocation)(diagnostic.filePath);
     } else {
-      (0, (_goToLocation || _load_goToLocation()).goToLocation)(diagnostic.filePath, range.start.row, range.start.column);
+      (0, (_goToLocation || _load_goToLocation()).goToLocation)(diagnostic.filePath, {
+        line: range.start.row,
+        column: range.start.column
+      });
     }
   }
 
@@ -123,7 +126,10 @@ class KeyboardShortcuts {
     const trace = traces[traceIndex];
     if (trace.filePath != null && trace.range != null) {
       this._traceIndex = traceIndex;
-      (0, (_goToLocation || _load_goToLocation()).goToLocation)(trace.filePath, trace.range.start.row, trace.range.start.column);
+      (0, (_goToLocation || _load_goToLocation()).goToLocation)(trace.filePath, {
+        line: trace.range.start.row,
+        column: trace.range.start.column
+      });
       return true;
     }
     return false;

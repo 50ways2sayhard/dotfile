@@ -7,6 +7,12 @@ exports.__test__ = undefined;
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
+var _observable;
+
+function _load_observable() {
+  return _observable = require('nuclide-commons/observable');
+}
+
 var _nuclideAnalytics;
 
 function _load_nuclideAnalytics() {
@@ -65,19 +71,20 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const MAX_OMNI_RESULTS_PER_SERVICE = 5; /**
-                                         * Copyright (c) 2015-present, Facebook, Inc.
-                                         * All rights reserved.
-                                         *
-                                         * This source code is licensed under the license found in the LICENSE file in
-                                         * the root directory of this source tree.
-                                         *
-                                         * 
-                                         * @format
-                                         */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 /* global performance */
 
+const MAX_OMNI_RESULTS_PER_SERVICE = 5;
 const DEFAULT_QUERY_DEBOUNCE_DELAY = 200;
 const LOADING_EVENT_DELAY = 200;
 const OMNISEARCH_PROVIDER = {
@@ -118,7 +125,7 @@ class SearchResultManager {
     this._debouncedUpdateDirectories = (0, (_debounce || _load_debounce()).default)(this._updateDirectories.bind(this), UPDATE_DIRECTORIES_DEBOUNCE_DELAY,
     /* immediate */false);
     this._emitter = new _atom.Emitter();
-    this._subscriptions = new _atom.CompositeDisposable();
+    this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._querySubscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._quickOpenProviderRegistry = quickOpenProviderRegistry;
     this._queryStream = new _rxjsBundlesRxMinJs.Subject();
@@ -225,13 +232,13 @@ class SearchResultManager {
         _this._querySubscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
         for (const [directory, providers] of _this._directoryEligibleProviders) {
           for (const provider of providers) {
-            _this._querySubscriptions.add(_this._queryStream.debounceTime(getQueryDebounceDelay(provider)).subscribe(function (query) {
+            _this._querySubscriptions.add(_this._queryStream.let((0, (_observable || _load_observable()).fastDebounce)(getQueryDebounceDelay(provider))).subscribe(function (query) {
               return _this._executeDirectoryQuery(directory, provider, query);
             }));
           }
         }
         for (const provider of _this._globalEligibleProviders) {
-          _this._querySubscriptions.add(_this._queryStream.debounceTime(getQueryDebounceDelay(provider)).subscribe(function (query) {
+          _this._querySubscriptions.add(_this._queryStream.let((0, (_observable || _load_observable()).fastDebounce)(getQueryDebounceDelay(provider))).subscribe(function (query) {
             return _this._executeGlobalQuery(provider, query);
           }));
         }
@@ -422,7 +429,9 @@ class SearchResultManager {
         };
         const resultList = cachedResult.results || defaultResult.results;
         results[path] = {
-          results: resultList.map(result => Object.assign({}, result, {
+          results: resultList.map(result =>
+          // $FlowFixMe (v0.54.1 <)
+          Object.assign({}, result, {
             sourceProvider: providerName
           })),
           loading: cachedResult.loading || defaultResult.loading,
@@ -502,6 +511,5 @@ exports.default = SearchResultManager;
 const __test__ = exports.__test__ = {
   _getOmniSearchProviderSpec() {
     return OMNISEARCH_PROVIDER;
-  },
-  UPDATE_DIRECTORIES_DEBOUNCE_DELAY
+  }
 };

@@ -87,18 +87,18 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+// flowlint-next-line untyped-type-import:off
+const store = (_FileTreeStore || _load_FileTreeStore()).FileTreeStore.getInstance(); /**
+                                                                                      * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                      * All rights reserved.
+                                                                                      *
+                                                                                      * This source code is licensed under the license found in the LICENSE file in
+                                                                                      * the root directory of this source tree.
+                                                                                      *
+                                                                                      * 
+                                                                                      * @format
+                                                                                      */
 
-const store = (_FileTreeStore || _load_FileTreeStore()).FileTreeStore.getInstance();
 const getActions = (_FileTreeActions || _load_FileTreeActions()).default.getInstance;
 
 const SUBSEQUENT_FETCH_SPINNER_DELAY = 500;
@@ -119,13 +119,14 @@ class FileTreeEntryComponent extends _react.Component {
       }
 
       const node = this.props.node;
+      const isSelected = this.props.selectedNodes.has(node);
 
       const selectionMode = (_FileTreeHelpers || _load_FileTreeHelpers()).default.getSelectionMode(event);
-      if (selectionMode === 'multi-select' && !node.isSelected) {
+      if (selectionMode === 'multi-select' && !isSelected) {
         getActions().addSelectedNode(node.rootUri, node.uri);
       } else if (selectionMode === 'range-select') {
         getActions().rangeSelectToNode(node.rootUri, node.uri);
-      } else if (selectionMode === 'single-select' && !node.isSelected) {
+      } else if (selectionMode === 'single-select' && !isSelected) {
         getActions().setSelectedNode(node.rootUri, node.uri);
       }
     };
@@ -133,6 +134,8 @@ class FileTreeEntryComponent extends _react.Component {
     this._onClick = event => {
       event.stopPropagation();
       const node = this.props.node;
+      const isSelected = this.props.selectedNodes.has(node);
+      const isFocused = this.props.focusedNodes.has(node);
 
       const deep = event.altKey;
       if (this._isToggleNodeExpand(event)) {
@@ -147,7 +150,7 @@ class FileTreeEntryComponent extends _react.Component {
       }
 
       if (selectionMode === 'multi-select') {
-        if (node.isFocused) {
+        if (isFocused) {
           getActions().unselectNode(node.rootUri, node.uri);
           // If this node was just unselected, immediately return and skip
           // the statement below that sets this node to focused.
@@ -155,12 +158,13 @@ class FileTreeEntryComponent extends _react.Component {
         }
       } else {
         if (node.isContainer) {
-          if (node.isFocused || node.conf.usePreviewTabs) {
+          if (isFocused || node.conf.usePreviewTabs) {
             this._toggleNodeExpanded(deep);
           }
         } else {
           if (node.conf.usePreviewTabs) {
-            getActions().confirmNode(node.rootUri, node.uri);
+            getActions().confirmNode(node.rootUri, node.uri, true // pending
+            );
           }
         }
         // Set selected node to clear any other selected nodes (i.e. in the case of
@@ -168,7 +172,7 @@ class FileTreeEntryComponent extends _react.Component {
         getActions().setSelectedNode(node.rootUri, node.uri);
       }
 
-      if (node.isSelected) {
+      if (isSelected) {
         getActions().setFocusedNode(node.rootUri, node.uri);
       }
     };
@@ -180,11 +184,7 @@ class FileTreeEntryComponent extends _react.Component {
         return;
       }
 
-      if (this.props.node.conf.usePreviewTabs) {
-        getActions().keepPreviewTab();
-      } else {
-        getActions().confirmNode(this.props.node.rootUri, this.props.node.uri);
-      }
+      getActions().confirmNode(this.props.node.rootUri, this.props.node.uri);
     };
 
     this._onDragEnter = event => {
@@ -313,7 +313,7 @@ class FileTreeEntryComponent extends _react.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return nextProps.node !== this.props.node || nextState.isLoading !== this.state.isLoading;
+    return nextProps.node !== this.props.node || nextState.isLoading !== this.state.isLoading || nextProps.selectedNodes !== this.props.selectedNodes || nextProps.focusedNodes !== this.props.focusedNodes;
   }
 
   componentWillReceiveProps(nextProps) {
@@ -361,6 +361,7 @@ class FileTreeEntryComponent extends _react.Component {
 
   render() {
     const node = this.props.node;
+    const isSelected = this.props.selectedNodes.has(node);
 
     const outerClassName = (0, (_classnames || _load_classnames()).default)('entry', {
       'file list-item': !node.isContainer,
@@ -369,7 +370,7 @@ class FileTreeEntryComponent extends _react.Component {
       collapsed: !node.isLoading && !node.isExpanded,
       expanded: !node.isLoading && node.isExpanded,
       'project-root': node.isRoot,
-      selected: node.isSelected || node.isDragHovered,
+      selected: isSelected || node.isDragHovered,
       'nuclide-file-tree-softened': node.shouldBeSoftened,
       'nuclide-file-tree-root-being-reordered': node.isBeingReordered
     });
@@ -449,7 +450,7 @@ class FileTreeEntryComponent extends _react.Component {
             'data-name': node.name,
             'data-path': node.uri },
           this._renderCheckbox(),
-          (0, (_FileTreeFilterHelper || _load_FileTreeFilterHelper()).filterName)(node.name, node.highlightedText, node.isSelected)
+          (0, (_FileTreeFilterHelper || _load_FileTreeFilterHelper()).filterName)(node.name, node.highlightedText, isSelected)
         ),
         this._renderConnectionTitle()
       )

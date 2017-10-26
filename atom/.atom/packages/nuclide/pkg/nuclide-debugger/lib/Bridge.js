@@ -135,7 +135,13 @@ class Bridge {
 
     this._debuggerModel = debuggerModel;
     this._suppressBreakpointSync = false;
-    this._commandDispatcher = new (_CommandDispatcher || _load_CommandDispatcher()).default(() => debuggerModel.getStore().getIsReadonlyTarget());
+    this._commandDispatcher = new (_CommandDispatcher || _load_CommandDispatcher()).default(() => debuggerModel.getStore().getIsReadonlyTarget(), pausedEvent => {
+      const info = debuggerModel.getStore().getDebugProcessInfo();
+      if (info != null) {
+        return info.shouldFilterBreak(pausedEvent);
+      }
+      return false;
+    });
     this._consoleEvent$ = new _rxjsBundlesRxMinJs.Subject();
     this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(debuggerModel.getBreakpointStore().onUserChange(this._handleUserBreakpointChange.bind(this)));
     const subscription = (0, (_nuclideDebuggerBase || _load_nuclideDebuggerBase()).registerConsoleLogging)('Debugger', this._consoleEvent$);
@@ -229,12 +235,20 @@ class Bridge {
     this._commandDispatcher.send('setSingleThreadStepping', singleThreadStepping);
   }
 
+  setShowDisassembly(disassembly) {
+    this._commandDispatcher.send('setShowDisassembly', disassembly);
+  }
+
   selectThread(threadId) {
     this._commandDispatcher.send('selectThread', threadId);
     const threadNo = parseInt(threadId, 10);
     if (!isNaN(threadNo)) {
       this._debuggerModel.getActions().updateSelectedThread(threadNo);
     }
+  }
+
+  sendSetVariableCommand(scopeObjectId, expression, newValue, callback) {
+    this._commandDispatcher.send('setVariable', scopeObjectId, expression, newValue, callback);
   }
 
   sendEvaluationCommand(command, evalId, ...args) {
@@ -283,6 +297,7 @@ class Bridge {
     this.setPauseOnException(store.getTogglePauseOnException());
     this.setPauseOnCaughtException(store.getTogglePauseOnCaughtException());
     this.setSingleThreadStepping(store.getEnableSingleThreadStepping());
+    this.setShowDisassembly(store.getShowDisassembly());
   }
 
   _handleDebuggerPaused(options) {
@@ -358,7 +373,13 @@ class Bridge {
 
   _removeBreakpoint(breakpoint) {
     const { sourceURL, lineNumber } = breakpoint;
-    const path = (_nuclideUri || _load_nuclideUri()).default.uriToNuclideUri(sourceURL);
+    let path = (_nuclideUri || _load_nuclideUri()).default.uriToNuclideUri(sourceURL);
+    // For address based breakpoints handled by the backend, do not require
+    // a parsable file path here.
+    if (path != null && path === '/') {
+      path = sourceURL.replace('file://', '');
+    }
+
     // only handle real files for now.
     // flowlint-next-line sketchy-null-string:off
     if (path) {

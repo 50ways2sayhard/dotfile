@@ -141,6 +141,10 @@ class ArchiveFileSystem {
     return this._fs.isNfs(path);
   }
 
+  isFuse(path) {
+    return this._fs.isFuse(path);
+  }
+
   openArchive(path) {
     return this._fs.openArchive(path);
   }

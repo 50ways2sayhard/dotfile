@@ -207,12 +207,17 @@ module.exports = _client => {
     }).publish();
   };
 
-  remoteModule.getProcesses = function (arg0) {
+  remoteModule.getProcesses = function (arg0, arg1) {
     return Observable.fromPromise(_client.marshalArguments(Array.from(arguments), [{
       name: "device",
       type: {
         kind: "named",
         name: "DeviceId"
+      }
+    }, {
+      name: "timeout",
+      type: {
+        kind: "number"
       }
     }])).switchMap(args => {
       return _client.callRemoteFunction("SdbService/getProcesses", "observable", args);
@@ -640,7 +645,7 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "process.js",
-        line: 587
+        line: 598
       },
       name: "ProcessExitMessage",
       definition: {
@@ -678,7 +683,7 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "process.js",
-        line: 593
+        line: 604
       },
       name: "ProcessMessage",
       definition: {
@@ -752,7 +757,7 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "process.js",
-        line: 606
+        line: 617
       },
       name: "LegacyProcessMessage",
       definition: {
@@ -1021,6 +1026,11 @@ Object.defineProperty(module.exports, "defs", {
           type: {
             kind: "named",
             name: "DeviceId"
+          }
+        }, {
+          name: "timeout",
+          type: {
+            kind: "number"
           }
         }],
         returnType: {

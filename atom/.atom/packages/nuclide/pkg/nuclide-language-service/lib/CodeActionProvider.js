@@ -52,7 +52,11 @@ class CodeActionProvider {
         return [];
       }
 
-      const codeActions = yield (yield languageService).getCodeActions(fileVersion, range, diagnostics);
+      const codeActions = yield (yield languageService).getCodeActions(fileVersion, range,
+      // $FlowIssue: Flow doesn't understand this.
+      diagnostics.map(function (d) {
+        return Object.assign({}, d, { actions: undefined });
+      }));
 
       return codeActions.map(function (action) {
         return {

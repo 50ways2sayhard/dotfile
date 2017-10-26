@@ -85,12 +85,17 @@ function trackEvents(events) {
 }
 
 const PERFORMANCE_EVENT = 'performance';
-
+const canMeasure = typeof performance !== 'undefined';
 class TimingTracker {
 
   constructor(eventName) {
     this._eventName = eventName;
+    this._startMark = `${this._eventName}_${TimingTracker.eventCount++}_start`;
     this._startTime = (0, (_performanceNow || _load_performanceNow()).default)();
+    if (canMeasure) {
+      // eslint-disable-next-line no-undef
+      performance.mark(this._startMark);
+    }
   }
 
   onError(error) {
@@ -102,6 +107,18 @@ class TimingTracker {
   }
 
   _trackTimingEvent(exception) {
+    if (canMeasure) {
+      /* eslint-disable no-undef */
+      // call measure to add this information to the devtools timeline in the
+      // case the profiler is running.
+      performance.measure(this._eventName, this._startMark);
+      // then clear all the marks and measurements to avoid growing the
+      // performance entry buffer
+      performance.clearMarks(this._startMark);
+      performance.clearMeasures(this._eventName);
+      /* eslint-enable no-undef */
+    }
+
     track(PERFORMANCE_EVENT, {
       duration: Math.round((0, (_performanceNow || _load_performanceNow()).default)() - this._startTime).toString(),
       eventName: this._eventName,
@@ -112,6 +129,7 @@ class TimingTracker {
 }
 
 exports.TimingTracker = TimingTracker;
+TimingTracker.eventCount = 0;
 function startTracking(eventName) {
   return new TimingTracker(eventName);
 }

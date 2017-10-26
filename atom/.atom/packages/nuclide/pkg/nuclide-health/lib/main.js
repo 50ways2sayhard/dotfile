@@ -78,22 +78,20 @@ function _load_trackStalls() {
   return _trackStalls = _interopRequireDefault(require('./trackStalls'));
 }
 
+var _ToolbarUtils;
+
+function _load_ToolbarUtils() {
+  return _ToolbarUtils = require('../../nuclide-ui/ToolbarUtils');
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-// Imports from within this Nuclide package.
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+// Imports from other Nuclide packages.
 
+
+// Imports from non-Nuclide modules.
 class Activation {
 
   constructor(state) {
@@ -134,12 +132,12 @@ class Activation {
 
   consumeToolBar(getToolBar) {
     const toolBar = getToolBar('nuclide-health');
-    this._healthButton = toolBar.addButton({
+    this._healthButton = toolBar.addButton((0, (_ToolbarUtils || _load_ToolbarUtils()).makeToolbarButtonSpec)({
       icon: 'dashboard',
       callback: 'nuclide-health:toggle',
       tooltip: 'Toggle Nuclide health stats',
       priority: -400
-    }).element;
+    })).element;
     this._healthButton.classList.add('nuclide-health-jewel');
     const disposable = new _atom.Disposable(() => {
       this._healthButton = null;
@@ -194,7 +192,7 @@ class Activation {
       const aggregates = aggregate(analyticsBuffer.map(stats => typeof stats[statsKey] === 'number' ? stats[statsKey] : 0));
       Object.keys(aggregates).forEach(aggregatesKey => {
         const value = aggregates[aggregatesKey];
-        if (value !== null && value !== undefined) {
+        if (value != null) {
           aggregateStats[`${statsKey}_${aggregatesKey}`] = value.toFixed(2);
         }
       });
@@ -203,11 +201,17 @@ class Activation {
   }
 }
 
-// Imports from other Nuclide packages.
-
-
-// Imports from non-Nuclide modules.
-
+// Imports from within this Nuclide package.
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 function aggregate(values) {
   const avg = values.reduce((prevValue, currValue, index) => {

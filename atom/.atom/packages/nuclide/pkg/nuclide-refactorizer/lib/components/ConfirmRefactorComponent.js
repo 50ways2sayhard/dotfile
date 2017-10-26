@@ -28,7 +28,7 @@ function _load_Button() {
 var _Tree;
 
 function _load_Tree() {
-  return _Tree = require('../../../nuclide-ui/Tree');
+  return _Tree = require('nuclide-commons-ui/Tree');
 }
 
 var _PathWithFileIcon;

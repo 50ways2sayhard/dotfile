@@ -62,11 +62,6 @@ const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-working-sets-
 */
 class WorkingSet {
 
-  static union(...sets) {
-    const combinedUris = [].concat(...sets.map(s => s._uris));
-    return new WorkingSet(combinedUris);
-  }
-
   constructor(uris = []) {
     try {
       this._uris = (0, (_uri || _load_uri()).dedupeUris)(uris.filter(uri => !(_nuclideUri || _load_nuclideUri()).default.isBrokenDeserializedUri(uri)));

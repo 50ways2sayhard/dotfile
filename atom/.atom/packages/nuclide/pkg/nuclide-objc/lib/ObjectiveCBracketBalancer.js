@@ -119,12 +119,15 @@ class ObjectiveCBracketBalancer {
       let currentRowPlusOne = null;
       let match = multiLineMethodRegex.exec(buffer.lineForRow(currentRow));
 
+      // eslint-disable-next-line eqeqeq
       while (match !== null) {
         currentRowPlusOne = currentRow;
         match = multiLineMethodRegex.exec(buffer.lineForRow(--currentRow));
       }
 
-      if (currentRowPlusOne !== null && currentRowPlusOne !== closeBracketPosition.row) {
+      if (
+      // eslint-disable-next-line eqeqeq
+      currentRowPlusOne !== null && currentRowPlusOne !== closeBracketPosition.row) {
         const targetLine = buffer.lineForRow(currentRowPlusOne);
         const targetMatch = /\S/.exec(targetLine);
 

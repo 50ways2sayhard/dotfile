@@ -77,7 +77,11 @@ function _load_Bridge() {
   return _Bridge = _interopRequireDefault(require('./Bridge'));
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _DebuggerDispatcher;
 
@@ -118,20 +122,20 @@ class DebuggerModel {
     this._emitter = new _events.default();
     this._store = new (_DebuggerStore || _load_DebuggerStore()).DebuggerStore(this._dispatcher, this);
     this._actions = new (_DebuggerActions || _load_DebuggerActions()).default(this._dispatcher, this._store);
-    this._breakpointStore = new (_BreakpointStore || _load_BreakpointStore()).default(this._dispatcher, state ? state.breakpoints : null, // serialized breakpoints
+    this._breakpointStore = new (_BreakpointStore || _load_BreakpointStore()).default(this._dispatcher, state != null ? state.breakpoints : null, // serialized breakpoints
     this._store);
     this._breakpointManager = new (_BreakpointManager || _load_BreakpointManager()).default(this._breakpointStore, this._actions);
     this._bridge = new (_Bridge || _load_Bridge()).default(this);
     this._debuggerProviderStore = new (_DebuggerProviderStore || _load_DebuggerProviderStore()).DebuggerProviderStore(this._dispatcher, this._actions);
     this._watchExpressionStore = new (_WatchExpressionStore || _load_WatchExpressionStore()).WatchExpressionStore(this._dispatcher, this._bridge);
-    this._watchExpressionListStore = new (_WatchExpressionListStore || _load_WatchExpressionListStore()).WatchExpressionListStore(this._watchExpressionStore, this._dispatcher);
+    this._watchExpressionListStore = new (_WatchExpressionListStore || _load_WatchExpressionListStore()).WatchExpressionListStore(this._watchExpressionStore, this._dispatcher, state != null ? state.watchExpressions : null);
     this._debuggerActionStore = new (_DebuggerActionsStore || _load_DebuggerActionsStore()).default(this._dispatcher, this._bridge);
     this._callstackStore = new (_CallstackStore || _load_CallstackStore()).default(this._dispatcher, this._store);
-    this._scopesStore = new (_ScopesStore || _load_ScopesStore()).default(this._dispatcher);
+    this._scopesStore = new (_ScopesStore || _load_ScopesStore()).default(this._dispatcher, this._bridge, this._store);
     this._threadStore = new (_ThreadStore || _load_ThreadStore()).default(this._dispatcher);
     this._debuggerPauseController = new (_DebuggerPauseController || _load_DebuggerPauseController()).DebuggerPauseController(this._store);
 
-    this._disposables = new _atom.CompositeDisposable(this._store, this._actions, this._breakpointStore, this._breakpointManager, this._bridge, this._debuggerProviderStore, this._watchExpressionStore, this._debuggerActionStore, this._callstackStore, this._scopesStore, this._threadStore, this._debuggerPauseController);
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(this._store, this._actions, this._breakpointStore, this._breakpointManager, this._bridge, this._debuggerProviderStore, this._watchExpressionStore, this._debuggerActionStore, this._callstackStore, this._scopesStore, this._threadStore, this._debuggerPauseController);
   }
 
   dispose() {

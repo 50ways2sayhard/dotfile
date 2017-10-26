@@ -76,6 +76,7 @@ function getPreferred(groups, name, chooseFirst) {
   }
   let match;
   // We want === in case of an empty string
+  // eslint-disable-next-line eqeqeq
   if (name === null || chooseFirst) {
     match = null;
   } else {

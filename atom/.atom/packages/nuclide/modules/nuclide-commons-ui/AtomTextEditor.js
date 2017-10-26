@@ -13,8 +13,6 @@ function _load_classnames() {
 
 var _react = _interopRequireWildcard(require('react'));
 
-var _reactDom = _interopRequireDefault(require('react-dom'));
-
 var _atom = require('atom');
 
 var _textEditor;
@@ -33,17 +31,19 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const doNothing = () => {}; /**
-                             * Copyright (c) 2017-present, Facebook, Inc.
-                             * All rights reserved.
-                             *
-                             * This source code is licensed under the BSD-style license found in the
-                             * LICENSE file in the root directory of this source tree. An additional grant
-                             * of patent rights can be found in the PATENTS file in the same directory.
-                             *
-                             * 
-                             * @format
-                             */
+/**
+ * Copyright (c) 2017-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * 
+ * @format
+ */
+
+const doNothing = () => {};
 
 function setupTextEditor(props) {
   const textBuffer = props.textBuffer || new _atom.TextBuffer();
@@ -55,7 +55,7 @@ function setupTextEditor(props) {
 
   const disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
   if (props.onDidTextBufferChange != null) {
-    disposables.add(textBuffer.onDidChange(props.onDidTextBufferChange));
+    disposables.add(textBuffer.onDidChangeText(props.onDidTextBufferChange));
   }
 
   const textEditorParams = {
@@ -77,7 +77,7 @@ function setupTextEditor(props) {
   }
 
   if (props.readOnly) {
-    (0, (_textEditor || _load_textEditor()).enforceReadOnly)(textEditor);
+    (0, (_textEditor || _load_textEditor()).enforceReadOnlyEditor)(textEditor);
 
     // Remove the cursor line decorations because that's distracting in read-only mode.
     textEditor.getDecorations({ class: 'cursor-line' }).forEach(decoration => {
@@ -103,12 +103,16 @@ class AtomTextEditor extends _react.Component {
   }
 
   _updateTextEditor(setup) {
+    const container = this._rootElement;
+    if (container == null) {
+      return;
+    }
+
     this._editorDisposables.dispose();
     const { textEditor, disposables } = setup;
 
     this._editorDisposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(disposables);
 
-    const container = _reactDom.default.findDOMNode(this);
     const textEditorElement = this._textEditorElement = document.createElement('atom-text-editor');
     textEditorElement.setModel(textEditor);
     textEditorElement.setAttribute('tabindex', this.props.tabIndex);
@@ -126,16 +130,25 @@ class AtomTextEditor extends _react.Component {
         if (correctlySizedElement == null) {
           return;
         }
-        // $FlowFixMe
         container.style.width = correctlySizedElement.style.width;
       }));
     }
 
     // Attach to DOM.
-    // $FlowFixMe
     container.innerHTML = '';
-    // $FlowFixMe
     container.appendChild(textEditorElement);
+
+    if (this.props.onConfirm != null) {
+      this._editorDisposables.add(atom.commands.add(textEditorElement, {
+        'core:confirm': () => {
+          if (!(this.props.onConfirm != null)) {
+            throw new Error('Invariant violation: "this.props.onConfirm != null"');
+          }
+
+          this.props.onConfirm();
+        }
+      }));
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -221,7 +234,10 @@ class AtomTextEditor extends _react.Component {
     const className = (0, (_classnames || _load_classnames()).default)(this.props.className, 'nuclide-text-editor-container', {
       'no-auto-grow': !this.props.autoGrow
     });
-    return _react.createElement('div', { className: className });
+    return _react.createElement('div', {
+      className: className,
+      ref: rootElement => this._rootElement = rootElement
+    });
   }
 
   // This component wraps the imperative API of `<atom-text-editor>`, and so React's rendering

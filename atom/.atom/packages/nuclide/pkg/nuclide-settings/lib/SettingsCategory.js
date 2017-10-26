@@ -9,7 +9,7 @@ var _react = _interopRequireWildcard(require('react'));
 var _SettingsControl;
 
 function _load_SettingsControl() {
-  return _SettingsControl = _interopRequireDefault(require('./SettingsControl'));
+  return _SettingsControl = _interopRequireDefault(require('nuclide-commons-ui/SettingsControl'));
 }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

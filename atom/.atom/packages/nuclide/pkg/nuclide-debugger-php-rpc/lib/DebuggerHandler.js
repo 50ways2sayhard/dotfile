@@ -79,10 +79,10 @@ function _load_nullthrows() {
   return _nullthrows = _interopRequireDefault(require('nullthrows'));
 }
 
-var _eventKit;
+var _UniversalDisposable;
 
-function _load_eventKit() {
-  return _eventKit = require('event-kit');
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
 }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -122,7 +122,7 @@ class DebuggerHandler {
     this._eventSender = eventSender;
     this._hadFirstContinuationCommand = false;
     this._connectionMultiplexer = new (_ConnectionMultiplexer || _load_ConnectionMultiplexer()).ConnectionMultiplexer(this._sendOutput.bind(this), this._sendNotification.bind(this));
-    this._subscriptions = new (_eventKit || _load_eventKit()).CompositeDisposable(this._connectionMultiplexer.onStatus(this._onStatusChanged.bind(this)), this._connectionMultiplexer.onNotification(this._onNotification.bind(this)), this._connectionMultiplexer);
+    this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default(this._connectionMultiplexer.onStatus(this._onStatusChanged.bind(this)), this._connectionMultiplexer.onNotification(this._onNotification.bind(this)), this._connectionMultiplexer);
     this._removeBreakpoint = this._removeBreakpoint.bind(this);
   }
 
@@ -223,9 +223,8 @@ class DebuggerHandler {
     var _this4 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      // this._connectionMultiplexer.selectThread(id);
       const frames = yield _this4._connectionMultiplexer.getConnectionStackFrames(id);
-      if (frames != null && frames.stack != null || frames.stack.length === 0) {
+      if (frames != null && frames.stack != null && frames.stack.length !== 0) {
         return Promise.all(frames.stack.map(function (frame, frameIndex) {
           return _this4._convertFrame(frame, frameIndex);
         }));
@@ -243,7 +242,10 @@ class DebuggerHandler {
       return scopes.map(function (scope) {
         return new (_vscodeDebugadapter || _load_vscodeDebugadapter()).Scope(
         // flowlint-next-line sketchy-null-string:off
-        scope.object.description || scope.name || scope.type, _this5._variableHandles.create((0, (_nullthrows || _load_nullthrows()).default)(scope.object.objectId)), true);
+        scope.object.description || scope.name || scope.type, _this5._variableHandles.create({
+          objectId: (0, (_nullthrows || _load_nullthrows()).default)(scope.object.objectId),
+          frameId: frameIndex
+        }), true);
       });
     })();
   }
@@ -263,20 +265,24 @@ class DebuggerHandler {
 
   _sendContinuationCommand(command) {
     (_utils2 || _load_utils2()).default.debug('Sending continuation command: ' + command);
-    this._connectionMultiplexer.sendContinuationCommand(command);
+    return this._connectionMultiplexer.sendContinuationCommand(command);
   }
 
   pause() {
-    this._connectionMultiplexer.pause();
+    return this._connectionMultiplexer.pause();
   }
 
   resume() {
-    if (!this._hadFirstContinuationCommand) {
-      this._hadFirstContinuationCommand = true;
-      this._subscriptions.add(this._connectionMultiplexer.listen(this._endSession.bind(this)));
-      return;
-    }
-    this._connectionMultiplexer.resume();
+    var _this6 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      if (!_this6._hadFirstContinuationCommand) {
+        _this6._hadFirstContinuationCommand = true;
+        _this6._subscriptions.add(_this6._connectionMultiplexer.listen(_this6._endSession.bind(_this6)));
+        return;
+      }
+      yield _this6._connectionMultiplexer.resume();
+    })();
   }
 
   _updateBreakpointHitCount() {
@@ -306,27 +312,27 @@ class DebuggerHandler {
   }
 
   continueToLocation(params) {
-    var _this6 = this;
+    var _this7 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const enabledConnection = _this6._connectionMultiplexer.getEnabledConnection();
+      const enabledConnection = _this7._connectionMultiplexer.getEnabledConnection();
       const { source, line } = params;
       if (enabledConnection == null) {
         throw new Error('No active connection to continue on!');
       }
 
-      const breakpointStore = _this6._connectionMultiplexer.getBreakpointStore();
+      const breakpointStore = _this7._connectionMultiplexer.getBreakpointStore();
 
-      if (_this6._temporaryBreakpointpointId != null) {
-        yield breakpointStore.removeBreakpoint(_this6._temporaryBreakpointpointId);
-        _this6._temporaryBreakpointpointId = null;
+      if (_this7._temporaryBreakpointpointId != null) {
+        yield breakpointStore.removeBreakpoint(_this7._temporaryBreakpointpointId);
+        _this7._temporaryBreakpointpointId = null;
       }
 
       // Chrome lineNumber is 0-based while xdebug lineno is 1-based.
-      _this6._temporaryBreakpointpointId = yield breakpointStore.setFileLineBreakpointForConnection(enabledConnection, String(++_this6._breakpointId), (0, (_nullthrows || _load_nullthrows()).default)(source.path), line,
+      _this7._temporaryBreakpointpointId = yield breakpointStore.setFileLineBreakpointForConnection(enabledConnection, String(++_this7._breakpointId), (0, (_nullthrows || _load_nullthrows()).default)(source.path), line,
       /* condition */'');
 
-      const breakpoint = breakpointStore.getBreakpoint(_this6._temporaryBreakpointpointId);
+      const breakpoint = breakpointStore.getBreakpoint(_this7._temporaryBreakpointpointId);
 
       if (!(breakpoint != null)) {
         throw new Error('Invariant violation: "breakpoint != null"');
@@ -340,35 +346,35 @@ class DebuggerHandler {
 
 
       yield (0, (_promise || _load_promise()).sleep)(RESOLVE_BREAKPOINT_DELAY_MS);
-      _this6.resume();
+      _this7.resume();
     })();
   }
 
   stepOver() {
-    this._sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_STEP_OVER);
+    return this._sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_STEP_OVER);
   }
 
   stepInto() {
-    this._sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_STEP_INTO);
+    return this._sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_STEP_INTO);
   }
 
   stepOut() {
-    this._sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_STEP_OUT);
+    return this._sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_STEP_OUT);
   }
 
   _onStatusChanged(status) {
-    var _this7 = this;
+    var _this8 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       (_utils2 || _load_utils2()).default.debug('Sending status: ' + status);
       switch (status) {
         case (_ConnectionMultiplexer || _load_ConnectionMultiplexer()).ConnectionMultiplexerStatus.AllConnectionsPaused:
         case (_ConnectionMultiplexer || _load_ConnectionMultiplexer()).ConnectionMultiplexerStatus.SingleConnectionPaused:
-          _this7._updateBreakpointHitCount();
-          yield _this7._sendPausedMessage();
+          _this8._updateBreakpointHitCount();
+          yield _this8._sendPausedMessage();
           break;
         case (_ConnectionMultiplexer || _load_ConnectionMultiplexer()).ConnectionMultiplexerStatus.End:
-          _this7._endSession();
+          _this8._endSession();
           break;
         default:
           (_utils2 || _load_utils2()).default.warn(`Unused ConnectionMultiplexerStatus:  ${status}`);
@@ -378,7 +384,7 @@ class DebuggerHandler {
   }
 
   _onNotification(notifyName, params) {
-    var _this8 = this;
+    var _this9 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       switch (notifyName) {
@@ -388,7 +394,7 @@ class DebuggerHandler {
           }
 
           const breakpoint = params;
-          _this8._resolveBreakpoint(Number(breakpoint.chromeId));
+          _this9._resolveBreakpoint(Number(breakpoint.chromeId));
           break;
         case (_ConnectionMultiplexer || _load_ConnectionMultiplexer()).ConnectionMultiplexerNotification.RequestUpdate:
           (_utils2 || _load_utils2()).default.debug('ConnectionMultiplexerNotification.RequestUpdate');
@@ -418,19 +424,19 @@ class DebuggerHandler {
 
   // May only call when in paused state.
   _sendPausedMessage() {
-    var _this9 = this;
+    var _this10 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const requestSwitchMessage = _this9._connectionMultiplexer.getRequestSwitchMessage();
-      _this9._connectionMultiplexer.resetRequestSwitchMessage();
+      const requestSwitchMessage = _this10._connectionMultiplexer.getRequestSwitchMessage();
+      _this10._connectionMultiplexer.resetRequestSwitchMessage();
       if (requestSwitchMessage != null) {
-        _this9._sendOutput(requestSwitchMessage, 'info');
+        _this10._sendOutput(requestSwitchMessage, 'info');
       }
-      const enabledConnectionId = _this9._connectionMultiplexer.getEnabledConnectionId();
+      const enabledConnectionId = _this10._connectionMultiplexer.getEnabledConnectionId();
       if (enabledConnectionId == null) {
         throw new Error('No active hhvm connection to pause!');
       }
-      _this9._eventSender(new (_vscodeDebugadapter || _load_vscodeDebugadapter()).StoppedEvent('breakpoint', enabledConnectionId));
+      _this10._eventSender(new (_vscodeDebugadapter || _load_vscodeDebugadapter()).StoppedEvent('breakpoint', enabledConnectionId));
     })();
   }
 
@@ -445,14 +451,14 @@ class DebuggerHandler {
   }
 
   getProperties(variablesReference) {
-    var _this10 = this;
+    var _this11 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const id = _this10._variableHandles.get(variablesReference);
-      if (id == null) {
+      const { objectId } = _this11._variableHandles.get(variablesReference);
+      if (objectId == null) {
         return [];
       }
-      const properties = yield _this10._connectionMultiplexer.getProperties(id);
+      const properties = yield _this11._connectionMultiplexer.getProperties(objectId);
       return properties.map(function (prop) {
         return {
           name: prop.name,
@@ -462,22 +468,25 @@ class DebuggerHandler {
           prop.value && (prop.value.description || prop.value.value)),
           variablesReference:
           // flowlint-next-line sketchy-null-string:off
-          prop.value && prop.value.objectId ? _this10._variableHandles.create(prop.value.objectId) : 0
+          prop.value && prop.value.objectId ? _this11._variableHandles.create({
+            objectId: prop.value.objectId,
+            frameId: null
+          }) : 0
         };
       });
     })();
   }
 
   evaluate(expression, frameId, response) {
-    var _this11 = this;
+    var _this12 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const hphpdExpression = (0, (_utils || _load_utils()).makeExpressionHphpdCompatible)(expression);
       let hhResult;
       if (frameId == null) {
-        hhResult = yield _this11._connectionMultiplexer.runtimeEvaluate(hphpdExpression);
+        hhResult = yield _this12._connectionMultiplexer.runtimeEvaluate(hphpdExpression);
       } else {
-        hhResult = yield _this11._connectionMultiplexer.evaluateOnCallFrame(frameId, hphpdExpression);
+        hhResult = yield _this12._connectionMultiplexer.evaluateOnCallFrame(frameId, hphpdExpression);
       }
       if (hhResult.wasThrown) {
         response.success = false;
@@ -489,10 +498,44 @@ class DebuggerHandler {
           }
         };
       } else {
+        const objectId = hhResult.result.objectId;
         response.body = {
           type: hhResult.result.type,
           result: String(hhResult.result.description || hhResult.result.value),
-          variablesReference: hhResult.result.objectId ? _this11._variableHandles.create(hhResult.result.objectId) : 0
+          variablesReference: objectId ? _this12._variableHandles.create({
+            objectId,
+            frameId: null
+          }) : 0
+        };
+      }
+    })();
+  }
+
+  setVariable(variablesReference, name, value, response) {
+    var _this13 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      const { frameId } = _this13._variableHandles.get(variablesReference);
+      if (frameId != null) {
+        const hhResult = yield _this13._connectionMultiplexer.evaluateOnCallFrame(frameId, (0, (_utils || _load_utils()).makeExpressionHphpdCompatible)(name + ' = ' + value));
+        if (hhResult.wasThrown) {
+          response.success = false;
+          // $FlowIgnore: returning an ErrorResponse.
+          response.body = {
+            error: {
+              id: hhResult.error.$.code,
+              format: hhResult.error.message[0]
+            }
+          };
+        } else {
+          response.success = true;
+          response.body = { value };
+        }
+      } else {
+        response.success = false;
+        // $FlowIgnore: returning an ErrorResponse.
+        response.body = {
+          format: `No frame found for variable: ${name} in container: ${variablesReference}`
         };
       }
     })();

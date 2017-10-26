@@ -62,9 +62,14 @@ class LinkTreeManager {
       const realBasePath = yield (_fsPromise || _load_fsPromise()).default.realpath(basePath);
       const realSrcPath = yield (_fsPromise || _load_fsPromise()).default.realpath(src);
 
+      // TODO: Buck rdeps performance is too slow, so only search the immediate Buck file.
+      // Reconsider this if things look better.
+      const MAX_ITER = 1;
+
+      let iter = 0;
       let currPath = (_nuclideUri || _load_nuclideUri()).default.dirname(realSrcPath);
 
-      while ((_nuclideUri || _load_nuclideUri()).default.contains(realBasePath, currPath)) {
+      while ((_nuclideUri || _load_nuclideUri()).default.contains(realBasePath, currPath) && iter < MAX_ITER) {
         const relativePath = (_nuclideUri || _load_nuclideUri()).default.relative(realBasePath, currPath);
         if (relativePath === '.' || relativePath === '') {
           break;
@@ -83,6 +88,7 @@ class LinkTreeManager {
           // BUCK/TARGETS file.
         }
         currPath = (_nuclideUri || _load_nuclideUri()).default.dirname(currPath);
+        iter++;
       }
 
       return [];

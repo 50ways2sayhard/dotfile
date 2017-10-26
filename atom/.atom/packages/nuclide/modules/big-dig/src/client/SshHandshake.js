@@ -41,18 +41,6 @@ function _load_promise() {
   return _promise = require('nuclide-commons/promise');
 }
 
-var _string;
-
-function _load_string() {
-  return _string = require('nuclide-commons/string');
-}
-
-var _temp;
-
-function _load_temp() {
-  return _temp = require('../common/temp');
-}
-
 var _ConnectionTracker;
 
 function _load_ConnectionTracker() {
@@ -77,22 +65,26 @@ function _load_events() {
   return _events = require('../common/events');
 }
 
+var _RemotePackage;
+
+function _load_RemotePackage() {
+  return _RemotePackage = require('./RemotePackage');
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // TODO
-/**
- * Copyright (c) 2017-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- * 
- * @format
- */
-
-function restoreBigDigClient(address) {}
+function restoreBigDigClient(address) {} /**
+                                          * Copyright (c) 2017-present, Facebook, Inc.
+                                          * All rights reserved.
+                                          *
+                                          * This source code is licensed under the BSD-style license found in the
+                                          * LICENSE file in the root directory of this source tree. An additional grant
+                                          * of patent rights can be found in the PATENTS file in the same directory.
+                                          *
+                                          * 
+                                          * @format
+                                          */
 
 // Sync word and regex pattern for parsing command stdout.
 const READY_TIMEOUT_MS = 120 * 1000;
@@ -119,8 +111,27 @@ const ErrorType = Object.freeze({
   SERVER_CANNOT_CONNECT: 'SERVER_CANNOT_CONNECT',
   SFTP_TIMEOUT: 'SFTP_TIMEOUT',
   UNSUPPORTED_AUTH_METHOD: 'UNSUPPORTED_AUTH_METHOD',
-  USER_CANCELLED: 'USER_CANCELLED'
+  USER_CANCELLED: 'USER_CANCELLED',
+  SERVER_SETUP_FAILED: 'SERVER_SETUP_FAILED'
 });
+
+/** A prompt from ssh */
+
+
+/** We need the user's private-key password */
+
+
+/**
+ * Prompt for installing a remote server. Emitted when a server does not exist and the given
+ * installation path has no conflicts (i.e. is nonexistant or empty).
+ */
+
+
+/**
+ * Prompt for updating the remote server. Emitted when a valid server is already installed, but it
+ * is the wrong version for our client.
+ */
+
 
 /**
  * The server is asking for replies to the given prompts for
@@ -186,15 +197,15 @@ class SshHandshake {
     this._delegate.onDidConnect(connection, this._config);
   }
 
-  _getPassword(prompt) {
+  _userPromptSingle(prompt) {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const [password] = yield _this._delegate.onKeyboardInteractive('' /* name */
+      const [answer] = yield _this._delegate.onKeyboardInteractive('' /* name */
       , '' /* instructions */
       , '' /* instructionsLang */
-      , [{ prompt, echo: false }]);
-      return password;
+      , [prompt]);
+      return answer;
     })();
   }
 
@@ -248,7 +259,7 @@ class SshHandshake {
           readyTimeout: READY_TIMEOUT_MS
         };
       } else {
-        throw new SshHandshakeError(`Unsupported authentication method: ${config.authMethod}.`, SshHandshake.ErrorType.UNSUPPORTED_AUTH_METHOD, new Error());
+        throw new SshHandshakeError(`Unsupported authentication method: ${config.authMethod}.`, SshHandshake.ErrorType.UNSUPPORTED_AUTH_METHOD);
       }
     })();
   }
@@ -305,7 +316,12 @@ class SshHandshake {
       // Using a private key, but no password was provided:
       if (error.needsPrivateKeyPassword) {
         const prompt = 'Encrypted private key detected, but no passphrase given.\n' + `Enter passphrase for ${config.pathToPrivateKey}: `;
-        const password = yield _this3._getPassword(prompt);
+        const password = yield _this3._userPromptSingle({
+          kind: 'private-key',
+          prompt,
+          echo: false,
+          retry: false
+        });
         authError = yield _this3._connectOrNeedsAuth(Object.assign({}, connectConfig, {
           password
         }));
@@ -320,7 +336,12 @@ class SshHandshake {
         ++attempts;
 
         // eslint-disable-next-line no-await-in-loop
-        const password = yield _this3._getPassword(prompt);
+        const password = yield _this3._userPromptSingle({
+          kind: 'private-key',
+          prompt,
+          echo: false,
+          retry: true
+        });
         // eslint-disable-next-line no-await-in-loop
         authError = yield _this3._connectOrNeedsAuth(Object.assign({}, connectConfig, {
           password
@@ -394,7 +415,7 @@ class SshHandshake {
 
         // eslint-disable-next-line no-console
         console.error(`SshHandshake failed: ${error.errorType}, ${error.message}`, error.innerError);
-        _this4._delegate.onError(error.errorType, error.innerError, _this4._config);
+        _this4._delegate.onError(error.errorType, innerError, _this4._config);
 
         throw error;
       }
@@ -402,12 +423,20 @@ class SshHandshake {
   }
 
   cancel() {
-    this._cancelled = true;
-    this._connection.end();
+    var _this5 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      _this5._cancelled = true;
+      yield _this5._connection.end();
+    })();
   }
 
   _onKeyboardInteractive(name, instructions, instructionsLang, prompts) {
-    return this._delegate.onKeyboardInteractive(name, instructions, instructionsLang, prompts);
+    return this._delegate.onKeyboardInteractive(name, instructions, instructionsLang, prompts.map(prompt => ({
+      kind: 'ssh',
+      prompt: prompt.prompt,
+      echo: prompt.echo === undefined ? false : prompt.echo
+    })));
   }
 
   _forwardSocket(socket) {
@@ -478,13 +507,13 @@ class SshHandshake {
    * @param {*} remoteTempFile - where the server bootstrap wrote start info.
    */
   _loadServerStartInformation(remoteTempFile) {
-    var _this5 = this;
+    var _this6 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const createSftp = (() => {
         var _ref = (0, _asyncToGenerator.default)(function* () {
           try {
-            return yield (0, (_promise || _load_promise()).timeoutPromise)(_this5._connection.sftp(), SFTP_TIMEOUT_MS);
+            return yield (0, (_promise || _load_promise()).timeoutPromise)(_this6._connection.sftp(), SFTP_TIMEOUT_MS);
           } catch (error) {
             const reason = error instanceof (_promise || _load_promise()).TimedOutError ? SshHandshake.ErrorType.SFTP_TIMEOUT : SshHandshake.ErrorType.SERVER_START_FAILED;
             throw new SshHandshakeError('Failed to start sftp connection', reason, error);
@@ -497,14 +526,10 @@ class SshHandshake {
       })();
       const getServerStartInfo = (() => {
         var _ref2 = (0, _asyncToGenerator.default)(function* (sftp) {
-          const localTempFile = yield (0, (_temp || _load_temp()).tempfile)();
           try {
-            yield sftp.fastGet(remoteTempFile, localTempFile);
-            return yield (_fs || _load_fs()).default.readFileAsString(localTempFile, 'utf8');
+            return yield sftp.readFile(remoteTempFile, { encoding: 'utf8' });
           } catch (sftpError) {
             throw new SshHandshakeError('Failed to transfer server start information', SshHandshake.ErrorType.SERVER_START_FAILED, sftpError);
-          } finally {
-            (_fs || _load_fs()).default.unlink(localTempFile);
           }
         });
 
@@ -518,58 +543,114 @@ class SshHandshake {
         const serverInfoJson = yield (0, (_promise || _load_promise()).lastly)(getServerStartInfo(sftp), function () {
           return sftp.end();
         });
-        const serverInfo = _this5._parseServerStartInfo(serverInfoJson);
+        const serverInfo = _this6._parseServerStartInfo(serverInfoJson);
         // Update server info that is needed for setting up client.
-        _this5._updateServerInfo(serverInfo);
+        _this6._updateServerInfo(serverInfo);
       } catch (error) {
         throw new SshHandshakeError('Unknown error while acquiring server start information', SshHandshake.ErrorType.UNKNOWN, error);
       }
     })();
   }
 
+  _installServerPackage(server) {
+    var _this7 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      const answer = yield _this7._userPromptSingle({
+        kind: 'install',
+        prompt: 'Cannot find the remote server in ${server.getInstallationPath()}. Abort or install?',
+        echo: true,
+        installationPath: server.getInstallationPath(),
+        options: ['abort', 'install']
+      });
+      if (answer === 'install') {
+        yield server.install(_this7._connection);
+      } else {
+        throw new SshHandshakeError('Server setup was aborted by the user', SshHandshake.ErrorType.SERVER_SETUP_FAILED);
+      }
+    })();
+  }
+
+  _updateServerPackage(server, current, expected) {
+    var _this8 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      const answer = yield _this8._userPromptSingle({
+        kind: 'update',
+        prompt: `The remote server version is ${current}, but ${expected} is required. Abort or update?`,
+        echo: true,
+        current,
+        expected,
+        options: ['abort', 'update']
+      });
+      if (answer === 'update') {
+        yield server.install(_this8._connection, { force: true });
+      } else {
+        throw new SshHandshakeError('Server setup was aborted by the user', SshHandshake.ErrorType.SERVER_SETUP_FAILED);
+      }
+    })();
+  }
+
+  /**
+   * Makes sure that the remote server is installed, possibly installing it if necessary.
+   * @param {*} remoteServer Represents the remore server
+   */
+  _setupServerPackage(serverParams) {
+    var _this9 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      let server;
+      let check;
+      try {
+        server = (0, (_RemotePackage || _load_RemotePackage()).getPackage)(serverParams);
+        check = yield server.verifyInstallation(_this9._connection);
+      } catch (error) {
+        throw new SshHandshakeError('Could not verify server installation', SshHandshake.ErrorType.SERVER_SETUP_FAILED, error);
+      }
+
+      if (check.status === 'needs-install') {
+        yield _this9._installServerPackage(server);
+      } else if (check.status === 'needs-update') {
+        yield _this9._updateServerPackage(server, check.current, check.expected);
+      } else if (check.status !== 'okay') {
+        throw new SshHandshakeError(`Server is corrupt; ${check.message}`, SshHandshake.ErrorType.SERVER_SETUP_FAILED);
+      }
+
+      return server;
+    })();
+  }
+
   /**
    * Invokes the remote server and updates the server info via `_updateServerInfo`.
    */
-  _startRemoteServer() {
-    var _this6 = this;
+  _startRemoteServer(server) {
+    var _this10 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const remoteTempFile = `/tmp/nuclide-sshhandshake-${Math.random()}`;
+      const remoteTempFile = `/tmp/big-dig-sshhandshake-${Math.random()}`;
       const params = {
-        cname: _this6._config.host,
+        cname: _this10._config.host,
         jsonOutputFile: remoteTempFile,
         timeout: '60s', // Currently unused and not configurable.
         expiration: '7d',
-        serverParams: _this6._config.remoteServerCustomParams,
-        port: _this6._config.remoteServerPort
+        serverParams: _this10._config.remoteServerCustomParams,
+        port: _this10._config.remoteServerPort
       };
-      const cmd = `${_this6._config.remoteServerCommand} ${(0, (_string || _load_string()).shellQuote)([JSON.stringify(params)])}`;
 
       try {
         // Run the server bootstrapper: this will create a server process, output the process info
         // to `remoteTempFile`, and then exit.
-        const stream = yield _this6._connection.exec(cmd, { pty: { term: 'nuclide' } });
-        // Collect any stdout in case there is an error.
-        let stdOut = '';
-        stream.on('data', function (data) {
-          stdOut += data;
-        });
+        const { stdout, code } = yield server.run([JSON.stringify(params)], { pty: { term: 'nuclide' } }, _this10._connection);
 
-        // Wait for the bootstrapper to finish
-        const [code] = yield (0, (_events || _load_events()).onceEventArray)(stream, 'close');
-
-        // Note: this code is probably the code from the child shell if one is in use.
         if (code !== 0) {
-          throw new SshHandshakeError('Remote shell execution failed', SshHandshake.ErrorType.UNKNOWN, new Error(stdOut));
+          throw new SshHandshakeError('Remote shell execution failed', SshHandshake.ErrorType.UNKNOWN, new Error(stdout));
         }
 
-        // Some servers have max channels set to 1, so add a delay to ensure
-        // the old channel has been cleaned up on the server.
-        // TODO(hansonw): Implement a proper retry mechanism.
-        yield (0, (_promise || _load_promise()).sleep)(100);
-
-        return _this6._loadServerStartInformation(remoteTempFile);
+        return _this10._loadServerStartInformation(remoteTempFile);
       } catch (error) {
+        if (error instanceof SshHandshakeError) {
+          throw error;
+        }
         const errorType = error.level && SshConnectionErrorLevelMap.get(error.level) || SshHandshake.ErrorType.UNKNOWN;
         throw new SshHandshakeError('Ssh connection failed.', errorType, error);
       }
@@ -580,40 +661,41 @@ class SshHandshake {
    * This is called when the SshConnection is ready.
    */
   _onSshConnectionIsReady() {
-    var _this7 = this;
+    var _this11 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      yield _this7._startRemoteServer();
+      const server = yield _this11._setupServerPackage(_this11._config.remoteServer);
+      yield _this11._startRemoteServer(server);
 
       // Use an ssh tunnel if server is not secure
-      if (_this7._isSecure()) {
+      if (_this11._isSecure()) {
         // flowlint-next-line sketchy-null-string:off
-        if (!_this7._remoteHost) {
+        if (!_this11._remoteHost) {
           throw new Error('Invariant violation: "this._remoteHost"');
         }
 
-        return _this7._establishBigDigClient({
-          host: _this7._remoteHost,
-          port: _this7._remotePort,
-          certificateAuthorityCertificate: _this7._certificateAuthorityCertificate,
-          clientCertificate: _this7._clientCertificate,
-          clientKey: _this7._clientKey
+        return _this11._establishBigDigClient({
+          host: _this11._remoteHost,
+          port: _this11._remotePort,
+          certificateAuthorityCertificate: _this11._certificateAuthorityCertificate,
+          clientCertificate: _this11._clientCertificate,
+          clientKey: _this11._clientKey
         });
       } else {
-        _this7._forwardingServer = _net.default.createServer(function (sock) {
-          _this7._forwardSocket(sock);
+        _this11._forwardingServer = _net.default.createServer(function (sock) {
+          _this11._forwardSocket(sock);
         });
-        const listening = (0, (_events || _load_events()).onceEventOrError)(_this7._forwardingServer, 'listening');
-        _this7._forwardingServer.listen(0, 'localhost');
+        const listening = (0, (_events || _load_events()).onceEventOrError)(_this11._forwardingServer, 'listening');
+        _this11._forwardingServer.listen(0, 'localhost');
         yield listening;
-        const localPort = _this7._getLocalPort();
+        const localPort = _this11._getLocalPort();
         // flowlint-next-line sketchy-null-number:off
 
         if (!localPort) {
           throw new Error('Invariant violation: "localPort"');
         }
 
-        return _this7._establishBigDigClient({
+        return _this11._establishBigDigClient({
           host: 'localhost',
           port: localPort
         });
@@ -626,7 +708,7 @@ class SshHandshake {
    * pass it to the _didConnect() callback.
    */
   _establishBigDigClient(config) {
-    var _this8 = this;
+    var _this12 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       let bigDigClient = null;
@@ -636,10 +718,10 @@ class SshHandshake {
         throw new SshHandshakeError('Connection check failed', SshHandshake.ErrorType.SERVER_CANNOT_CONNECT, error);
       }
 
-      _this8._didConnect(bigDigClient);
+      _this12._didConnect(bigDigClient);
       // If we are secure then we don't need the ssh tunnel.
-      if (_this8._isSecure()) {
-        _this8._connection.end();
+      if (_this12._isSecure()) {
+        yield _this12._connection.end();
       }
 
       return bigDigClient;

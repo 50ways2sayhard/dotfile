@@ -7,6 +7,18 @@ exports.LspLanguageService = undefined;
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
+var _promise;
+
+function _load_promise() {
+  return _promise = require('nuclide-commons/promise');
+}
+
+var _string;
+
+function _load_string() {
+  return _string = require('nuclide-commons/string');
+}
+
 var _through;
 
 function _load_through() {
@@ -81,6 +93,12 @@ function _load_simpleTextBuffer() {
   return _simpleTextBuffer = require('simple-text-buffer');
 }
 
+var _memoryLogger;
+
+function _load_memoryLogger() {
+  return _memoryLogger = require('../../commons-node/memoryLogger');
+}
+
 var _nuclideLanguageServiceRpc;
 
 function _load_nuclideLanguageServiceRpc() {
@@ -111,30 +129,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // Marshals messages from Nuclide's LanguageService
 // to VS Code's Language Server Protocol
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
 class LspLanguageService {
   // is really "?LspConnection"
   // Fields which become live after we receive an initializeResponse:
 
   // Fields which become live inside start(), when we spawn the LSP process.
   // Disposing of the _lspConnection will dispose of all of them.
-  // tracks which fileversions we've received from Nuclide client
   // supplies the options for spawning a process
   // this is created per-connection
   // tracks which fileversions we've received from Nuclide client
 
   // These fields are provided upon construction
-  constructor(logger, fileCache, host, languageId, command, args, spawnOptions = {}, projectRoot, fileExtensions, initializationOptions) {
+  constructor(logger, fileCache, host, languageId, command, args, spawnOptions = {}, projectRoot, fileExtensions, initializationOptions, additionalLogFilesRetentionPeriod) {
     this._state = 'Initial';
     this._stateIndicator = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._progressIndicators = new Map();
@@ -147,7 +153,8 @@ class LspLanguageService {
     this._highlightCancellation = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).CancellationTokenSource();
     this._definitionCancellation = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).CancellationTokenSource();
 
-    this._logger = logger;
+    this._snapshotter = new (_memoryLogger || _load_memoryLogger()).SnapshotLogger(additionalLogFilesRetentionPeriod);
+    this._logger = new (_memoryLogger || _load_memoryLogger()).MemoryLogger(logger, additionalLogFilesRetentionPeriod);
     this._fileCache = fileCache;
     this._masterHost = host;
     this._host = host;
@@ -158,6 +165,7 @@ class LspLanguageService {
     this._spawnOptions = spawnOptions;
     this._fileExtensions = fileExtensions;
     this._initializationOptions = initializationOptions;
+    this._additionalLogFilesRetentionPeriod = additionalLogFilesRetentionPeriod;
   } // tracks which fileversions we've sent to LSP
 
   // Whenever we trigger a new request, we cancel the outstanding request, so
@@ -168,15 +176,21 @@ class LspLanguageService {
 
   // These fields reflect our own state.
   // (Most should be nullable types, but it's not worth the bother.)
+  // tracks which fileversions we've received from Nuclide client
   // tracks which fileversions we've sent to LSP
   // this is the one we're given
 
 
   dispose() {
-    this._stop().catch(_ => {}).then(_ => this._masterHost.dispose());
+    this._stop().catch(_ => {}).then(_ => {
+      this._masterHost.dispose();
+      this._snapshotter.dispose();
+      this._logger.dispose();
+    });
   }
 
   _setState(state, actionRequiredDialogMessage, existingDialogToDismiss) {
+    this._logger.trace(`State ${this._state} -> ${state}`);
     this._state = state;
     this._stateIndicator.dispose();
     const nextDisposable = new (_UniversalDisposable || _load_UniversalDisposable()).default();
@@ -259,7 +273,7 @@ class LspLanguageService {
         // Each connection gets its own 'host' object, as an easy way to
         // get rid of all outstanding busy-signals and notifications and
         // dialogs from that connection.
-        _this._host = yield (0, (_nuclideLanguageServiceRpc || _load_nuclideLanguageServiceRpc()).forkHostServices)(_this._masterHost, _this._logger);
+        _this._host = yield (0, (_nuclideLanguageServiceRpc || _load_nuclideLanguageServiceRpc()).forkHostServices)(_this._masterHost, _this._logger.getUnderlyingLogger());
         perConnectionDisposables.add(function () {
           _this._host.dispose();
           _this._host = _this._masterHost;
@@ -300,7 +314,7 @@ class LspLanguageService {
           });
 
           const message = `Couldn't start ${_this._languageId} server` + ` - ${_this._errorString(e, _this._command)}`;
-          const dialog = _this._host.dialogNotification('error', message).refCount().subscribe();
+          const dialog = _this._masterHost.dialogNotification('error', message).refCount().subscribe();
           _this._setState('StartFailed', message, dialog);
           return;
         }
@@ -326,9 +340,7 @@ class LspLanguageService {
         }));
 
         const jsonRpcConnection = (_vscodeJsonrpc || _load_vscodeJsonrpc()).createMessageConnection(new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageReader(childProcess.stdout), new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageWriter(childProcess.stdin), new JsonRpcLogger(_this._logger));
-        if (_this._logger.isLevelEnabled('TRACE')) {
-          jsonRpcConnection.trace((_jsonrpc || _load_jsonrpc()).JsonRpcTrace.Verbose, new JsonRpcTraceLogger(_this._logger));
-        }
+        jsonRpcConnection.trace((_jsonrpc || _load_jsonrpc()).JsonRpcTrace.Verbose, new JsonRpcTraceLogger(_this._logger));
 
         // We assign _lspConnection and wire up the handlers before calling
         // initialize, because any of these events might fire before initialize
@@ -495,7 +507,7 @@ class LspLanguageService {
           rootUri: (_convert || _load_convert()).localPath_lspUri(_this._projectRoot),
           capabilities,
           initializationOptions: _this._initializationOptions,
-          trace: _this._logger.isLevelEnabled('TRACE') ? 'verbose' : 'off'
+          trace: _this._logger.getUnderlyingLogger().isLevelEnabled('TRACE') ? 'verbose' : 'off'
         };
 
         // We'll keep sending initialize requests until it either succeeds
@@ -507,18 +519,20 @@ class LspLanguageService {
         while (true) {
           let initializeResponse;
           try {
-            _this._logger.info('Lsp.Initialize');
+            _this._logger.trace('Lsp.Initialize');
             userRetryCount++;
             const initializeStartTimeMs = Date.now();
             // eslint-disable-next-line no-await-in-loop
             initializeResponse = yield _this._lspConnection.initialize(params);
             initializeTimeTakenMs = Date.now() - initializeStartTimeMs;
+            _this._logger.trace('Lsp.Initialize.success');
             // We might receive an onError or onClose event at this time too.
             // Those are handled by _handleError and _handleClose methods.
             // If those happen, then the response to initialize will never arrive,
             // so the above await will block until we finally dispose of the
             // connection.
           } catch (e) {
+            _this._logger.trace('Lsp.Initialize.error');
             _this._logLspException(e);
             (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)('lsp-start', {
               status: 'initialize failed',
@@ -532,26 +546,43 @@ class LspLanguageService {
             // CARE! Inside any exception handler of an rpc request,
             // the lspConnection might already have been torn down.
 
-            const offerRetry = e.data != null && Boolean(e.data.retry);
-            const msg = `Couldn't initialize ${_this._languageId} server - ${_this._errorString(e)}`;
             _this._childOut = { stdout: '', stderr: '' };
+            const message = `Couldn't initialize ${_this._languageId} server`;
+            const longMessage = `${message} - ${_this._errorString(e)}`;
+
+            // LSP has the notion that only some failures-to-start should
+            // offer a retry button; if the user clicks it then we send a second
+            // initialize request over the existing connection.
+            // Failing that, we have the fallback that for all crashes/failures
+            // we always offer a retry button; clicking on it causes a complete
+            // re-initialize from the start.
+            const offerRetry = e.data != null && Boolean(e.data.retry);
             if (!offerRetry) {
-              _this._host.dialogNotification('error', msg).refCount().subscribe();
-            } else {
-              // eslint-disable-next-line no-await-in-loop
-              const button = yield _this._host.dialogRequest('error', msg, ['Retry'], 'Close').refCount().toPromise();
-              if (button === 'Retry') {
-                _this._host.consoleNotification(_this._languageId, 'info', `Retrying ${_this._command}`);
-                if (_this._lspConnection != null) {
-                  continue;
-                  // Retry will re-use the same this._lspConnection,
-                  // assuming it hasn't been torn down for whatever reason.
-                }
+              const dialog = _this._masterHost.dialogNotification('error', longMessage).refCount().subscribe();
+              _this._setState('StartFailed', message, dialog);
+              if (_this._lspConnection != null) {
+                _this._lspConnection.dispose();
+              }
+              return;
+            }
+
+            // eslint-disable-next-line no-await-in-loop
+            const button = yield _this._host.dialogRequest('error', message, ['Retry'], 'Close').refCount().toPromise();
+            if (button === 'Retry') {
+              _this._logger.trace('Lsp.Initialize.retry');
+              _this._host.consoleNotification(_this._languageId, 'info', 'Retrying initialize');
+              if (_this._lspConnection != null) {
+                _this._logger.trace('Lsp.Initialize.retrying');
+                continue;
+                // Retry will re-use the same this._lspConnection,
+                // assuming it hasn't been torn down for whatever reason.
               }
             }
+            _this._setState('StartFailed');
             if (_this._lspConnection != null) {
               _this._lspConnection.dispose();
             }
+
             return;
           }
 
@@ -677,6 +708,7 @@ class LspLanguageService {
     var _this2 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
+      _this2._logger.trace('Lsp._stop');
       if (_this2._state === 'Stopping' || _this2._state === 'Stopped') {
         return;
       }
@@ -684,15 +716,17 @@ class LspLanguageService {
         _this2._setState('Stopped');
         return;
       }
+      const mustShutdown = _this2._state === 'Running';
 
       _this2._setState('Stopping');
       try {
-        // Request the server to close down. It will respond when it's done,
-        // but it won't actually terminate its stdin/stdout/process (since if
-        // it did then we might not get the respone!)
-        yield _this2._lspConnection.shutdown();
-        // Now we can let the server terminate:
-        _this2._lspConnection.exit();
+        if (mustShutdown) {
+          // Request the server to close down. If it does reply, we can tell it
+          // to 'exit' (i.e. terminate cleanly). If it fails to reply, well,
+          // we won't get hung up on it.
+          yield Promise.race([_this2._lspConnection.shutdown(), (0, (_promise || _load_promise()).sleep)(30000)]);
+          _this2._lspConnection.exit();
+        }
       } catch (e) {
         _this2._logLspException(e);
       }
@@ -741,10 +775,17 @@ class LspLanguageService {
   }
 
   _logLspException(e) {
+    // In case 'try {await p} catch (e) {logLspException(e);}', then e.stack is
+    // shows who rejected that promise. We also want a stack for who awaited...
+    const exceptionStack = e.stack;
+    const callStack = new Error().stack;
+    const remoteStack = e.data != null && e.data.stack != null ? e.data.stack : null;
+
     (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)('lsp-exception', {
       message: e.message,
-      stack: e.stack,
-      remoteStack: e.data != null && e.data.stack != null ? e.data.stack : null,
+      exceptionStack,
+      callStack,
+      remoteStack,
       state: this._state,
       code: typeof e.code === 'number' ? e.code : null
     });
@@ -754,14 +795,16 @@ class LspLanguageService {
       return;
     }
     let msg = `${this._errorString(e)}\nSTATE=${this._state}`;
-    if (e.data != null && e.data.stack != null) {
-      msg += `\n  LSP STACK:\n${String(e.data.stack)}`;
+    if (remoteStack != null) {
+      msg += `\n  REMOTE STACK:\n${String(remoteStack)}`;
     }
-    msg += `\n  NUCLIDE STACK:\n${e.stack}`;
+    msg += `\n  EXCEPTION STACK:\n${exceptionStack}`;
+    msg += `\n  CALL STACK:\n${callStack}`;
     this._logger.error(msg);
   }
 
   _handleError(data) {
+    this._logger.trace('Lsp._handleError');
     if (this._state === 'Stopping' || this._state === 'Stopped') {
       return;
     }
@@ -784,6 +827,7 @@ class LspLanguageService {
   }
 
   _handleClose() {
+    this._logger.trace('Lsp._handleClose');
     // CARE! This method may be called before initialization has finished.
 
     if (this._state === 'Stopping' || this._state === 'Stopped') {
@@ -920,7 +964,8 @@ class LspLanguageService {
       // will deliver the result 'null'. (similar to how VSCode works).
       const response = yield _this4._host.dialogRequest((_convert || _load_convert()).lspMessageType_atomShowNotificationLevel(params.type), params.message, actions.map(function (action) {
         return action.title;
-      }), '@@X@@').refCount().takeUntil(cancelIsRequested).toPromise();
+      }), '@@X@@' // a sentinel response forwhen user clicks "X"
+      ).refCount().takeUntil(cancelIsRequested).toPromise();
 
       if (response === undefined) {
         // cancellation was requested (that's how takeUntil/toPromise works)
@@ -1061,6 +1106,7 @@ class LspLanguageService {
       }
     };
     this._lspConnection.didCloseTextDocument(params);
+    this._snapshotter.close(fileEvent.fileVersion.filePath);
   }
 
   _fileEdit(fileEvent) {
@@ -1072,6 +1118,8 @@ class LspLanguageService {
       throw new Error('Invariant violation: "this._lspConnection != null"');
     }
 
+    const buffer = this._fileCache.getBufferForFileEvent(fileEvent);
+    this._snapshotter.snapshot(fileEvent.fileVersion.filePath, fileEvent.fileVersion.version, buffer);
     let contentChange;
     switch (this._derivedServerCapabilities.serverWantsChange) {
       case 'incremental':
@@ -1081,10 +1129,7 @@ class LspLanguageService {
         };
         break;
       case 'full':
-        const buffer = this._fileCache.getBufferForFileEvent(fileEvent);
-        contentChange = {
-          text: buffer.getText()
-        };
+        contentChange = { text: buffer.getText() };
         break;
       case 'none':
         return;
@@ -1147,7 +1192,7 @@ class LspLanguageService {
     // Note: this function can (and should!) be called even before
     // we reach state 'Running'.
 
-    return this._diagnosticUpdates.switchMap(perConnectionUpdates => (0, (_nuclideLanguageServiceRpc || _load_nuclideLanguageServiceRpc()).ensureInvalidations)(this._logger, perConnectionUpdates.map((_convert || _load_convert()).lspDiagnostics_atomDiagnostics))).publish();
+    return this._diagnosticUpdates.switchMap(perConnectionUpdates => (0, (_nuclideLanguageServiceRpc || _load_nuclideLanguageServiceRpc()).ensureInvalidations)(this._logger.getUnderlyingLogger(), perConnectionUpdates.map((_convert || _load_convert()).lspDiagnostics_atomDiagnostics))).publish();
   }
 
   getAutocompleteSuggestions(fileVersion, position, request) {
@@ -1220,8 +1265,7 @@ class LspLanguageService {
       const responseArray = Array.isArray(response) ? response : [response];
 
       return {
-        // TODO: use wordAtPos to determine queryrange
-        queryRange: [new (_simpleTextBuffer || _load_simpleTextBuffer()).Range(position, position)],
+        queryRange: null, // editor uses wordAtPos to determine current identifier
         definitions: responseArray.map(function (d) {
           return (_convert || _load_convert()).lspLocation_atomDefinition(d, _this7._projectRoot);
         })
@@ -1518,26 +1562,91 @@ class LspLanguageService {
     })();
   }
 
-  typeHint(fileVersion, position) {
+  getAdditionalLogFiles(expire) {
     var _this13 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      if (_this13._state !== 'Running' || !_this13._serverCapabilities.hoverProvider || !(yield _this13._lspFileVersionNotifier.waitForBufferAtVersion(fileVersion))) {
+      const results = [];
+
+      // The LSP server sends back either titled data (each one of which gets
+      // written as an AdditionalLogFile) or untitled data (which we accumulate
+      // and send in a single AdditionalLogFile with our own logs).
+      const lspAnonymousTitle = `${_this13._projectRoot}:LSP#${_this13._languageId}`;
+      let lspAnonymousRage = '';
+
+      if (_this13._state === 'Running' && Boolean(_this13._serverCapabilities.rageProvider)) {
+        let response = null;
+        try {
+          response = yield (0, (_promise || _load_promise()).expirePromise)(expire, _this13._lspConnection.rage());
+
+          if (!(response != null)) {
+            throw new Error('null telemetry/rage');
+          }
+        } catch (e) {
+          _this13._logLspException(e);
+          response = [{ title: null, data: (0, (_string || _load_string()).stringifyError)(e) }];
+        }
+        for (const rageItem of response) {
+          if (rageItem.title == null) {
+            lspAnonymousRage += rageItem.data + '\n';
+          } else {
+            results.push({
+              title: rageItem.title,
+              data: rageItem.data
+            });
+          }
+        }
+      }
+
+      if (_this13._additionalLogFilesRetentionPeriod > 0) {
+        // verbose trace of LSP messages over past few minutes
+        results.push({
+          title: lspAnonymousTitle,
+          mimeType: 'text/plain',
+          data: lspAnonymousRage + '\n\n' + _this13._logger.dump()
+        });
+        lspAnonymousRage = '';
+        // snapshots of files over past few minutes
+        for (const _ref5 of _this13._snapshotter.dump()) {
+          const { title, text } = _ref5;
+
+          results.push({ title, mimeType: 'text/plain', data: text });
+        }
+      }
+
+      if (lspAnonymousRage !== '') {
+        results.push({
+          title: lspAnonymousTitle,
+          mimeType: 'text/plain',
+          data: lspAnonymousRage
+        });
+        lspAnonymousRage = '';
+      }
+
+      return results;
+    })();
+  }
+
+  typeHint(fileVersion, position) {
+    var _this14 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      if (_this14._state !== 'Running' || !_this14._serverCapabilities.hoverProvider || !(yield _this14._lspFileVersionNotifier.waitForBufferAtVersion(fileVersion))) {
         return null;
       }
       const params = (_convert || _load_convert()).atom_lspPositionParams(fileVersion.filePath, position);
 
       let response;
       try {
-        _this13._hoverCancellation.cancel();
-        _this13._hoverCancellation = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).CancellationTokenSource();
-        response = yield _this13._lspConnection.hover(params, _this13._hoverCancellation.token);
+        _this14._hoverCancellation.cancel();
+        _this14._hoverCancellation = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).CancellationTokenSource();
+        response = yield _this14._lspConnection.hover(params, _this14._hoverCancellation.token);
 
         if (!(response != null)) {
           throw new Error('null textDocument/hover');
         }
       } catch (e) {
-        _this13._logLspException(e);
+        _this14._logLspException(e);
         return null;
       }
 
@@ -1563,25 +1672,25 @@ class LspLanguageService {
   }
 
   highlight(fileVersion, position) {
-    var _this14 = this;
+    var _this15 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      if (_this14._state !== 'Running' || !_this14._serverCapabilities.documentHighlightProvider || !(yield _this14._lspFileVersionNotifier.waitForBufferAtVersion(fileVersion))) {
+      if (_this15._state !== 'Running' || !_this15._serverCapabilities.documentHighlightProvider || !(yield _this15._lspFileVersionNotifier.waitForBufferAtVersion(fileVersion))) {
         return null;
       }
       const params = (_convert || _load_convert()).atom_lspPositionParams(fileVersion.filePath, position);
 
       let response;
       try {
-        _this14._highlightCancellation.cancel();
-        _this14._highlightCancellation = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).CancellationTokenSource();
-        response = yield _this14._lspConnection.documentHighlight(params, _this14._highlightCancellation.token);
+        _this15._highlightCancellation.cancel();
+        _this15._highlightCancellation = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).CancellationTokenSource();
+        response = yield _this15._lspConnection.documentHighlight(params, _this15._highlightCancellation.token);
 
         if (!(response != null)) {
           throw new Error('null textDocument/documentHighlight');
         }
       } catch (e) {
-        _this14._logLspException(e);
+        _this15._logLspException(e);
         return null;
       }
 
@@ -1593,10 +1702,10 @@ class LspLanguageService {
   }
 
   formatSource(fileVersion, atomRange, options) {
-    var _this15 = this;
+    var _this16 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      if (_this15._state !== 'Running') {
+      if (_this16._state !== 'Running') {
         return null;
       }
 
@@ -1610,9 +1719,9 @@ class LspLanguageService {
       // But we do need the buffer, to know whether atomRange covers the whole document.
       // And if we can't get it for reasons of syncing, then we'll have to bail by reporting
       // the same error as that upstream caller.
-      const buffer = yield _this15.tryGetBufferWhenWeAndLspAtSameVersion(fileVersion);
+      const buffer = yield _this16.tryGetBufferWhenWeAndLspAtSameVersion(fileVersion);
       if (buffer == null) {
-        _this15._logger.error('LSP.formatSource - buffer changed before we could format');
+        _this16._logger.error('LSP.formatSource - buffer changed before we could format');
         return null;
       }
       const params = {
@@ -1624,18 +1733,18 @@ class LspLanguageService {
       // The user might have requested to format either some or all of the buffer.
       // And the LSP server might have the capability to format some or all.
       // We'll match up the request+capability as best we can...
-      const canAll = Boolean(_this15._serverCapabilities.documentFormattingProvider);
-      const canRange = Boolean(_this15._serverCapabilities.documentRangeFormattingProvider);
+      const canAll = Boolean(_this16._serverCapabilities.documentFormattingProvider);
+      const canRange = Boolean(_this16._serverCapabilities.documentRangeFormattingProvider);
       const wantAll = buffer.getRange().compare(atomRange) === 0;
       if (canAll && (wantAll || !canRange)) {
         try {
-          response = yield _this15._lspConnection.documentFormatting(params);
+          response = yield _this16._lspConnection.documentFormatting(params);
 
           if (!(response != null)) {
             throw new Error('null textDocument/documentFormatting');
           }
         } catch (e) {
-          _this15._logLspException(e);
+          _this16._logLspException(e);
           return null;
         }
       } else if (canRange) {
@@ -1645,17 +1754,17 @@ class LspLanguageService {
         const range = (_convert || _load_convert()).atomRange_lspRange(atomRange);
         const params2 = Object.assign({}, params, { range });
         try {
-          response = yield _this15._lspConnection.documentRangeFormatting(params2);
+          response = yield _this16._lspConnection.documentRangeFormatting(params2);
 
           if (!(response != null)) {
             throw new Error('null textDocument/documentRangeFormatting');
           }
         } catch (e) {
-          _this15._logLspException(e);
+          _this16._logLspException(e);
           return null;
         }
       } else {
-        _this15._logger.error('LSP.formatSource - not supported by server');
+        _this16._logger.error('LSP.formatSource - not supported by server');
         return null;
       }
 
@@ -1674,11 +1783,11 @@ class LspLanguageService {
   }
 
   formatAtPosition(fileVersion, point, triggerCharacter, options) {
-    var _this16 = this;
+    var _this17 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const triggerCharacters = _this16._derivedServerCapabilities.onTypeFormattingTriggerCharacters;
-      if (_this16._state !== 'Running' || !triggerCharacters.has(triggerCharacter) || !(yield _this16._lspFileVersionNotifier.waitForBufferAtVersion(fileVersion))) {
+      const triggerCharacters = _this17._derivedServerCapabilities.onTypeFormattingTriggerCharacters;
+      if (_this17._state !== 'Running' || !triggerCharacters.has(triggerCharacter) || !(yield _this17._lspFileVersionNotifier.waitForBufferAtVersion(fileVersion))) {
         return null;
       }
       const params = {
@@ -1690,13 +1799,13 @@ class LspLanguageService {
 
       let response;
       try {
-        response = yield _this16._lspConnection.documentOnTypeFormatting(params);
+        response = yield _this17._lspConnection.documentOnTypeFormatting(params);
 
         if (!(response != null)) {
           throw new Error('null textDocument/documentOnTypeFormatting');
         }
       } catch (e) {
-        _this16._logLspException(e);
+        _this17._logLspException(e);
         return null;
       }
 
@@ -1714,23 +1823,23 @@ class LspLanguageService {
   }
 
   symbolSearch(query, directories) {
-    var _this17 = this;
+    var _this18 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      if (_this17._state !== 'Running' || !_this17._serverCapabilities.workspaceSymbolProvider) {
+      if (_this18._state !== 'Running' || !_this18._serverCapabilities.workspaceSymbolProvider) {
         return null;
       }
       const params = { query };
 
       let response;
       try {
-        response = yield _this17._lspConnection.workspaceSymbol(params);
+        response = yield _this18._lspConnection.workspaceSymbol(params);
 
         if (!(response != null)) {
           throw new Error('null workspace/symbol');
         }
       } catch (e) {
-        _this17._logLspException(e);
+        _this18._logLspException(e);
         return null;
       }
 
@@ -1750,9 +1859,29 @@ class LspLanguageService {
   isFileInProject(fileUri) {
     return Promise.resolve(this._isFileInProject(fileUri));
   }
+
+  getExpandedSelectionRange(fileVersion, currentSelection) {
+    this._logger.error('NYI: getExpandedSelectionRange');
+    return Promise.resolve(null);
+  }
+
+  getCollapsedSelectionRange(fileVersion, currentSelection, originalCursorPosition) {
+    this._logger.error('NYI: getCollapsedSelectionRange');
+    return Promise.resolve(null);
+  }
 }
 
-exports.LspLanguageService = LspLanguageService;
+exports.LspLanguageService = LspLanguageService; /**
+                                                  * Copyright (c) 2015-present, Facebook, Inc.
+                                                  * All rights reserved.
+                                                  *
+                                                  * This source code is licensed under the license found in the LICENSE file in
+                                                  * the root directory of this source tree.
+                                                  *
+                                                  * 
+                                                  * @format
+                                                  */
+
 class DerivedServerCapabilities {
 
   constructor(capabilities, logger) {
@@ -1830,19 +1959,19 @@ class JsonRpcLogger {
   }
 
   error(message) {
-    this._logger.error('Lsp.JsonRpc ' + message);
+    this._logger.error(message);
   }
 
   warn(message) {
-    this._logger.info('Lsp.JsonRpc ' + message);
+    this._logger.info(message);
   }
 
   info(message) {
-    this._logger.info('Lsp.JsonRpc ' + message);
+    this._logger.info(message);
   }
 
   log(message) {
-    this._logger.trace('Jsp.JsonRpc ' + message);
+    this._logger.trace(message);
   }
 }
 
@@ -1853,6 +1982,6 @@ class JsonRpcTraceLogger {
   }
 
   log(message, data) {
-    this._logger.trace(`LSP.trace: ${message} ${(data || '').substring(0, 800)}`);
+    this._logger.trace(`LSP.trace: ${message} ${data || ''}`);
   }
 }

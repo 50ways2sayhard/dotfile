@@ -132,6 +132,6 @@ function uninstallPackage(device, packageName) {
   return new (_Sdb || _load_Sdb()).Sdb(device).uninstallPackage(packageName).publish();
 }
 
-function getProcesses(device) {
-  return new (_Processes || _load_Processes()).Processes(new (_Sdb || _load_Sdb()).Sdb(device)).fetch().publish();
+function getProcesses(device, timeout) {
+  return new (_Processes || _load_Processes()).Processes(new (_Sdb || _load_Sdb()).Sdb(device)).fetch(timeout).publish();
 }

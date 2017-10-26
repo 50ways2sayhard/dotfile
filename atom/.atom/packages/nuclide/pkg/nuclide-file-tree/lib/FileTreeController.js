@@ -396,6 +396,10 @@ class FileTreeController {
     this._store._setAutoExpandSingleChild(autoExpandSingleChild);
   }
 
+  setFocusEditorOnFileSelection(focusEditorOnFileSelection) {
+    this._actions.setFocusEditorOnFileSelection(focusEditorOnFileSelection);
+  }
+
   updateWorkingSet(workingSet) {
     this._actions.updateWorkingSet(workingSet);
   }
@@ -406,6 +410,10 @@ class FileTreeController {
 
   updateOpenFilesWorkingSet(openFilesWorkingSet) {
     this._actions.updateOpenFilesWorkingSet(openFilesWorkingSet);
+  }
+
+  collectDebugState() {
+    return this._store.collectDebugState();
   }
 
   /**

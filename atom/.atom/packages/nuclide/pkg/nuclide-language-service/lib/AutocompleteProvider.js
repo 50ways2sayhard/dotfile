@@ -288,12 +288,18 @@ function updateAutocompleteFirstResults(request, firstResult) {
   // filter text to 40 characters. (That's an arbitrary hack, but good enough,
   // and cheaper than doing one pass to for max-length and another to pad).
   //
+  // Also, fuzzaldrinPlus will give matches with very low scores. We'll
+  // arbitrarily pick a threshold and reject ones below that.
+  const SCORE_THRESHOLD = 0.1;
+  //
   // While we're here, for sake of AutocompletePlus, each item also needs its
   // 'replacementPrefix' updated, because that's what AutcompletePlus uses to
   // to decide which characters to replace in the editor buffer.
   //
   // This 'reduce' takes ~25ms for 1000 items, largely in the scoring. The rest
   // of the function takes negligible time.
+
+  const baseScore = prefix === '' ? 1 : (_fuzzaldrinPlus || _load_fuzzaldrinPlus()).default.score(prefix, prefix);
 
   const items = [];
   for (const item of firstResult.items) {
@@ -305,6 +311,10 @@ function updateAutocompleteFirstResults(request, firstResult) {
     const filterScore = prefix === '' ? 1 : (_fuzzaldrinPlus || _load_fuzzaldrinPlus()).default.score(filterText, prefix);
     // Score of 0 means the item fails the filter.
     if (filterScore === 0) {
+      continue;
+    }
+    // Low score ratio indicates it's passes the filter, but not very well.
+    if (filterScore / baseScore < SCORE_THRESHOLD) {
       continue;
     }
     const completion = Object.assign({}, item, {

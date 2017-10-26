@@ -57,10 +57,10 @@ class WebSocketTransport {
     this._syncCompression = options == null || options.syncCompression !== false;
 
     logger.info('Client #%s connecting with a new socket!', this.id);
-    socket.on('message', (data, flags) => {
+    socket.on('message', data => {
       let message = data;
       // Only compressed data will be sent as binary buffers.
-      if (flags.binary) {
+      if (typeof data !== 'string') {
         message = (0, (_compression || _load_compression()).decompress)(data);
       }
       this._onSocketMessage(message);
@@ -88,7 +88,7 @@ class WebSocketTransport {
       }
     });
 
-    socket.on('pong', (data, flags) => {
+    socket.on('pong', data => {
       if (this._socket != null) {
         // data may be a Uint8Array
         this._emitter.emit('pong', data != null ? String(data) : data);
@@ -134,7 +134,7 @@ class WebSocketTransport {
       }
       socket.send(data, { compress: !compressed }, err => {
         if (err != null) {
-          logger.warn('Failed sending socket message to client:', this.id, JSON.parse(message));
+          logger.warn(`Failed sending to client:${this.id} message:${message}`);
           resolve(false);
         } else {
           resolve(true);

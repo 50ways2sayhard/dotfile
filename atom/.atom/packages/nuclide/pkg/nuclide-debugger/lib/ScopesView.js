@@ -11,7 +11,11 @@ function _load_classnames() {
   return _classnames = _interopRequireDefault(require('classnames'));
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _react = _interopRequireWildcard(require('react'));
 
@@ -53,7 +57,7 @@ class ScopesView extends _react.PureComponent {
   constructor(props) {
     super(props);
     this._scopesComponentWrapped = (0, (_bindObservableAsProps || _load_bindObservableAsProps()).bindObservableAsProps)(props.model.getScopesStore().getScopes().map(scopes => ({ scopes })), (_ScopesComponent || _load_ScopesComponent()).ScopesComponent);
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     const debuggerStore = props.model.getStore();
     this.state = {
       mode: debuggerStore.getDebuggerMode()
@@ -91,7 +95,8 @@ class ScopesView extends _react.PureComponent {
         'div',
         { className: 'nuclide-debugger-pane-content' },
         _react.createElement(ScopesComponentWrapped, {
-          watchExpressionStore: model.getWatchExpressionStore()
+          watchExpressionStore: model.getWatchExpressionStore(),
+          scopesStore: model.getScopesStore()
         })
       )
     );

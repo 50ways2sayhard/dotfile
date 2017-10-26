@@ -130,7 +130,7 @@ class FileTree extends _react.Component {
   }
 
   _scrollToTrackedNodeIfNeeded() {
-    const trackedIndex = findIndexOfTheTrackedNode(this._store.roots);
+    const trackedIndex = findIndexOfTheTrackedNode(this._store);
     if (trackedIndex < 0) {
       return;
     }
@@ -189,7 +189,12 @@ class FileTree extends _react.Component {
       const targetIdx = reorderPreviewStatus.targetIdx;
       if (sourceNode != null && target != null && targetIdx != null && targetIdx !== sourceIdx) {
         reorderPreview = {
-          entry: _react.createElement((_FileTreeEntryComponent || _load_FileTreeEntryComponent()).FileTreeEntryComponent, { node: sourceNode, isPreview: true }),
+          entry: _react.createElement((_FileTreeEntryComponent || _load_FileTreeEntryComponent()).FileTreeEntryComponent, {
+            node: sourceNode,
+            isPreview: true,
+            selectedNodes: this._store.selectionManager.selectedNodes(),
+            focusedNodes: this._store.selectionManager.focusedNodes()
+          }),
           above: targetIdx < sourceIdx,
           target
         };
@@ -210,7 +215,13 @@ class FileTree extends _react.Component {
     let key = firstToRender % amountToRender;
     while (node != null && visibleChildren.length < amountToRender) {
       if (!node.isRoot && !chosenMeasured) {
-        const entry = _react.createElement((_FileTreeEntryComponent || _load_FileTreeEntryComponent()).FileTreeEntryComponent, { key: key, node: node, ref: 'measured' });
+        const entry = _react.createElement((_FileTreeEntryComponent || _load_FileTreeEntryComponent()).FileTreeEntryComponent, {
+          key: key,
+          node: node,
+          selectedNodes: this._store.selectionManager.selectedNodes(),
+          focusedNodes: this._store.selectionManager.focusedNodes(),
+          ref: 'measured'
+        });
         if (reorderPreview != null && reorderPreview.target === node.uri) {
           if (reorderPreview.above) {
             visibleChildren.push(reorderPreview.entry, entry);
@@ -222,7 +233,12 @@ class FileTree extends _react.Component {
         }
         chosenMeasured = true;
       } else {
-        const entry = _react.createElement((_FileTreeEntryComponent || _load_FileTreeEntryComponent()).FileTreeEntryComponent, { key: key, node: node });
+        const entry = _react.createElement((_FileTreeEntryComponent || _load_FileTreeEntryComponent()).FileTreeEntryComponent, {
+          key: key,
+          node: node,
+          selectedNodes: this._store.selectionManager.selectedNodes(),
+          focusedNodes: this._store.selectionManager.focusedNodes()
+        });
         if (reorderPreview != null && reorderPreview.target === node.uri) {
           if (reorderPreview.above) {
             visibleChildren.push(reorderPreview.entry, entry);
@@ -281,26 +297,13 @@ function findFirstNodeToRender(roots, firstToRender) {
   return findFirstNodeToRender(node.children, firstToRender - skipped - 1);
 }
 
-function findIndexOfTheTrackedNode(nodes) {
-  let skipped = 0;
-  const trackedNodeRoot = nodes.find(node => {
-    if (node.containsTrackedNode) {
-      return true;
-    }
-
-    skipped += node.shownChildrenCount;
-    return false;
-  });
-
-  if (trackedNodeRoot == null) {
+function findIndexOfTheTrackedNode(store) {
+  const trackedNode = store.getTrackedNode();
+  if (trackedNode == null) {
     return -1;
   }
 
-  if (trackedNodeRoot.isTracked) {
-    return skipped;
-  }
-
-  return skipped + 1 + findIndexOfTheTrackedNode(trackedNodeRoot.children);
+  return trackedNode.calculateVisualIndex();
 }
 
 function countShownNodes(roots) {

@@ -42,6 +42,7 @@ class Hasher {
   }
 
   getHash(item) {
+    // eslint-disable-next-line eqeqeq
     if (item === null) {
       return 'null';
     }

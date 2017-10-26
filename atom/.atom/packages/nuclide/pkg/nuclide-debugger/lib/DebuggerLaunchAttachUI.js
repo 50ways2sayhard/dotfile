@@ -39,6 +39,12 @@ function _load_ButtonGroup() {
   return _ButtonGroup = require('nuclide-commons-ui/ButtonGroup');
 }
 
+var _Dropdown;
+
+function _load_Dropdown() {
+  return _Dropdown = require('../../nuclide-ui/Dropdown');
+}
+
 var _Tabs;
 
 function _load_Tabs() {
@@ -50,6 +56,17 @@ var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 class DebuggerLaunchAttachUI extends _react.Component {
 
@@ -99,9 +116,18 @@ class DebuggerLaunchAttachUI extends _react.Component {
   componentWillMount() {
     const host = (_nuclideUri || _load_nuclideUri()).default.isRemote(this.props.connection) ? (_nuclideUri || _load_nuclideUri()).default.getHostname(this.props.connection) : 'local';
 
-    this._filterProviders();
+    this._filterProviders(host);
     this.setState({
       selectedProviderTab: (0, (_nuclideDebuggerBase || _load_nuclideDebuggerBase()).getLastUsedDebugger)(host, this.props.dialogMode)
+    });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const host = (_nuclideUri || _load_nuclideUri()).default.isRemote(nextProps.connection) ? (_nuclideUri || _load_nuclideUri()).default.getHostname(nextProps.connection) : 'local';
+
+    this._filterProviders(host);
+    this.setState({
+      selectedProviderTab: (0, (_nuclideDebuggerBase || _load_nuclideDebuggerBase()).getLastUsedDebugger)(host, nextProps.dialogMode)
     });
   }
 
@@ -118,12 +144,12 @@ class DebuggerLaunchAttachUI extends _react.Component {
     })();
   }
 
-  _filterProviders() {
+  _filterProviders(key) {
     this.setState({
       enabledProviders: []
     });
 
-    _rxjsBundlesRxMinJs.Observable.merge(...this.props.providers.map(provider => _rxjsBundlesRxMinJs.Observable.fromPromise(this._getProviderIfEnabled(provider)))).filter(provider => provider != null).subscribe(provider => {
+    _rxjsBundlesRxMinJs.Observable.merge(...(this.props.providers.get(key) || []).map(provider => _rxjsBundlesRxMinJs.Observable.fromPromise(this._getProviderIfEnabled(provider)))).filter(provider => provider != null).subscribe(provider => {
       if (!(provider != null)) {
         throw new Error('Invariant violation: "provider != null"');
       }
@@ -142,8 +168,6 @@ class DebuggerLaunchAttachUI extends _react.Component {
   }
 
   render() {
-    const displayName = (_nuclideUri || _load_nuclideUri()).default.isRemote(this.props.connection) ? (_nuclideUri || _load_nuclideUri()).default.getHostname(this.props.connection) : 'localhost';
-
     const tabs = this.state.enabledProviders.map(debuggerType => ({
       name: debuggerType.debuggerName,
       tabContent: _react.createElement(
@@ -203,20 +227,19 @@ class DebuggerLaunchAttachUI extends _react.Component {
       _react.createElement(
         'h1',
         { className: 'nuclide-debugger-launch-attach-header' },
-        this.props.dialogMode === 'attach' ? 'Attach debugger to ' : 'Launch debugger on ',
         _react.createElement(
           'span',
-          {
-            className: 'nuclide-debugger-launch-connection',
-            title: 'Click to change the connection to be used for debugging.',
-            onClick: () => this.props.chooseConnection() },
-          displayName
+          { className: 'padded' },
+          this.props.dialogMode === 'attach' ? 'Attach debugger to ' : 'Launch debugger on '
         ),
-        _react.createElement(
-          'span',
-          null,
-          ':'
-        )
+        _react.createElement((_Dropdown || _load_Dropdown()).Dropdown, {
+          className: 'inline',
+          options: this.props.connectionOptions,
+          onChange: value => this.props.connectionChanged(value),
+          ref: 'dropdown',
+          size: 'xs',
+          value: this.props.connection
+        })
       ),
       providerContent,
       _react.createElement(
@@ -244,13 +267,4 @@ class DebuggerLaunchAttachUI extends _react.Component {
     );
   }
 }
-exports.DebuggerLaunchAttachUI = DebuggerLaunchAttachUI; /**
-                                                          * Copyright (c) 2015-present, Facebook, Inc.
-                                                          * All rights reserved.
-                                                          *
-                                                          * This source code is licensed under the license found in the LICENSE file in
-                                                          * the root directory of this source tree.
-                                                          *
-                                                          * 
-                                                          * @format
-                                                          */
+exports.DebuggerLaunchAttachUI = DebuggerLaunchAttachUI;

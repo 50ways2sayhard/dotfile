@@ -12,7 +12,11 @@ function _load_registerGrammar() {
   return _registerGrammar = _interopRequireDefault(require('../../commons-atom/register-grammar'));
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _buildFiles;
 
@@ -52,18 +56,16 @@ function _load_BuckClangProvider() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const OPEN_NEAREST_BUILD_FILE_COMMAND = 'nuclide-buck:open-nearest-build-file';
+const OPEN_NEAREST_BUILD_FILE_COMMAND = 'nuclide-buck:open-nearest-build-file'; /**
+                                                                                 * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                 * All rights reserved.
+                                                                                 *
+                                                                                 * This source code is licensed under the license found in the LICENSE file in
+                                                                                 * the root directory of this source tree.
+                                                                                 *
+                                                                                 * 
+                                                                                 * @format
+                                                                                 */
 
 class Activation {
 
@@ -71,7 +73,7 @@ class Activation {
     this._initialState = null;
 
     this._taskRunner = new (_BuckTaskRunner || _load_BuckTaskRunner()).BuckTaskRunner(rawState);
-    this._disposables = new _atom.CompositeDisposable(atom.commands.add('atom-workspace', OPEN_NEAREST_BUILD_FILE_COMMAND, event => {
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(atom.commands.add('atom-workspace', OPEN_NEAREST_BUILD_FILE_COMMAND, event => {
       (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)(OPEN_NEAREST_BUILD_FILE_COMMAND);
       // Add feature logging.
       const target = event.target;
@@ -88,6 +90,13 @@ class Activation {
 
   consumeTaskRunnerServiceApi(api) {
     this._disposables.add(api.register(this._taskRunner));
+  }
+
+  consumeBusySignal(service) {
+    this._busySignalService = service;
+    return new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
+      this._busySignalService = null;
+    });
   }
 
   provideObservableDiagnosticUpdates() {
@@ -117,7 +126,7 @@ class Activation {
   }
 
   provideClangConfiguration() {
-    return (0, (_BuckClangProvider || _load_BuckClangProvider()).getClangProvider)(this._taskRunner);
+    return (0, (_BuckClangProvider || _load_BuckClangProvider()).getClangProvider)(this._taskRunner, () => this._busySignalService);
   }
 }
 

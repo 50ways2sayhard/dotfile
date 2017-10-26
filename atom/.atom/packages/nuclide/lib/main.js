@@ -25,8 +25,6 @@ var _electron = _interopRequireDefault(require('electron'));
 
 var _path = _interopRequireDefault(require('path'));
 
-var _atom = require('atom');
-
 var _atomPackageDeps;
 
 function _load_atomPackageDeps() {
@@ -45,10 +43,22 @@ function _load_semver() {
   return _semver = _interopRequireDefault(require('semver'));
 }
 
+var _patchCommands;
+
+function _load_patchCommands() {
+  return _patchCommands = _interopRequireDefault(require('./patchCommands'));
+}
+
 var _installErrorReporter;
 
 function _load_installErrorReporter() {
   return _installErrorReporter = _interopRequireDefault(require('./installErrorReporter'));
+}
+
+var _installDevTools;
+
+function _load_installDevTools() {
+  return _installDevTools = _interopRequireDefault(require('./installDevTools'));
 }
 
 var _package;
@@ -67,6 +77,12 @@ var _serviceManager;
 
 function _load_serviceManager() {
   return _serviceManager = require('../pkg/nuclide-remote-connection/lib/service-manager');
+}
+
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
 }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -216,7 +232,12 @@ function _activate() {
     errorReporterDisposable = (0, (_installErrorReporter || _load_installErrorReporter()).default)();
   }
 
-  disposables = new _atom.CompositeDisposable();
+  if (atom.inDevMode() && process.env.SANDCASTLE == null) {
+    (0, (_installDevTools || _load_installDevTools()).default)();
+  }
+
+  disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
+  disposables.add((0, (_patchCommands || _load_patchCommands()).default)());
 
   // Add the "Nuclide" menu, if it's not there already.
   disposables.add(atom.menu.add([{

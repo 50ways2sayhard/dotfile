@@ -22,8 +22,10 @@ const defaultConfig = {
   targetUri: '',
   phpRuntimePath: '/usr/local/bin/php',
   phpRuntimeArgs: '',
+  scriptArguments: [],
   dummyRequestFilePath: 'php_only_xdebug_request.php',
-  stopOneStopAll: false
+  stopOneStopAll: false,
+  deferLaunch: false
 }; /**
     * Copyright (c) 2015-present, Facebook, Inc.
     * All rights reserved.

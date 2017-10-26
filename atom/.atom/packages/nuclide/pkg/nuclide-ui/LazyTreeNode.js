@@ -26,6 +26,7 @@ class LazyTreeNode {
   }
 
   isRoot() {
+    // eslint-disable-next-line eqeqeq
     return this.__parent === null;
   }
 

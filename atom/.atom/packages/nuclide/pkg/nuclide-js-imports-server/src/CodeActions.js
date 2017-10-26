@@ -79,7 +79,8 @@ function diagnosticToCommands(autoImportsManager, importFormatter, diagnostic, f
         const diagnosticRange = (0, (_util || _load_util()).lspRangeToAtomRange)(diagnostic.range);
         return range.isEqual(diagnosticRange);
       }
-      return true;
+      // Otherwise this has to be a value import.
+      return suggestedImport.symbol.type === 'value';
     })
     // Create a CodeAction for each file with an export.
     .map(missingImport => missingImport.filesWithExport.map(jsExport => Object.assign({}, jsExport, {
@@ -93,7 +94,7 @@ function diagnosticToCommands(autoImportsManager, importFormatter, diagnostic, f
       let verb;
       if (fileWithExport.isTypeExport) {
         verb = 'Import type';
-      } else if (importFormatter.isHaste) {
+      } else if (importFormatter.useRequire) {
         verb = 'Require';
       } else {
         verb = 'Import';

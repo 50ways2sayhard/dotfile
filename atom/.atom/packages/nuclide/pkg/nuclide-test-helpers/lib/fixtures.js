@@ -193,7 +193,7 @@ let renameBuckFiles = (() => {
     yield Promise.all(renames.map(function (name) {
       const prevName = (_nuclideUri || _load_nuclideUri()).default.join(projectDir, name);
       const newName = prevName.replace(/-rename$/, '');
-      return (_fsPromise || _load_fsPromise()).default.rename(prevName, newName);
+      return (_fsPromise || _load_fsPromise()).default.mv(prevName, newName);
     }));
   });
 

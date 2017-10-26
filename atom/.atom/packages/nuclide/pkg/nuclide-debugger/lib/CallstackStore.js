@@ -4,6 +4,12 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _DebuggerStore;
 
 function _load_DebuggerStore() {
@@ -32,13 +38,24 @@ function _load_debounce() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 class CallstackStore {
 
   constructor(dispatcher, debuggerStore) {
     const dispatcherToken = dispatcher.register(this._handlePayload.bind(this));
-    this._disposables = new _atom.CompositeDisposable(new _atom.Disposable(() => {
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
       dispatcher.unregister(dispatcherToken);
-    }));
+    });
     this._debuggerStore = debuggerStore;
     this._callstack = null;
     this._selectedCallFrameIndex = 0;
@@ -176,13 +193,4 @@ class CallstackStore {
     this._disposables.dispose();
   }
 }
-exports.default = CallstackStore; /**
-                                   * Copyright (c) 2015-present, Facebook, Inc.
-                                   * All rights reserved.
-                                   *
-                                   * This source code is licensed under the license found in the LICENSE file in
-                                   * the root directory of this source tree.
-                                   *
-                                   * 
-                                   * @format
-                                   */
+exports.default = CallstackStore;

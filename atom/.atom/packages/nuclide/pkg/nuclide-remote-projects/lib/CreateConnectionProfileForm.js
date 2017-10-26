@@ -14,7 +14,11 @@ var _react = _interopRequireWildcard(require('react'));
 
 var _reactDom = _interopRequireDefault(require('react-dom'));
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _ConnectionDetailsForm;
 
@@ -93,7 +97,7 @@ class CreateConnectionProfileForm extends _react.Component {
       this.props.onCancel();
     };
 
-    this.disposables = new _atom.CompositeDisposable();
+    this.disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
   }
 
   componentDidMount() {

@@ -36,8 +36,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 class IndieLinterDelegate {
 
   // For compatibility with the Nuclide API.
-  constructor(name) {
-    this._name = name;
+  constructor(config) {
+    this._name = config.name;
+    this._supportedMessageKinds = config.supportedMessageKinds || ['lint'];
+    this._uiSettings = Object.freeze(config.uiSettings ? config.uiSettings.slice() : []);
     this._messages = [];
     this._updates = new _rxjsBundlesRxMinJs.Subject();
     this._invalidations = new _rxjsBundlesRxMinJs.Subject();
@@ -49,6 +51,15 @@ class IndieLinterDelegate {
 
   get name() {
     return this._name;
+  }
+
+  get supportedMessageKinds() {
+    // We'll count on ourselves not to mutate this.
+    return this._supportedMessageKinds;
+  }
+
+  get uiSettings() {
+    return this._uiSettings;
   }
 
   getMessages() {
@@ -98,7 +109,7 @@ class IndieLinterRegistry {
   }
 
   register(config) {
-    const delegate = new IndieLinterDelegate(config.name);
+    const delegate = new IndieLinterDelegate(config);
     this._delegates.add(delegate);
     delegate.onDidDestroy(() => {
       this._delegates.delete(delegate);

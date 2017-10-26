@@ -12,7 +12,7 @@ let connectToJSImportsService = (() => {
 
     const [fileNotifier, host] = yield Promise.all([(0, (_nuclideOpenFiles || _load_nuclideOpenFiles()).getNotifierByConnection)(connection), (0, (_nuclideLanguageService || _load_nuclideLanguageService()).getHostServices)()]);
 
-    return jsService.initializeLsp(['.flowconfig'], ['.js'], 'INFO', fileNotifier, host, getAutoImportSettings());
+    return jsService.initializeLsp(['.flowconfig'], ['.js'], (_featureConfig || _load_featureConfig()).default.get('nuclide-js-imports-client.logLevel'), fileNotifier, host, getAutoImportSettings());
   });
 
   return function connectToJSImportsService(_x) {
@@ -111,6 +111,7 @@ function getAutoImportSettings() {
   // their settings and send DidChangeConfiguration requests to the server.
   // TODO: Observe settings changes + send to the server.
   return {
-    diagnosticsWhitelist: (_featureConfig || _load_featureConfig()).default.get('nuclide-js-imports-client.diagnosticsWhitelist')
+    diagnosticsWhitelist: (_featureConfig || _load_featureConfig()).default.get('nuclide-js-imports-client.diagnosticsWhitelist'),
+    requiresWhitelist: (_featureConfig || _load_featureConfig()).default.get('nuclide-js-imports-client.requiresWhitelist')
   };
 }

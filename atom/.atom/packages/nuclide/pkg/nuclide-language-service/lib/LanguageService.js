@@ -15,3 +15,9 @@
  * 
  * @format
  */
+
+// A (RPC-able) subset of DiagnosticMessage.
+
+
+// Ensure that this is actually a subset.
+null;

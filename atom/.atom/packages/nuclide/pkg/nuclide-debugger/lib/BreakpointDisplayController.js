@@ -273,6 +273,16 @@ class BreakpointDisplayController {
     try {
       const curLine = this._getCurrentMouseEventLine(event);
       this._debuggerActions.toggleBreakpoint(path, curLine);
+
+      if (this._breakpointStore.getBreakpointAtLine(path, curLine) != null) {
+        // If a breakpoint was added and showDebuggerOnBpSet config setting
+        // is true, show the debugger.
+        if (atom.config.get('nuclide.nuclide-debugger.showDebuggerOnBpSet')) {
+          atom.commands.dispatch(atom.views.getView(atom.workspace), 'nuclide-debugger:show', {
+            showOnlyIfHidden: true
+          });
+        }
+      }
     } catch (e) {
       return;
     }
@@ -343,7 +353,8 @@ class BreakpointDisplayController {
       this._lastShadowBreakpointMarker = this._createBreakpointMarkerAtLine(line, true, // isShadow
       true, // enabled
       false, // resolved
-      '');
+      '' // condition
+      );
     }
   }
 

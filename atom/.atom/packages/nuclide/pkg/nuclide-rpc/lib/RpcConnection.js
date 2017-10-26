@@ -139,9 +139,11 @@ class Call {
     this._reject = reject;
     this._cleanup = cleanup;
     this._complete = false;
-    this._timerId = setTimeout(() => {
-      this._timeout();
-    }, SERVICE_FRAMEWORK_RPC_TIMEOUT_MS);
+    if (timeoutMessage != null) {
+      this._timerId = setTimeout(() => {
+        this._timeout();
+      }, SERVICE_FRAMEWORK_RPC_TIMEOUT_MS);
+    }
   }
 
   reject(error) {
@@ -168,9 +170,15 @@ class Call {
   }
 
   _timeout() {
+    const timeoutMessage = this._timeoutMessage;
+
+    if (!(timeoutMessage != null)) {
+      throw new Error('Invariant violation: "timeoutMessage != null"');
+    }
+
     if (!this._complete) {
       this.cleanup();
-      this._reject(new RpcTimeoutError(`Timeout after ${SERVICE_FRAMEWORK_RPC_TIMEOUT_MS} for id: ` + `${this._message.id}, ${this._timeoutMessage}.`));
+      this._reject(new RpcTimeoutError(`Timeout after ${SERVICE_FRAMEWORK_RPC_TIMEOUT_MS} for id: ` + `${this._message.id}, ${timeoutMessage}.`));
     }
   }
 }
@@ -182,6 +190,7 @@ class RpcConnection {
 
   // Used to track if the IDs are incrementing atomically
   constructor(kind, serviceRegistry, transport, options = {}) {
+    this._kind = kind;
     this._transport = transport;
     this._options = options;
     this._rpcRequestId = 1;
@@ -198,8 +207,8 @@ class RpcConnection {
   }
 
   // Creates a connection on the server side.
-  static createServer(serviceRegistry, transport) {
-    return new RpcConnection('server', serviceRegistry, transport);
+  static createServer(serviceRegistry, transport, options = {}) {
+    return new RpcConnection('server', serviceRegistry, transport, options);
   }
 
   // Creates a client side connection to a server on another machine.
@@ -323,9 +332,12 @@ class RpcConnection {
         return; // No values to return.
       case 'promise':
         // Listen for a single message, and resolve or reject a promise on that message.
+        // If we're a server, we never give timeout errors and instead always
+        // just queue up the message on the reliable transport; timeout errors
+        // are solely intended to help clients behave nicer.
         const promise = new Promise((resolve, reject) => {
           this._transport.send(JSON.stringify(message));
-          this._calls.set(message.id, new Call(message, timeoutMessage, resolve, reject, () => {
+          this._calls.set(message.id, new Call(message, this._kind === 'server' ? null : timeoutMessage, resolve, reject, () => {
             this._calls.delete(message.id);
           }));
         });
@@ -499,6 +511,13 @@ class RpcConnection {
       const localImplementation = getLocalImplementation();
       // Create a new object and put it in the registry.
       const newObject = new localImplementation(...marshalledArgs);
+
+      // If we want to use client-assigned IDs in the future, we need to
+      // assign the ID to the object after construction.
+      // Attempting to marshal before construction is complete makes this impossible.
+      if (_this5._objectRegistry.isRegistered(newObject)) {
+        logger.error(`Object of type ${constructorMessage.interface} was marshalled during the constructor.`);
+      }
 
       // Return the object, which will automatically be converted to an id through the
       // marshalling system.

@@ -278,9 +278,11 @@ class VsDebugSessionTranslator {
             _this._exceptionFilters = [state];
             break;
         }
-        yield _this._session.setExceptionBreakpoints({
-          filters: _this._exceptionFilters
-        });
+        if (_this._session.isReadyForBreakpoints()) {
+          yield _this._session.setExceptionBreakpoints({
+            filters: _this._exceptionFilters
+          });
+        }
         return getEmptyResponse(command.id);
       });
 
@@ -345,9 +347,12 @@ class VsDebugSessionTranslator {
       const { threadId } = command.params;
       const threadInfo = this._threadsById.get(threadId);
       const callFrames = threadInfo != null && threadInfo.state === 'paused' ? threadInfo.callFrames : null;
+      const result = {
+        callFrames: callFrames || []
+      };
       return {
         id: command.id,
-        result: { callFrames: callFrames || [] }
+        result
       };
     }), this._commandsOfType('Debugger.evaluateOnCallFrame').flatMap(catchCommandError((() => {
       var _ref12 = (0, _asyncToGenerator.default)(function* (command) {
@@ -366,8 +371,33 @@ class VsDebugSessionTranslator {
       return function (_x12) {
         return _ref12.apply(this, arguments);
       };
-    })())), this._commandsOfType('Runtime.evaluate').flatMap(catchCommandError((() => {
+    })())), this._commandsOfType('Debugger.setVariableValue').flatMap(catchCommandError((() => {
       var _ref13 = (0, _asyncToGenerator.default)(function* (command) {
+        if (!(command.method === 'Debugger.setVariableValue')) {
+          throw new Error('Invariant violation: "command.method === \'Debugger.setVariableValue\'"');
+        }
+
+        const { callFrameId, name, value } = command.params;
+        const args = {
+          variablesReference: callFrameId,
+          name,
+          value
+        };
+        const { body } = yield _this._session.setVariable(args);
+        const result = {
+          value: body.value
+        };
+        return {
+          id: command.id,
+          result
+        };
+      });
+
+      return function (_x13) {
+        return _ref13.apply(this, arguments);
+      };
+    })())), this._commandsOfType('Runtime.evaluate').flatMap(catchCommandError((() => {
+      var _ref14 = (0, _asyncToGenerator.default)(function* (command) {
         if (!(command.method === 'Runtime.evaluate')) {
           throw new Error('Invariant violation: "command.method === \'Runtime.evaluate\'"');
         }
@@ -380,8 +410,8 @@ class VsDebugSessionTranslator {
         };
       });
 
-      return function (_x13) {
-        return _ref13.apply(this, arguments);
+      return function (_x14) {
+        return _ref14.apply(this, arguments);
       };
     })())),
     // Error for unhandled commands
@@ -424,7 +454,7 @@ class VsDebugSessionTranslator {
         return _rxjsBundlesRxMinJs.Observable.fromPromise(this._startDebugging()).ignoreElements().concat(this._session.observeInitializeEvents());
       }
     })).first().flatMap((() => {
-      var _ref14 = (0, _asyncToGenerator.default)(function* (commands) {
+      var _ref15 = (0, _asyncToGenerator.default)(function* (commands) {
         // Upon session start, send the cached breakpoints
         // and other configuration requests.
         try {
@@ -439,14 +469,14 @@ class VsDebugSessionTranslator {
         }
       });
 
-      return function (_x14) {
-        return _ref14.apply(this, arguments);
+      return function (_x15) {
+        return _ref15.apply(this, arguments);
       };
     })()),
     // Following breakpoint requests are handled by
     // immediatelly passing to the active debug session.
     setBreakpointsCommands.flatMap((() => {
-      var _ref15 = (0, _asyncToGenerator.default)(function* (command) {
+      var _ref16 = (0, _asyncToGenerator.default)(function* (command) {
         try {
           return yield _this3._setBulkBreakpoints([command]);
         } catch (error) {
@@ -454,8 +484,8 @@ class VsDebugSessionTranslator {
         }
       });
 
-      return function (_x15) {
-        return _ref15.apply(this, arguments);
+      return function (_x16) {
+        return _ref16.apply(this, arguments);
       };
     })())).flatMap(responses => _rxjsBundlesRxMinJs.Observable.from(responses));
   }
@@ -495,7 +525,7 @@ class VsDebugSessionTranslator {
       }
 
       const responseGroups = yield Promise.all(Array.from(breakpointCommandsByUrl).map((() => {
-        var _ref16 = (0, _asyncToGenerator.default)(function* ([url, breakpointCommands]) {
+        var _ref17 = (0, _asyncToGenerator.default)(function* ([url, breakpointCommands]) {
           const path = (0, (_helpers || _load_helpers()).uriToPath)(url);
 
           const existingTranslatorBreakpoints = _this4._getBreakpointsForFilePath(path).map(function (bp) {
@@ -538,8 +568,8 @@ class VsDebugSessionTranslator {
           });
         });
 
-        return function (_x16) {
-          return _ref16.apply(this, arguments);
+        return function (_x17) {
+          return _ref17.apply(this, arguments);
         };
       })()));
       return (0, (_collection || _load_collection()).arrayFlatten)(responseGroups);
@@ -730,7 +760,7 @@ class VsDebugSessionTranslator {
         this._logger.warn('Unknown breakpoint event', body);
       }
     }), this._session.observeStopEvents().flatMap((() => {
-      var _ref17 = (0, _asyncToGenerator.default)(function* ({ body }) {
+      var _ref18 = (0, _asyncToGenerator.default)(function* ({ body }) {
         const { threadId, reason } = body;
         let callFrames = [];
         const translatedStopReason = translateStopReason(reason);
@@ -753,8 +783,8 @@ class VsDebugSessionTranslator {
         return { pausedEvent, threadsUpdatedEvent };
       });
 
-      return function (_x17) {
-        return _ref17.apply(this, arguments);
+      return function (_x18) {
+        return _ref18.apply(this, arguments);
       };
     })()).subscribe(({ pausedEvent, threadsUpdatedEvent }) => {
       this._sendMessageToClient({
@@ -765,7 +795,7 @@ class VsDebugSessionTranslator {
         method: 'Debugger.threadsUpdated',
         params: threadsUpdatedEvent
       });
-    }), this._session.observeContinuedEvents().subscribe(({ body }) => {
+    }, error => this._logger.error('Unable to translate stop event / call stack', error)), this._session.observeContinuedEvents().subscribe(({ body }) => {
       const { allThreadsContinued, threadId } = body;
       if (allThreadsContinued || threadId === this._pausedThreadId) {
         this._pausedThreadId = null;
@@ -876,11 +906,12 @@ class VsDebugSessionTranslator {
     var _this10 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
+      // $FlowFixMe(>=0.55.0) Flow suppress
       const { body: { stackFrames } } = yield _this10._session.stackTrace({
         threadId
       });
       return Promise.all(stackFrames.map((() => {
-        var _ref19 = (0, _asyncToGenerator.default)(function* (frame) {
+        var _ref20 = (0, _asyncToGenerator.default)(function* (frame) {
           let scriptId;
           if (frame.source != null && frame.source.path != null) {
             scriptId = frame.source.path;
@@ -899,8 +930,8 @@ class VsDebugSessionTranslator {
           };
         });
 
-        return function (_x18) {
-          return _ref19.apply(this, arguments);
+        return function (_x19) {
+          return _ref20.apply(this, arguments);
         };
       })()));
     })();
@@ -972,17 +1003,10 @@ class VsDebugSessionTranslator {
   }
 
   _observeTerminatedDebugeeEvents() {
-    const debugeeTerminated = this._session.observeTerminateDebugeeEvents();
-    if (this._adapterType === (_constants || _load_constants()).VsAdapterTypes.PYTHON) {
-      // The python adapter normally it sends one terminated event on exit.
-      // However, in program crashes, it sends two terminated events:
-      // One immediatelly, followed by the output events with the stack trace
-      // & then the real terminated event.
-      // TODO(t19793170): Remove the extra `TerminatedEvent` from `pythonVSCode`
-      return debugeeTerminated.delay(1000);
-    } else {
-      return debugeeTerminated;
-    }
+    // The service framework doesn't flush the last output messages
+    // if the observables and session are eagerly terminated.
+    // Hence, delaying 1 second.
+    return this._session.observeTerminateDebugeeEvents().delay(1000);
   }
 
   dispose() {

@@ -11,6 +11,12 @@ exports.consumeSyncCompletedNuxService = consumeSyncCompletedNuxService;
 
 var _atom = require('atom');
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _NuxManager;
 
 function _load_NuxManager() {
@@ -23,10 +29,23 @@ function _load_NuxStore() {
   return _NuxStore = require('./NuxStore');
 }
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 class Activation {
 
   constructor() {
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._nuxStore = new (_NuxStore || _load_NuxStore()).NuxStore();
     this._nuxManager = new (_NuxManager || _load_NuxManager()).NuxManager(this._nuxStore, this._syncCompletedNux.bind(this));
 
@@ -61,16 +80,7 @@ class Activation {
     }
     this._syncCompletedNuxService(id);
   }
-} /**
-   * Copyright (c) 2015-present, Facebook, Inc.
-   * All rights reserved.
-   *
-   * This source code is licensed under the license found in the LICENSE file in
-   * the root directory of this source tree.
-   *
-   * 
-   * @format
-   */
+}
 
 let activation = null;
 

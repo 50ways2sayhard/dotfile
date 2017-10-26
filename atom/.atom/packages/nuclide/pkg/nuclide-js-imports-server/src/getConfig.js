@@ -22,16 +22,25 @@ function _load_globals() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const ALL_ENVS = Object.keys((_globals || _load_globals()).default); /**
-                                                                      * Copyright (c) 2015-present, Facebook, Inc.
-                                                                      * All rights reserved.
-                                                                      *
-                                                                      * This source code is licensed under the license found in the LICENSE file in
-                                                                      * the root directory of this source tree.
-                                                                      *
-                                                                      * 
-                                                                      * @format
-                                                                      */
+const ALL_ENVS = Object.keys((_globals || _load_globals()).default);
+
+/**
+ * Haste settings are surprisingly complicated.
+ * - isHaste enables haste modules. All files with a @providesModule docblock may be imported
+ *   via their module name, without using the full path.
+ * - When useNameReducers is enabled, we'll attempt to resolve whitelisted files *without*
+ *   @providesModule purely using their name, excluding files in the blacklist.
+ */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 function getEslintEnvs(root) {
   const eslintFile = (_nuclideUri || _load_nuclideUri()).default.join(root, '.eslintrc');
@@ -43,7 +52,10 @@ function getConfigFromFlow(root) {
   let moduleDirs = [];
   let hasteSettings = {
     isHaste: false,
-    blacklistedDirs: []
+    useNameReducers: false,
+    nameReducers: [],
+    nameReducerWhitelist: [],
+    nameReducerBlacklist: []
   };
   try {
     const flowFile = (_nuclideUri || _load_nuclideUri()).default.join(root, '.flowconfig');
@@ -64,10 +76,36 @@ function flowConfigToResolveDirnames(flowFile, flowFileContents) {
 
 function flowConfigToHasteSettings(root, flowFileContents) {
   const isHaste = Boolean(flowFileContents.match(/module.system=haste/));
-  const resolveDirs = flowFileContents.match(/module.system.haste.paths.blacklist=([^\s]+)/g);
+  const useNameReducers = Boolean(flowFileContents.match(/module.system.haste.use_name_reducers=true/));
+  function getPatterns(dirs) {
+    return dirs.map(dirString => dirString.split('=')[1]).map(line => new RegExp(line.replace('<PROJECT_ROOT>', root)));
+  }
+  let nameReducers = [];
+  let nameReducerWhitelist = [];
+  let nameReducerBlacklist = [];
+  if (useNameReducers) {
+    const nameReducerMatches = flowFileContents.match(/module.system.haste.name_reducers=(.+)$/gm) || [];
+    nameReducers = nameReducerMatches.map(line => {
+      const value = line.substr(line.indexOf('=') + 1);
+      // Default reducer (example):
+      // '^.*/\([a-zA-Z0-9$_.-]+\.js\(\.flow\)?\)$' -> '\1'
+      const [regexString, replacementString] = value.split('->').map(x => x.trim());
+      const regexp = new RegExp(
+      // OCaml regexes escape parentheses.
+      regexString.substr(1, regexString.length - 2).replace(/\\([()])/g, '$1'));
+      // OCaml uses \1, \2 while JS uses $1, $2...
+      const replacement = replacementString.substr(1, replacementString.length - 2).replace(/\\[0-9]/g, '$$1');
+      return { regexp, replacement };
+    });
+    nameReducerWhitelist = getPatterns(flowFileContents.match(/module.system.haste.paths.whitelist=([^\s]+)/g) || []);
+    nameReducerBlacklist = getPatterns(flowFileContents.match(/module.system.haste.paths.blacklist=([^\s]+)/g) || []);
+  }
   return {
     isHaste,
-    blacklistedDirs: isHaste && resolveDirs ? resolveDirs.map(dirString => dirString.split('=')[1]).map(line => line.replace('<PROJECT_ROOT>', root)) : []
+    useNameReducers,
+    nameReducers,
+    nameReducerWhitelist,
+    nameReducerBlacklist
   };
 }
 

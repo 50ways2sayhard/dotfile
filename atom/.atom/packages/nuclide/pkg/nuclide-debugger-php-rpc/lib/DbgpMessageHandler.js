@@ -161,6 +161,7 @@ class DbgpMessageHandler {
       errorValue = error;
       resultValue = result;
     });
+    // eslint-disable-next-line eqeqeq
     if (errorValue !== null) {
       throw new Error('Error ' + JSON.stringify(errorValue) + ' parsing xml: ' + xml);
     }

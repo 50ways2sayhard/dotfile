@@ -132,6 +132,7 @@ const RecentFilesProvider = exports.RecentFilesProvider = {
     const filename = (_nuclideUri || _load_nuclideUri()).default.basename(item.path);
     const filePath = item.path.substring(0, item.path.lastIndexOf(filename));
     const date = item.timestamp == null ? null : new Date(item.timestamp);
+    // eslint-disable-next-line eqeqeq
     const datetime = date === null ? '' : date.toLocaleString();
     return _react.createElement(
       'div',
@@ -162,7 +163,7 @@ const RecentFilesProvider = exports.RecentFilesProvider = {
         _react.createElement(
           'span',
           { className: 'recent-files-provider-datetime-label' },
-          date === null ? 'At some point' : (0, (_string || _load_string()).relativeDate)(date)
+          date == null ? 'At some point' : (0, (_string || _load_string()).relativeDate)(date)
         )
       )
     );

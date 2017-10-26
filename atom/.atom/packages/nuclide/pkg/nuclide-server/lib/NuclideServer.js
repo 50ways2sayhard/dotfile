@@ -42,6 +42,12 @@ function _load_config() {
   return _config = require('./config');
 }
 
+var _QueuedAckTransport;
+
+function _load_QueuedAckTransport() {
+  return _QueuedAckTransport = require('./QueuedAckTransport');
+}
+
 var _utils;
 
 function _load_utils() {
@@ -93,6 +99,8 @@ function _load_nuclideMarshalersCommon() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // eslint-disable-next-line rulesdir/no-commonjs
+const connect = require('connect');
+// eslint-disable-next-line rulesdir/no-commonjs
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -104,8 +112,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @format
  */
 
-const connect = require('connect');
-// eslint-disable-next-line rulesdir/no-commonjs
 const http = require('http');
 // eslint-disable-next-line rulesdir/no-commonjs
 const https = require('https');
@@ -185,7 +191,10 @@ class NuclideServer {
   }
 
   _createWebSocketServer() {
-    const webSocketServer = new (_ws || _load_ws()).default.Server({ server: this._webServer });
+    const webSocketServer = new (_ws || _load_ws()).default.Server({
+      server: this._webServer,
+      perMessageDeflate: true
+    });
     webSocketServer.on('connection', socket => this._onConnection(socket));
     webSocketServer.on('error', error => logger.error('WebSocketServer Error:', error));
     return webSocketServer;
@@ -332,9 +341,10 @@ class NuclideServer {
     socket.once('message', clientId => {
       errorSubscription.dispose();
       client = this._clients.get(clientId);
+      const useAck = clientId.startsWith('ACK');
       const transport = new (_WebSocketTransport || _load_WebSocketTransport()).WebSocketTransport(clientId, socket);
       if (client == null) {
-        client = (_nuclideRpc || _load_nuclideRpc()).RpcConnection.createServer(this._rpcServiceRegistry, new (_QueuedTransport || _load_QueuedTransport()).QueuedTransport(clientId, transport));
+        client = (_nuclideRpc || _load_nuclideRpc()).RpcConnection.createServer(this._rpcServiceRegistry, useAck ? new (_QueuedAckTransport || _load_QueuedAckTransport()).QueuedAckTransport(clientId, transport) : new (_QueuedTransport || _load_QueuedTransport()).QueuedTransport(clientId, transport));
         this._clients.set(clientId, client);
       } else {
         if (!(clientId === client.getTransport().id)) {

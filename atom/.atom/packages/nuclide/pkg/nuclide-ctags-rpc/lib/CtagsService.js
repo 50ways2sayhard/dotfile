@@ -106,6 +106,7 @@ class CtagsService {
                 return _ref2.apply(this, arguments);
               };
             })()));
+            // $FlowFixMe(>=0.55.0) Flow suppress
             resolve((0, (_collection || _load_collection()).arrayCompact)(processed));
           }
         });

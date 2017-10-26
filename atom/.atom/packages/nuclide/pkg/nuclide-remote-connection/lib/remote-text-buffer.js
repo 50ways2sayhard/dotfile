@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.saveBuffer = exports.loadBufferForUri = undefined;
+exports.loadBufferForUri = undefined;
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
@@ -33,27 +33,6 @@ let loadBufferForUri = exports.loadBufferForUri = (() => {
   };
 })();
 
-/**
- * Provides an asynchronous interface for saving a buffer, regardless of whether it's an Atom
- * TextBuffer or NuclideTextBuffer.
- */
-let saveBuffer = exports.saveBuffer = (() => {
-  var _ref2 = (0, _asyncToGenerator.default)(function* (buffer) {
-    const expectedPath = buffer.getPath();
-    const promise = (0, (_event || _load_event()).observableFromSubscribeFunction)(buffer.onDidSave.bind(buffer)).filter(function ({ path }) {
-      return path === expectedPath;
-    }).take(1).ignoreElements().toPromise();
-    // `buffer.save` returns a promise in the case of a NuclideTextBuffer. We'll await it to make sure
-    // we catch any async errors too.
-    yield Promise.resolve(buffer.save());
-    return promise;
-  });
-
-  return function saveBuffer(_x2) {
-    return _ref2.apply(this, arguments);
-  };
-})();
-
 exports.bufferForUri = bufferForUri;
 exports.existingBufferForUri = existingBufferForUri;
 
@@ -65,22 +44,10 @@ function _load_nuclideUri() {
   return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
 }
 
-var _event;
-
-function _load_event() {
-  return _event = require('nuclide-commons/event');
-}
-
 var _nuclideFsAtom;
 
 function _load_nuclideFsAtom() {
   return _nuclideFsAtom = require('../../nuclide-fs-atom');
-}
-
-var _NuclideTextBuffer;
-
-function _load_NuclideTextBuffer() {
-  return _NuclideTextBuffer = _interopRequireDefault(require('./NuclideTextBuffer'));
 }
 
 var _RemoteFile;

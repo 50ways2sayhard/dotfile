@@ -188,19 +188,17 @@ class FileDiagnosticsProvider {
           pathsForHackLanguage.add(path);
         }
       };
-      if (diagnostics.filePathToMessages != null) {
-        diagnostics.filePathToMessages.forEach(function (messages, messagePath) {
-          addPath(messagePath);
-          messages.forEach(function (message) {
-            addPath(message.filePath);
-            if (message.trace != null) {
-              message.trace.forEach(function (trace) {
-                addPath(trace.filePath);
-              });
-            }
-          });
+      diagnostics.forEach(function (messages, messagePath) {
+        addPath(messagePath);
+        messages.forEach(function (message) {
+          addPath(message.filePath);
+          if (message.trace != null) {
+            message.trace.forEach(function (trace) {
+              addPath(trace.filePath);
+            });
+          }
         });
-      }
+      });
 
       _this._providerBase.publishMessageUpdate(diagnostics);
     }));
@@ -304,8 +302,7 @@ class ObservableDiagnosticProvider {
         }));
       }).map(updates => {
         const filePathToMessages = new Map();
-        updates.forEach(update => {
-          const { filePath, messages } = update;
+        updates.forEach((messages, filePath) => {
           (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)(this._analyticsEventName);
           const fileCache = this._connectionToFiles.get(connection);
           if (messages.length === 0) {
@@ -317,9 +314,7 @@ class ObservableDiagnosticProvider {
           }
           filePathToMessages.set(filePath, messages);
         });
-        return {
-          filePathToMessages
-        };
+        return filePathToMessages;
       });
     }).catch(error => {
       this._logger.error(`Error: observeEntries, ${this._analyticsEventName}`, error);

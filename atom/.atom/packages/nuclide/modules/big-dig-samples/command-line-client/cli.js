@@ -120,9 +120,10 @@ function parseArgsAndRunMain() {
       username: (0, (_username || _load_username()).getUsername)(),
       pathToPrivateKey: privateKey,
       authMethod: 'PRIVATE_KEY',
-      remoteServerCommand,
+      remoteServer: { command: remoteServerCommand },
       remoteServerCustomParams: {},
-      password: '' });
+      password: '' // Should probably be nullable because of the authMethod.
+    });
   });
 }
 

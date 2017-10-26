@@ -7,6 +7,12 @@ exports.TreeRootComponent = undefined;
 
 var _atom = require('atom');
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _LazyTreeNode;
 
 function _load_LazyTreeNode() {
@@ -35,9 +41,9 @@ function _load_scrollIntoView() {
   return _scrollIntoView = require('nuclide-commons-ui/scrollIntoView');
 }
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * Toggles the existence of a value in a set. If the value exists, deletes it.
@@ -51,19 +57,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
  * @returns `true` if the value was added to the set, otherwise `false`. If
  *     `forceHas` is defined, the return value will be equal to `forceHas`.
  */
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-/* globals Element */
-
 function toggleSetHas(set, value, forceHas) {
   let added;
 
@@ -76,7 +69,18 @@ function toggleSetHas(set, value, forceHas) {
   }
 
   return added;
-}
+} /**
+   * Copyright (c) 2015-present, Facebook, Inc.
+   * All rights reserved.
+   *
+   * This source code is licensed under the license found in the LICENSE file in
+   * the root directory of this source tree.
+   *
+   * 
+   * @format
+   */
+
+/* globals Element */
 
 const FIRST_SELECTED_DESCENDANT_REF = 'firstSelectedDescendant';
 
@@ -346,7 +350,7 @@ class TreeRootComponent extends _react.Component {
       keyToNode[rootKey] = root;
     });
 
-    const subscriptions = new _atom.CompositeDisposable();
+    const subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     subscriptions.add(atom.commands.add(this.props.eventHandlerSelector, {
       // Expand and collapse.
       'core:move-right': () => this._expandSelection(),

@@ -79,7 +79,11 @@ class DefinitionPreviewView extends _react.Component {
       (_analytics || _load_analytics()).default.track('nuclide-definition-preview:openInMainEditor');
       const def = this.props.definition;
       if (def != null) {
-        (0, (_goToLocation || _load_goToLocation()).goToLocation)(def.path, def.position.row, def.position.column, true);
+        (0, (_goToLocation || _load_goToLocation()).goToLocation)(def.path, {
+          line: def.position.row,
+          column: def.position.column,
+          center: true
+        });
       }
     };
 

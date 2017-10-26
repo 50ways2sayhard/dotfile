@@ -18,6 +18,8 @@ function _load_debounce() {
 
 var _react = _interopRequireWildcard(require('react'));
 
+var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
+
 var _FilteredMessagesReminder;
 
 function _load_FilteredMessagesReminder() {
@@ -70,6 +72,20 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// Maximum time (ms) for the console to try scrolling to the bottom.
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
+const MAXIMUM_SCROLLING_TIME = 3000;
+
 class Console extends _react.Component {
 
   constructor(props) {
@@ -81,6 +97,12 @@ class Console extends _react.Component {
 
     this._getProvider = id => {
       return this.props.getProvider(id);
+    };
+
+    this._executePrompt = code => {
+      this.props.execute(code);
+      // Makes the console to scroll to the bottom.
+      this._isScrolledNearBottom = true;
     };
 
     this._handleScroll = (offsetHeight, scrollHeight, scrollTop) => {
@@ -95,8 +117,31 @@ class Console extends _react.Component {
       if (!this._outputTable) {
         return;
       }
+
       this._outputTable.scrollToBottom();
+
       this.setState({ unseenMessages: false });
+    };
+
+    this._startScrollToBottom = () => {
+      if (!this._isScrollingToBottom) {
+        this._isScrollingToBottom = true;
+
+        this._scrollingThrottle = _rxjsBundlesRxMinJs.Observable.timer(MAXIMUM_SCROLLING_TIME).subscribe(() => {
+          this._isScrollingToBottom = false;
+        });
+      }
+
+      this._scrollToBottom();
+    };
+
+    this._stopScrollToBottom = () => {
+      this._isScrollingToBottom = false;
+      this._scrollingThrottle.unsubscribe();
+    };
+
+    this._shouldScrollToBottom = () => {
+      return this._isScrolledNearBottom || this._isScrollingToBottom;
     };
 
     this.state = {
@@ -104,15 +149,21 @@ class Console extends _react.Component {
     };
     this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._isScrolledNearBottom = true;
+    this._isScrollingToBottom = false;
     this._handleScrollEnd = (0, (_debounce || _load_debounce()).default)(this._handleScrollEnd, 100);
   }
+
+  // Used when _scrollToBottom is called. The console optimizes message loading
+  // so scrolling to the bottom once doesn't always scroll to the bottom since
+  // more messages can be loaded after.
+
 
   componentDidMount() {
     // Wait for `<OutputTable />` to render itself via react-virtualized before scrolling and
     // re-measuring; Otherwise, the scrolled location will be inaccurate, preventing the Console
     // from auto-scrolling.
     const immediate = setImmediate(() => {
-      this._scrollToBottom();
+      this._startScrollToBottom();
     });
     this._disposables.add(() => {
       clearImmediate(immediate);
@@ -127,7 +178,7 @@ class Console extends _react.Component {
     // If records are added while we're scrolled to the bottom (or very very close, at least),
     // automatically scroll.
     if (this._isScrolledNearBottom && (0, (_recordsChanged || _load_recordsChanged()).default)(prevProps.displayableRecords, this.props.displayableRecords)) {
-      this._scrollToBottom();
+      this._startScrollToBottom();
     }
   }
 
@@ -203,11 +254,12 @@ class Console extends _react.Component {
             getExecutor: this._getExecutor,
             getProvider: this._getProvider,
             onScroll: this._handleScroll,
-            onDisplayableRecordHeightChange: this.props.onDisplayableRecordHeightChange
+            onDisplayableRecordHeightChange: this.props.onDisplayableRecordHeightChange,
+            shouldScrollToBottom: this._shouldScrollToBottom
           }),
           _react.createElement((_NewMessagesNotification || _load_NewMessagesNotification()).default, {
             visible: this.state.unseenMessages,
-            onClick: this._scrollToBottom
+            onClick: this._startScrollToBottom
           })
         ),
         this._renderPrompt()
@@ -226,27 +278,25 @@ class Console extends _react.Component {
       this._renderPromptButton(),
       _react.createElement((_InputArea || _load_InputArea()).default, {
         scopeName: currentExecutor.scopeName,
-        onSubmit: this.props.execute,
+        onSubmit: this._executePrompt,
         history: this.props.history
       })
     );
   }
 
   _handleScrollEnd(offsetHeight, scrollHeight, scrollTop) {
-    this._isScrolledNearBottom = this._isScrolledToBottom(offsetHeight, scrollHeight, scrollTop);
-    this.setState({
-      unseenMessages: this.state.unseenMessages && !this._isScrolledNearBottom
-    });
+    const isScrolledToBottom = this._isScrolledToBottom(offsetHeight, scrollHeight, scrollTop);
+
+    if (this._isScrollingToBottom && !isScrolledToBottom) {
+      this._scrollToBottom();
+    } else {
+      this._isScrolledNearBottom = isScrolledToBottom;
+      this._stopScrollToBottom();
+      this.setState({
+        unseenMessages: this.state.unseenMessages && !this._isScrolledNearBottom
+      });
+    }
   }
 
 }
-exports.default = Console; /**
-                            * Copyright (c) 2015-present, Facebook, Inc.
-                            * All rights reserved.
-                            *
-                            * This source code is licensed under the license found in the LICENSE file in
-                            * the root directory of this source tree.
-                            *
-                            * 
-                            * @format
-                            */
+exports.default = Console;

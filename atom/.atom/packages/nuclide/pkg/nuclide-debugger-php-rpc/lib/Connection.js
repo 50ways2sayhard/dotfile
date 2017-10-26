@@ -17,11 +17,13 @@ function _load_DataCache() {
   return _DataCache = require('./DataCache');
 }
 
-var _eventKit;
+var _UniversalDisposable;
 
-function _load_eventKit() {
-  return _eventKit = require('event-kit');
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
 }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 let connectionCount = 1; /**
                           * Copyright (c) 2015-present, Facebook, Inc.
@@ -48,7 +50,7 @@ class Connection {
     this._status = (_DbgpSocket || _load_DbgpSocket()).ConnectionStatus.Starting;
     this._isDummyConnection = isDummyConnection;
     this._isDummyViewable = false;
-    this._disposables = new (_eventKit || _load_eventKit()).CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._breakCount = 0;
     this._onUserOutputCallback = onUserOutputCallback;
 

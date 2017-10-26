@@ -24,6 +24,13 @@ function jasmineAttachWorkspace() {
   }
 
   content.setAttribute('style', styleCSS);
+
+  // Unset the 'top' attribute of the spec reporter to make the full window visible.
+  // This is purely for developer convenience when running specs in a visible window.
+  const specReporter = document.querySelector('.spec-reporter-container');
+  if (specReporter != null) {
+    specReporter.setAttribute('style', 'top: inherit');
+  }
 } /**
    * Copyright (c) 2017-present, Facebook, Inc.
    * All rights reserved.

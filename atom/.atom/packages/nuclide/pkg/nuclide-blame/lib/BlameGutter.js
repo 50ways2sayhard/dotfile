@@ -24,7 +24,11 @@ function _load_nuclideAnalytics() {
   return _nuclideAnalytics = require('../../nuclide-analytics');
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _electron = require('electron');
 
@@ -92,7 +96,7 @@ class BlameGutter {
     this._isDestroyed = false;
     this._isEditorDestroyed = false;
 
-    this._subscriptions = new _atom.CompositeDisposable();
+    this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._editor = editor;
     this._blameProvider = blameProvider;
     this._bufferLineToDecoration = new Map();

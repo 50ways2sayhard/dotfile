@@ -13,18 +13,25 @@ function _load_DebuggerDispatcher() {
   return _DebuggerDispatcher = require('./DebuggerDispatcher');
 }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+var _UniversalDisposable;
 
-const CONNECTIONS_UPDATED_EVENT = 'CONNECTIONS_UPDATED_EVENT';
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const CONNECTIONS_UPDATED_EVENT = 'CONNECTIONS_UPDATED_EVENT'; /**
+                                                                * Copyright (c) 2015-present, Facebook, Inc.
+                                                                * All rights reserved.
+                                                                *
+                                                                * This source code is licensed under the license found in the LICENSE file in
+                                                                * the root directory of this source tree.
+                                                                *
+                                                                * 
+                                                                * @format
+                                                                */
+
 const PROVIDERS_UPDATED_EVENT = 'PROVIDERS_UPDATED_EVENT';
 
 /**
@@ -34,7 +41,7 @@ class DebuggerProviderStore {
 
   constructor(dispatcher, debuggerActions) {
     this._dispatcher = dispatcher;
-    this._disposables = new _atom.CompositeDisposable(this._registerDispatcherEvents(), this._listenForProjectChange());
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(this._registerDispatcherEvents(), this._listenForProjectChange());
     this._debuggerActions = debuggerActions;
     this._emitter = new _atom.Emitter();
     this._debuggerProviders = new Set();

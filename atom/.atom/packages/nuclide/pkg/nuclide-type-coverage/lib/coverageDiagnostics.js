@@ -14,7 +14,7 @@ function _load_observable() {
 }
 
 function diagnosticProviderForResultStream(results, isEnabledStream) {
-  const toggledResults = (0, (_observable || _load_observable()).toggle)(results, isEnabledStream);
+  const toggledResults = results.let((0, (_observable || _load_observable()).toggle)(isEnabledStream));
 
   return {
     updates: (0, (_observable || _load_observable()).compact)(toggledResults.map(diagnosticsForResult)),
@@ -73,15 +73,12 @@ function diagnosticsForResult(result) {
 
   const diagnostics = value.uncoveredRegions.map(region => uncoveredRangeToDiagnostic(region, editorPath, providerName));
 
-  return {
-    filePathToMessages: new Map([[editorPath, diagnostics]])
-  };
+  return new Map([[editorPath, diagnostics]]);
 }
 
 function uncoveredRangeToDiagnostic(region, path, providerName) {
   const text = region.message != null ? region.message : `Not covered by ${providerName}`;
   return {
-    scope: 'file',
     providerName: 'Type Coverage',
     type: 'Warning',
     filePath: path,

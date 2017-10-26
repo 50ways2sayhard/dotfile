@@ -276,7 +276,14 @@ class DebuggerSteppingComponent extends _react.Component {
       _react.createElement(
         (_ButtonGroup || _load_ButtonGroup()).ButtonGroup,
         { className: 'nuclide-debugger-stepping-buttongroup' },
-        customControlButtons.map((specification, i) => _react.createElement((_Button || _load_Button()).Button, Object.assign({}, specification, { key: i })))
+        customControlButtons.map((specification, i) => {
+          const buttonProps = Object.assign({}, specification, {
+            tooltip: {
+              title: specification.title
+            }
+          });
+          return _react.createElement((_Button || _load_Button()).Button, Object.assign({}, buttonProps, { key: i }));
+        })
       ),
       _react.createElement((_Checkbox || _load_Checkbox()).Checkbox, {
         className: 'nuclide-debugger-exception-checkbox',

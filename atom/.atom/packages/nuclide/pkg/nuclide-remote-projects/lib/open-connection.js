@@ -17,7 +17,7 @@ function _load_Model() {
 var _showModal;
 
 function _load_showModal() {
-  return _showModal = _interopRequireDefault(require('../../nuclide-ui/showModal'));
+  return _showModal = _interopRequireDefault(require('nuclide-commons-ui/showModal'));
 }
 
 var _connectionProfileUtils;

@@ -89,6 +89,17 @@ function getCompareFunction(sortedColumn, sortDescending) {
   return () => 0;
 }
 
+function filterTargetInfos(attachTargetInfos, filterText) {
+  // Show all results if invalid regex
+  let filterRegex;
+  try {
+    filterRegex = new RegExp(filterText, 'i');
+  } catch (e) {
+    filterRegex = new RegExp('.*', 'i');
+  }
+  return attachTargetInfos.filter(item => filterRegex.test(item.name) || filterRegex.test(item.pid.toString()) || filterRegex.test(item.commandName));
+}
+
 class AttachUIComponent extends _react.Component {
 
   constructor(props) {
@@ -107,6 +118,13 @@ class AttachUIComponent extends _react.Component {
             attachSourcePath: savedSettings.attachSourcePath || ''
           });
         });
+      }
+
+      const filteredAttachTargetInfos = filterTargetInfos(this.state.attachTargetInfos, filterText || this.state.filterText);
+
+      // Select only option if filtered to one result
+      if (filteredAttachTargetInfos.length === 1) {
+        newSelectedTarget = filteredAttachTargetInfos[0];
       }
 
       if (newSelectedTarget == null) {
@@ -128,8 +146,16 @@ class AttachUIComponent extends _react.Component {
     };
 
     this._handleFilterTextChange = text => {
+      // Check if we've filtered down to one option and select if so
+      let newSelectedTarget = this.state.selectedAttachTarget;
+      const filteredAttachTargetInfos = filterTargetInfos(this.state.attachTargetInfos, text);
+      if (filteredAttachTargetInfos.length === 1) {
+        newSelectedTarget = filteredAttachTargetInfos[0];
+      }
+
       this.setState({
-        filterText: text
+        filterText: text,
+        selectedAttachTarget: newSelectedTarget
       });
     };
 
@@ -208,12 +234,11 @@ class AttachUIComponent extends _react.Component {
   }
 
   render() {
-    const filterRegex = new RegExp(this.state.filterText, 'i');
     const { attachTargetInfos, sortedColumn, sortDescending } = this.state;
     const compareFn = getCompareFunction(sortedColumn, sortDescending);
     const { selectedAttachTarget } = this.state;
     let selectedIndex = null;
-    const rows = attachTargetInfos.filter(item => filterRegex.test(item.name) || filterRegex.test(item.pid.toString()) || filterRegex.test(item.commandName)).sort(compareFn).map((item, index) => {
+    const rows = filterTargetInfos(attachTargetInfos, this.state.filterText).sort(compareFn).map((item, index) => {
       const row = {
         data: {
           process: item.name,

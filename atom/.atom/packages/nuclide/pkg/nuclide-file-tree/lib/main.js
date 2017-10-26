@@ -90,16 +90,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * Minimum interval (in ms) between onChangeActivePaneItem events before revealing the active pane
  * item in the file tree.
  */
-const OPEN_FILES_UPDATE_DEBOUNCE_INTERVAL_MS = 150; /**
-                                                     * Copyright (c) 2015-present, Facebook, Inc.
-                                                     * All rights reserved.
-                                                     *
-                                                     * This source code is licensed under the license found in the LICENSE file in
-                                                     * the root directory of this source tree.
-                                                     *
-                                                     * 
-                                                     * @format
-                                                     */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
+const OPEN_FILES_UPDATE_DEBOUNCE_INTERVAL_MS = 150;
 
 const DESERIALIZER_VERSION = atom.workspace.getLeftDock == null ? 1 : 2;
 
@@ -138,11 +140,12 @@ class Activation {
     const prefixKeyNavSetting = 'nuclide-file-tree.allowKeyboardPrefixNavigation';
     const allowPendingPaneItems = 'core.allowPendingPaneItems';
     const autoExpandSingleChild = 'nuclide-file-tree.autoExpandSingleChild';
+    const focusEditorOnFileSelection = 'nuclide-file-tree.focusEditorOnFileSelection';
 
     this._disposables.add(this._fixContextMenuHighlight(), (_featureConfig || _load_featureConfig()).default.observe(prefixKeyNavSetting, x => this._setPrefixKeyNavSetting(x)), (_featureConfig || _load_featureConfig()).default.observeAsStream((_Constants || _load_Constants()).REVEAL_FILE_ON_SWITCH_SETTING).switchMap(shouldReveal => {
       return shouldReveal ? this._currentActiveFilePath() : _rxjsBundlesRxMinJs.Observable.empty();
     }).subscribe(filePath => this._fileTreeController.revealFilePath(filePath,
-    /* showIfHidden */false)), atom.config.observe(ignoredNamesSetting, x => this._setIgnoredNames(x)), (_featureConfig || _load_featureConfig()).default.observe(hideIgnoredNamesSetting, x => this._setHideIgnoredNames(x)), atom.config.observe(excludeVcsIgnoredPathsSetting, this._setExcludeVcsIgnoredPaths.bind(this)), atom.config.observe(allowPendingPaneItems, this._setUsePreviewTabs.bind(this)), (_featureConfig || _load_featureConfig()).default.observe(autoExpandSingleChild, this._setAutoExpandSingleChild.bind(this)), atom.commands.add('atom-workspace', 'nuclide-file-tree:toggle-focus', () => {
+    /* showIfHidden */false)), atom.config.observe(ignoredNamesSetting, x => this._setIgnoredNames(x)), (_featureConfig || _load_featureConfig()).default.observe(hideIgnoredNamesSetting, x => this._setHideIgnoredNames(x)), atom.config.observe(excludeVcsIgnoredPathsSetting, this._setExcludeVcsIgnoredPaths.bind(this)), atom.config.observe(allowPendingPaneItems, this._setUsePreviewTabs.bind(this)), (_featureConfig || _load_featureConfig()).default.observe(autoExpandSingleChild, this._setAutoExpandSingleChild.bind(this)), (_featureConfig || _load_featureConfig()).default.observe(focusEditorOnFileSelection, this._setFocusEditorOnFileSelection.bind(this)), atom.commands.add('atom-workspace', 'nuclide-file-tree:toggle-focus', () => {
       const component = this._fileTreeComponent;
       if (component == null) {
         return;
@@ -169,8 +172,9 @@ class Activation {
     });
     // $FlowIgnore: Undocumented API
     atom.contextMenu.showForEvent = function (event) {
-      // $FlowFixMe: Add repeat() to type def
-      const sub = (_observable || _load_observable()).nextAnimationFrame.repeat(3).last().subscribe(() => {
+      const sub = (_observable || _load_observable()).nextAnimationFrame.repeat(3)
+      // $FlowFixMe: Add last() to type def
+      .last().subscribe(() => {
         showForEvent.call(atom.contextMenu, event);
         disposables.remove(sub);
       });
@@ -230,7 +234,7 @@ class Activation {
     const rebuildSignals = _rxjsBundlesRxMinJs.Observable.merge(_rxjsBundlesRxMinJs.Observable.of(null), // None of the subscriptions below will trigger at startup.
     (0, (_event || _load_event()).observableFromSubscribeFunction)(atom.workspace.onDidAddPaneItem.bind(atom.workspace)), (0, (_event || _load_event()).observableFromSubscribeFunction)(atom.workspace.onDidDestroyPaneItem.bind(atom.workspace)), (0, (_event || _load_event()).observableFromSubscribeFunction)((_textEditor || _load_textEditor()).observeTextEditors).flatMap(textEditor => {
       return (0, (_event || _load_event()).observableFromSubscribeFunction)(textEditor.onDidChangePath.bind(textEditor)).takeUntil((0, (_event || _load_event()).observableFromSubscribeFunction)(textEditor.onDidDestroy.bind(textEditor)));
-    })).debounceTime(OPEN_FILES_UPDATE_DEBOUNCE_INTERVAL_MS);
+    })).let((0, (_observable || _load_observable()).fastDebounce)(OPEN_FILES_UPDATE_DEBOUNCE_INTERVAL_MS));
 
     this._disposables.add(rebuildSignals.subscribe(() => {
       const openUris = atom.workspace.getTextEditors().filter(te => te.getPath() != null && te.getPath() !== '').map(te => te.getPath());
@@ -296,6 +300,10 @@ class Activation {
     this._fileTreeController.setAutoExpandSingleChild(autoExpandSingleChild === true);
   }
 
+  _setFocusEditorOnFileSelection(focusEditorOnFileSelection) {
+    this._fileTreeController.setFocusEditorOnFileSelection(focusEditorOnFileSelection);
+  }
+
   getContextMenuForFileTree() {
     if (!this._fileTreeController) {
       throw new Error('Invariant violation: "this._fileTreeController"');
@@ -310,6 +318,26 @@ class Activation {
     }
 
     return this._fileTreeController.getProjectSelectionManager();
+  }
+
+  getFileTreeAdditionalLogFilesProvider() {
+    return {
+      id: 'nuclide-file-tree',
+      getAdditionalLogFiles: expire => {
+        const fileTreeState = this._fileTreeController.collectDebugState();
+        try {
+          return Promise.resolve([{
+            title: 'FileTreeState.json',
+            data: JSON.stringify(fileTreeState, null, 2)
+          }]);
+        } catch (e) {
+          return Promise.resolve([{
+            title: 'FileTreeState.txt',
+            data: 'Failed to collect'
+          }]);
+        }
+      }
+    };
   }
 
   _createView() {

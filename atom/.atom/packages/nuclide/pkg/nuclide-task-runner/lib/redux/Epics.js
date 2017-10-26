@@ -21,12 +21,6 @@ exports.printTaskCancelledEpic = printTaskCancelledEpic;
 exports.printTaskSucceededEpic = printTaskSucceededEpic;
 exports.appendMessageToConsoleEpic = appendMessageToConsoleEpic;
 
-var _nuclideRemoteConnection;
-
-function _load_nuclideRemoteConnection() {
-  return _nuclideRemoteConnection = require('../../../nuclide-remote-connection');
-}
-
 var _tasks;
 
 function _load_tasks() {
@@ -63,20 +57,18 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
 function setProjectRootEpic(actions, store) {
   return actions.ofType((_Actions || _load_Actions()).DID_ACTIVATE_INITIAL_PACKAGES).map(() => (_Actions || _load_Actions()).setProjectRoot(store.getState().projectRoot));
-}
+} /**
+   * Copyright (c) 2015-present, Facebook, Inc.
+   * All rights reserved.
+   *
+   * This source code is licensed under the license found in the LICENSE file in
+   * the root directory of this source tree.
+   *
+   * 
+   * @format
+   */
 
 function setProjectRootForNewTaskRunnerEpic(actions, store) {
   return actions.ofType((_Actions || _load_Actions()).REGISTER_TASK_RUNNER).switchMap(action => {
@@ -232,6 +224,7 @@ function toggleToolbarVisibilityEpic(actions, store) {
     const currentlyVisible = state.visible;
     const { visible, taskRunner } = action.payload;
 
+    // eslint-disable-next-line eqeqeq
     if (visible === true || visible === null && !currentlyVisible) {
       if (projectRoot == null) {
         atom.notifications.addError('Add a project to use the task runner toolbar', {
@@ -312,7 +305,7 @@ function verifySavedBeforeRunningTaskEpic(actions, store) {
       if (shouldSave) {
         const saveAll = _rxjsBundlesRxMinJs.Observable.defer(() => {
           const stillUnsaved = atom.workspace.getTextEditors().filter(editor => editor.getPath() != null && editor.isModified());
-          return Promise.all(unsavedEditors.filter(editor => stillUnsaved.indexOf(editor) !== -1).map(editor => (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).saveBuffer)(editor.getBuffer())));
+          return Promise.all(unsavedEditors.filter(editor => stillUnsaved.indexOf(editor) !== -1).map(editor => editor.save()));
         });
         return _rxjsBundlesRxMinJs.Observable.concat(saveAll.ignoreElements(), _rxjsBundlesRxMinJs.Observable.of((_Actions || _load_Actions()).runTask(taskMeta))).catch(err => {
           atom.notifications.addError('An unexpected error occurred while saving the files.', { dismissable: true, detail: err.stack.toString() });

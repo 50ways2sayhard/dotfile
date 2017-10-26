@@ -277,6 +277,10 @@ class ObjectRegistry {
     })();
   }
 
+  isRegistered(object) {
+    return this._registrationsByObject.has(object);
+  }
+
   _isRemoteObject(object) {
     return this._idsByProxy.has(object);
   }

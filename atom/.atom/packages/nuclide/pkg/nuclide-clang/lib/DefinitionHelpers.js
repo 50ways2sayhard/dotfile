@@ -85,6 +85,7 @@ class DefinitionHelpers {
         position: result.point,
         range: result.extent,
         language: 'clang'
+        // TODO: projectRoot
       };
 
       if (result.spelling != null) {

@@ -7,6 +7,18 @@ exports.MultiProjectLanguageService = undefined;
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
+var _promise;
+
+function _load_promise() {
+  return _promise = require('nuclide-commons/promise');
+}
+
+var _string;
+
+function _load_string() {
+  return _string = require('nuclide-commons/string');
+}
+
 var _nuclideOpenFilesRpc;
 
 function _load_nuclideOpenFilesRpc() {
@@ -260,67 +272,95 @@ class MultiProjectLanguageService {
     })();
   }
 
-  getCodeActions(fileVersion, range, diagnostics) {
+  getAdditionalLogFiles(expire) {
     var _this11 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return (yield _this11._getLanguageServiceForFile(fileVersion.filePath)).getCodeActions(fileVersion, range, diagnostics);
+      const roots = Array.from(_this11._processes.keys());
+
+      const results = yield Promise.all(roots.map((() => {
+        var _ref2 = (0, _asyncToGenerator.default)(function* (root) {
+          try {
+            const service = yield (0, (_promise || _load_promise()).expirePromise)(expire, _this11._processes.get(root));
+            if (service == null) {
+              return [{ title: root, data: 'no language service' }];
+            } else {
+              return (0, (_promise || _load_promise()).expirePromise)(expire, service.getAdditionalLogFiles(expire - 1000));
+            }
+          } catch (e) {
+            return [{ title: root, data: (0, (_string || _load_string()).stringifyError)(e) }];
+          }
+        });
+
+        return function (_x2) {
+          return _ref2.apply(this, arguments);
+        };
+      })()));
+      return (0, (_collection || _load_collection()).arrayFlatten)(results);
+    })();
+  }
+
+  getCodeActions(fileVersion, range, diagnostics) {
+    var _this12 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      return (yield _this12._getLanguageServiceForFile(fileVersion.filePath)).getCodeActions(fileVersion, range, diagnostics);
     })();
   }
 
   typeHint(fileVersion, position) {
-    var _this12 = this;
+    var _this13 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return (yield _this12._getLanguageServiceForFile(fileVersion.filePath)).typeHint(fileVersion, position);
+      return (yield _this13._getLanguageServiceForFile(fileVersion.filePath)).typeHint(fileVersion, position);
     })();
   }
 
   highlight(fileVersion, position) {
-    var _this13 = this;
+    var _this14 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return (yield _this13._getLanguageServiceForFile(fileVersion.filePath)).highlight(fileVersion, position);
+      return (yield _this14._getLanguageServiceForFile(fileVersion.filePath)).highlight(fileVersion, position);
     })();
   }
 
   formatSource(fileVersion, range, options) {
-    var _this14 = this;
+    var _this15 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return (yield _this14._getLanguageServiceForFile(fileVersion.filePath)).formatSource(fileVersion, range, options);
+      return (yield _this15._getLanguageServiceForFile(fileVersion.filePath)).formatSource(fileVersion, range, options);
     })();
   }
 
   formatEntireFile(fileVersion, range, options) {
-    var _this15 = this;
+    var _this16 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return (yield _this15._getLanguageServiceForFile(fileVersion.filePath)).formatEntireFile(fileVersion, range, options);
+      return (yield _this16._getLanguageServiceForFile(fileVersion.filePath)).formatEntireFile(fileVersion, range, options);
     })();
   }
 
   formatAtPosition(fileVersion, position, triggerCharacter, options) {
-    var _this16 = this;
+    var _this17 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return (yield _this16._getLanguageServiceForFile(fileVersion.filePath)).formatAtPosition(fileVersion, position, triggerCharacter, options);
+      return (yield _this17._getLanguageServiceForFile(fileVersion.filePath)).formatAtPosition(fileVersion, position, triggerCharacter, options);
     })();
   }
 
   getEvaluationExpression(fileVersion, position) {
-    var _this17 = this;
+    var _this18 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return (yield _this17._getLanguageServiceForFile(fileVersion.filePath)).getEvaluationExpression(fileVersion, position);
+      return (yield _this18._getLanguageServiceForFile(fileVersion.filePath)).getEvaluationExpression(fileVersion, position);
     })();
   }
 
   supportsSymbolSearch(directories) {
-    var _this18 = this;
+    var _this19 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const serviceDirectories = yield _this18._getLanguageServicesForFiles(directories);
+      const serviceDirectories = yield _this19._getLanguageServicesForFiles(directories);
       const eligibilities = yield Promise.all(serviceDirectories.map(function ([service, dirs]) {
         return service.supportsSymbolSearch(dirs);
       }));
@@ -331,13 +371,13 @@ class MultiProjectLanguageService {
   }
 
   symbolSearch(query, directories) {
-    var _this19 = this;
+    var _this20 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       if (query.length === 0) {
         return [];
       }
-      const serviceDirectories = yield _this19._getLanguageServicesForFiles(directories);
+      const serviceDirectories = yield _this20._getLanguageServicesForFiles(directories);
       const results = yield Promise.all(serviceDirectories.map(function ([service, dirs]) {
         return service.symbolSearch(query, dirs);
       }));
@@ -346,18 +386,34 @@ class MultiProjectLanguageService {
   }
 
   getProjectRoot(filePath) {
-    var _this20 = this;
+    var _this21 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return (yield _this20._getLanguageServiceForFile(filePath)).getProjectRoot(filePath);
+      return (yield _this21._getLanguageServiceForFile(filePath)).getProjectRoot(filePath);
     })();
   }
 
   isFileInProject(filePath) {
-    var _this21 = this;
+    var _this22 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return (yield _this21._getLanguageServiceForFile(filePath)).isFileInProject(filePath);
+      return (yield _this22._getLanguageServiceForFile(filePath)).isFileInProject(filePath);
+    })();
+  }
+
+  getExpandedSelectionRange(fileVersion, currentSelection) {
+    var _this23 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      return (yield _this23._getLanguageServiceForFile(fileVersion.filePath)).getExpandedSelectionRange(fileVersion, currentSelection);
+    })();
+  }
+
+  getCollapsedSelectionRange(fileVersion, currentSelection, originalCursorPosition) {
+    var _this24 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      return (yield _this24._getLanguageServiceForFile(fileVersion.filePath)).getCollapsedSelectionRange(fileVersion, currentSelection, originalCursorPosition);
     })();
   }
 

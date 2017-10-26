@@ -28,9 +28,13 @@ function _load_LogTailer() {
   return _LogTailer = require('../../nuclide-console/lib/LogTailer');
 }
 
-var _atom = require('atom');
-
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
+
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -68,9 +72,9 @@ class Activation {
       }
     });
 
-    this._disposables = new _atom.CompositeDisposable(new _atom.Disposable(() => {
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
       this._logTailer.stop();
-    }), atom.commands.add('atom-workspace', {
+    }, atom.commands.add('atom-workspace', {
       'nuclide-adb-logcat:start': () => this._logTailer.start(),
       'nuclide-adb-logcat:stop': () => this._logTailer.stop(),
       'nuclide-adb-logcat:restart': () => this._logTailer.restart()

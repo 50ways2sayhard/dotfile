@@ -27,23 +27,19 @@ const EXTENTIONS_TO_REMOVE = ['.js']; /**
 
 class ImportFormatter {
 
-  constructor(dirs, isHaste) {
+  constructor(dirs, useRequire) {
     this.moduleDirs = dirs;
-    this.isHaste = isHaste;
+    this.useRequire = useRequire;
   }
 
   formatImport(file, exp) {
     const importPath = this.formatImportFile(file, exp);
-    return createImportStatement(exp.id, importPath, getImportType(exp, this.isHaste));
-  }
-
-  _formatHasteImportFile(file, exp) {
-    return (_nuclideUri || _load_nuclideUri()).default.basename((_nuclideUri || _load_nuclideUri()).default.stripExtension(exp.uri));
+    return createImportStatement(exp.id, importPath, getImportType(exp, this.useRequire));
   }
 
   formatImportFile(file, exp) {
-    if (this.isHaste) {
-      return this._formatHasteImportFile(file, exp);
+    if (exp.hasteName != null) {
+      return exp.hasteName;
     }
     const uri = abbreviateMainFiles(exp);
     const pathRelativeToModules = handleModules(uri, file, this.moduleDirs);
@@ -66,10 +62,10 @@ class ImportFormatter {
 }
 
 exports.ImportFormatter = ImportFormatter;
-function getImportType({ isDefault, isTypeExport }, isHaste) {
+function getImportType({ isDefault, isTypeExport }, useRequire) {
   if (isTypeExport) {
     return isDefault ? 'defaultType' : 'namedType';
-  } else if (isHaste) {
+  } else if (useRequire) {
     return isDefault ? 'requireImport' : 'requireDestructured';
   }
   return isDefault ? 'defaultValue' : 'namedValue';

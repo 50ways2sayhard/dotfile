@@ -17,6 +17,12 @@ function _load_analytics() {
   return _analytics = _interopRequireDefault(require('nuclide-commons-atom/analytics'));
 }
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _DistractionFreeMode;
 
 function _load_DistractionFreeMode() {
@@ -27,6 +33,12 @@ var _BuiltinProviders;
 
 function _load_BuiltinProviders() {
   return _BuiltinProviders = require('./BuiltinProviders');
+}
+
+var _ToolbarUtils;
+
+function _load_ToolbarUtils() {
+  return _ToolbarUtils = require('../../nuclide-ui/ToolbarUtils');
 }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -45,7 +57,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 class Activation {
 
   constructor(state) {
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._tunnelVision = new (_DistractionFreeMode || _load_DistractionFreeMode()).DistractionFreeMode(state);
     this._disposables.add(atom.commands.add('atom-workspace', 'nuclide-distraction-free-mode:toggle', () => {
       (_analytics || _load_analytics()).default.track('distraction-free-mode:toggle');
@@ -63,7 +75,7 @@ class Activation {
 
   consumeDistractionFreeModeProvider(providerOrList) {
     const providers = Array.isArray(providerOrList) ? providerOrList : [providerOrList];
-    return new _atom.CompositeDisposable(...providers.map(provider => this._tunnelVision.consumeDistractionFreeModeProvider(provider)));
+    return new (_UniversalDisposable || _load_UniversalDisposable()).default(...providers.map(provider => this._tunnelVision.consumeDistractionFreeModeProvider(provider)));
   }
 
   consumeToolBar(getToolBar) {
@@ -71,12 +83,12 @@ class Activation {
     toolBar.addSpacer({
       priority: 900
     });
-    toolBar.addButton({
+    toolBar.addButton((0, (_ToolbarUtils || _load_ToolbarUtils()).makeToolbarButtonSpec)({
       icon: 'eye',
       callback: 'nuclide-distraction-free-mode:toggle',
       tooltip: 'Toggle Distraction-Free Mode',
       priority: 901
-    });
+    }));
     const disposable = new _atom.Disposable(() => {
       toolBar.removeItems();
     });

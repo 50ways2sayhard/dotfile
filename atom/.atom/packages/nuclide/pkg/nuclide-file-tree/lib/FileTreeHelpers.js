@@ -127,7 +127,11 @@ function getDirectoryByKey(key) {
     if (connection == null) {
       return null;
     }
-    return connection.createDirectory(path);
+    if ((_nuclideUri || _load_nuclideUri()).default.hasKnownArchiveExtension(key)) {
+      return connection.createFileAsDirectory(path);
+    } else {
+      return connection.createDirectory(path);
+    }
   } else if ((_nuclideUri || _load_nuclideUri()).default.hasKnownArchiveExtension(key)) {
     return (_nuclideFsAtom || _load_nuclideFsAtom()).ROOT_ARCHIVE_FS.newArchiveFileAsDirectory(path);
   } else if (!(_nuclideUri || _load_nuclideUri()).default.isInArchive(path)) {

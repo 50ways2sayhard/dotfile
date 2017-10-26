@@ -5,10 +5,18 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.SshClient = exports.SshClosedError = undefined;
 
+var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
+
 var _promise;
 
 function _load_promise() {
   return _promise = require('nuclide-commons/promise');
+}
+
+var _stream;
+
+function _load_stream() {
+  return _stream = require('nuclide-commons/stream');
 }
 
 var _ssh;
@@ -24,6 +32,28 @@ var _SftpClient;
 function _load_SftpClient() {
   return _SftpClient = require('./SftpClient');
 }
+
+var _events;
+
+function _load_events() {
+  return _events = require('../common/events');
+}
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const OPEN_CHANNEL_ATTEMPTS = 3; /**
+                                  * Copyright (c) 2017-present, Facebook, Inc.
+                                  * All rights reserved.
+                                  *
+                                  * This source code is licensed under the BSD-style license found in the
+                                  * LICENSE file in the root directory of this source tree. An additional grant
+                                  * of patent rights can be found in the PATENTS file in the same directory.
+                                  *
+                                  * 
+                                  * @format
+                                  */
+
+const OPEN_CHANNEL_DELAY_MS = 200;
 
 /**
  * Emitted when the server is asking for replies to the given `prompts` for keyboard-
@@ -42,23 +72,14 @@ class SshClosedError extends Error {
   }
 }
 
-exports.SshClosedError = SshClosedError; /**
-                                          * Represents an SSH connection. This wraps the `Client` class from ssh2, but reinterprets the
-                                          * API using promises instead of callbacks. The methods of this class generally correspond to the
-                                          * same methods on `Client`.
-                                          */
-/**
- * Copyright (c) 2017-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- * 
- * @format
- */
+exports.SshClosedError = SshClosedError;
 
+
+/**
+ * Represents an SSH connection. This wraps the `Client` class from ssh2, but reinterprets the
+ * API using promises instead of callbacks. The methods of this class generally correspond to the
+ * same methods on `Client`.
+ */
 class SshClient {
 
   /**
@@ -67,13 +88,23 @@ class SshClient {
    * @param {*} onKeyboard - a callback to provide interactive prompts to the user
    */
   constructor(client, onKeyboard) {
+    this._deferredContinue = null;
+
     this._client = client || new (_ssh || _load_ssh()).Client();
-    this._continue = true;
     this._onError = _rxjsBundlesRxMinJs.Observable.fromEvent(this._client, 'error');
     this._onClose = _rxjsBundlesRxMinJs.Observable.fromEvent(this._client, 'close', hadError => ({
       hadError
     }));
+    this._closePromise = new (_promise || _load_promise()).Deferred();
+    this._endPromise = new (_promise || _load_promise()).Deferred();
 
+    this._client.on('end', this._endPromise.resolve);
+    this._client.on('continue', () => this._resolveContinue());
+    this._client.on('close', hadError => {
+      this._resolveContinue();
+      this._endPromise.resolve();
+      this._closePromise.resolve({ hadError });
+    });
     this._client.on('keyboard-interactive', (name, instructions, lang, prompts, finish) => onKeyboard(name, instructions, lang, prompts).then(finish));
   }
 
@@ -97,7 +128,7 @@ class SshClient {
    * asynchronous call (i.e. when a Promise is returned; before it is necessarily resolved).
    */
   continue() {
-    return this._continue;
+    return this._deferredContinue == null;
   }
 
   /**
@@ -125,7 +156,18 @@ class SshClient {
    * @param options Options for the command.
    */
   exec(command, options = {}) {
-    return this._clientToPromiseContinue(this._client.exec, command, options);
+    var _this = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      const stdio = yield _this._clientToPromiseContinue(_this._client.exec, command, options);
+      return {
+        stdio,
+        result: (0, (_events || _load_events()).onceEvent)(stdio, 'close').then(function (code, signal, dump, description, language) {
+          return { code, signal, dump, description, language };
+        }),
+        stdout: (0, (_stream || _load_stream()).observeStream)(stdio)
+      };
+    })();
   }
 
   /**
@@ -156,7 +198,13 @@ class SshClient {
    * Disconnects the socket.
    */
   end() {
-    this._client.end();
+    var _this2 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      yield _this2._readyForData();
+      _this2._client.end();
+      return _this2._endPromise.promise;
+    })();
   }
 
   /**
@@ -164,18 +212,59 @@ class SshClient {
    */
   destroy() {
     this._client.destroy();
+    return this._closePromise.promise.then(() => {});
+  }
+
+  _resolveContinue() {
+    if (this._deferredContinue != null) {
+      const { resolve } = this._deferredContinue;
+      this._deferredContinue = null;
+      resolve();
+    }
+  }
+
+  _readyForData() {
+    var _this3 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      while (_this3._deferredContinue != null) {
+        // eslint-disable-next-line no-await-in-loop
+        yield _this3._deferredContinue.promise;
+      }
+    })();
   }
 
   _clientToPromiseContinue(func, ...args) {
     return new Promise((resolve, reject) => {
+      // In case there is a failure to open a channel.
+      let attempts = 0;
+
+      const self = this;
+      function doOperation() {
+        ++attempts;
+        self._readyForData().then(() => {
+          const readyForData = func.apply(self._client, args);
+          if (!readyForData && this._deferredContinue == null) {
+            self._deferredContinue = new (_promise || _load_promise()).Deferred();
+          }
+        });
+      }
+
       args.push((err, result) => {
         if (err != null) {
-          return reject(err);
+          if (err instanceof Error && err.message === '(SSH) Channel open failure: open failed' && err.reason === 'ADMINISTRATIVELY_PROHIBITED' && attempts < OPEN_CHANNEL_ATTEMPTS) {
+            // In case we're severely limited in the number of channels available, we may have to
+            // wait a little while before the previous channel is closed. (If it was closed.)
+            setTimeout(doOperation, OPEN_CHANNEL_DELAY_MS);
+            return;
+          } else {
+            return reject(err);
+          }
         }
         resolve(result);
       });
 
-      this._continue = func.apply(this._client, args);
+      doOperation();
     });
   }
 }

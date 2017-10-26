@@ -39,7 +39,7 @@ const DELETE_DELAY = 1000;
 
 function debounceDeletes(resultStream) {
   const shared = resultStream.share();
-  return (0, (_observable || _load_observable()).takeWhileInclusive)(shared.mergeMap(change => {
+  return shared.mergeMap(change => {
     switch (change.type) {
       case 'change':
         return _rxjsBundlesRxMinJs.Observable.of(change);
@@ -47,5 +47,5 @@ function debounceDeletes(resultStream) {
         return _rxjsBundlesRxMinJs.Observable.of(change).delay(DELETE_DELAY).takeUntil(shared);
     }
     throw new Error('unknown change type');
-  }), change => change.type !== 'delete');
+  }).let((0, (_observable || _load_observable()).takeWhileInclusive)(change => change.type !== 'delete'));
 }

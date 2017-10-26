@@ -78,6 +78,7 @@ function registerOutputProvider(outputProvider) {
       level: message.level,
       data: message.data,
       tags: message.tags,
+      repeatCount: 1,
 
       kind: 'message',
       sourceId: outputProvider.id,

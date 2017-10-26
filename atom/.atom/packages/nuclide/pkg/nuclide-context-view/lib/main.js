@@ -46,7 +46,7 @@ let manager = null; /**
 let disposables;
 
 function activate() {
-  disposables = new _atom.CompositeDisposable(_registerCommandAndOpener());
+  disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(_registerCommandAndOpener());
 }
 
 function deactivate() {

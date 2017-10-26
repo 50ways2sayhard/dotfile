@@ -128,13 +128,13 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "CodeSearchService.js",
-        line: 35
+        line: 56
       },
       type: {
         location: {
           type: "source",
           fileName: "CodeSearchService.js",
-          line: 35
+          line: 56
         },
         kind: "function",
         argumentTypes: [{
@@ -195,13 +195,13 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "CodeSearchService.js",
-        line: 70
+        line: 84
       },
       type: {
         location: {
           type: "source",
           fileName: "CodeSearchService.js",
-          line: 70
+          line: 84
         },
         kind: "function",
         argumentTypes: [{

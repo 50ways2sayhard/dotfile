@@ -125,7 +125,9 @@ let formatCode = exports.formatCode = (() => {
     if (length != null) {
       args.push(`-length=${length}`);
     }
-    const stdout = yield (0, (_process || _load_process()).runCommand)('clang-format', args, {
+    const binary = yield getArcanistClangFormatBinary(src);
+    const command = binary == null ? 'clang-format' : binary;
+    const stdout = yield (0, (_process || _load_process()).runCommand)(command, args, {
       input: contents
     }).toPromise();
 
@@ -139,6 +141,30 @@ let formatCode = exports.formatCode = (() => {
 
   return function formatCode(_x38, _x39, _x40, _x41, _x42) {
     return _ref9.apply(this, arguments);
+  };
+})();
+
+let getArcanistClangFormatBinary = (() => {
+  var _ref10 = (0, _asyncToGenerator.default)(function* (src) {
+    try {
+      // $FlowFB
+      const arcService = require('../../fb-arcanist-rpc/lib/ArcanistService');
+      const [arcConfigDirectory, arcConfig] = yield Promise.all([arcService.findArcConfigDirectory(src), arcService.readArcConfig(src)]);
+      if (arcConfigDirectory == null || arcConfig == null) {
+        return null;
+      }
+      const lintClangFormatBinary = arcConfig['lint.clang-format.binary'];
+      if (lintClangFormatBinary == null) {
+        return null;
+      }
+      return (_nuclideUri || _load_nuclideUri()).default.join((yield (_fsPromise || _load_fsPromise()).default.realpath(arcConfigDirectory)), lintClangFormatBinary);
+    } catch (err) {
+      return null;
+    }
+  });
+
+  return function getArcanistClangFormatBinary(_x43) {
+    return _ref10.apply(this, arguments);
   };
 })();
 
@@ -166,6 +192,18 @@ var _ClangServerManager;
 
 function _load_ClangServerManager() {
   return _ClangServerManager = _interopRequireDefault(require('./ClangServerManager'));
+}
+
+var _nuclideUri;
+
+function _load_nuclideUri() {
+  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
+}
+
+var _fsPromise;
+
+function _load_fsPromise() {
+  return _fsPromise = _interopRequireDefault(require('nuclide-commons/fsPromise'));
 }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

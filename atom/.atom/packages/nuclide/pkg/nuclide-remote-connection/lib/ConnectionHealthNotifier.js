@@ -11,7 +11,11 @@ function _load_nuclideAnalytics() {
   return _nuclideAnalytics = require('../../nuclide-analytics');
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _NuclideSocket;
 
@@ -24,6 +28,8 @@ var _log4js;
 function _load_log4js() {
   return _log4js = require('log4js');
 }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-remote-connection'); /**
                                                                                          * Copyright (c) 2015-present, Facebook, Inc.
@@ -172,7 +178,7 @@ class ConnectionHealthNotifier {
           break;
       }
     };
-    this._subscription = new _atom.CompositeDisposable(socket.onHeartbeat(onHeartbeat), socket.onHeartbeatError(onHeartbeatError));
+    this._subscription = new (_UniversalDisposable || _load_UniversalDisposable()).default(socket.onHeartbeat(onHeartbeat), socket.onHeartbeatError(onHeartbeatError));
   }
 
   // Sets function to be called on Heartbeat error.

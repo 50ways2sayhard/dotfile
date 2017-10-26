@@ -6,10 +6,33 @@ Object.defineProperty(exports, "__esModule", {
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
+let getArcanistRelativePath = (() => {
+  var _ref2 = (0, _asyncToGenerator.default)(function* (path) {
+    try {
+      const {
+        getArcanistServiceByNuclideUri
+        // $FlowFB
+      } = require('../../commons-atom/fb-remote-connection');
+      const arcService = getArcanistServiceByNuclideUri(path);
+      return yield arcService.getProjectRelativePath(path);
+    } catch (err) {
+      return null;
+    }
+  });
+
+  return function getArcanistRelativePath(_x) {
+    return _ref2.apply(this, arguments);
+  };
+})();
+
 exports.activate = activate;
 exports.deactivate = deactivate;
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _nuclideUri;
 
@@ -29,13 +52,18 @@ function _load_nuclideAnalytics() {
   return _nuclideAnalytics = require('../../nuclide-analytics');
 }
 
-var _nuclideRemoteConnection;
-
-function _load_nuclideRemoteConnection() {
-  return _nuclideRemoteConnection = require('../../nuclide-remote-connection');
-}
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 function copyAbsolutePath() {
   trackOperation('copyAbsolutePath', () => {
@@ -46,16 +74,7 @@ function copyAbsolutePath() {
     }
     copyToClipboard('Copied absolute path', (_nuclideUri || _load_nuclideUri()).default.getPath(uri));
   });
-} /**
-   * Copyright (c) 2015-present, Facebook, Inc.
-   * All rights reserved.
-   *
-   * This source code is licensed under the license found in the LICENSE file in
-   * the root directory of this source tree.
-   *
-   * 
-   * @format
-   */
+}
 
 function copyProjectRelativePath() {
   trackOperation('copyProjectRelativePath', () => {
@@ -117,11 +136,6 @@ function getRepositoryRelativePath(path) {
   return null;
 }
 
-function getArcanistRelativePath(path) {
-  const arcService = (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).getArcanistServiceByNuclideUri)(path);
-  return arcService.getProjectRelativePath(path);
-}
-
 function copyToClipboard(messagePrefix, value) {
   atom.clipboard.write(value);
   notify(`${messagePrefix}: \`\`\`${value}\`\`\``);
@@ -155,7 +169,7 @@ function notify(message) {
 class Activation {
 
   constructor(state) {
-    this._subscriptions = new _atom.CompositeDisposable();
+    this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._subscriptions.add(atom.commands.add('atom-workspace', 'nuclide-clipboard-path:copy-absolute-path', copyAbsolutePath));
     this._subscriptions.add(atom.commands.add('atom-workspace', 'nuclide-clipboard-path:copy-repository-relative-path', copyRepositoryRelativePath));
     this._subscriptions.add(atom.commands.add('atom-workspace', 'nuclide-clipboard-path:copy-project-relative-path', copyProjectRelativePath));

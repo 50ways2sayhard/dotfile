@@ -21,6 +21,7 @@ let getInstance = exports.getInstance = (() => {
     const flags = getMerlinFlags();
 
     const version = yield getMerlinVersion(merlinPath);
+    // eslint-disable-next-line eqeqeq
     if (version === null) {
       return null;
     }

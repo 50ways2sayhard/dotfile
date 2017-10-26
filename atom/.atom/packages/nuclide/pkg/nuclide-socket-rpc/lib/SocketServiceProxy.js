@@ -5,11 +5,26 @@ let Observable;
 module.exports = _client => {
   const remoteModule = {};
 
-  remoteModule.startListening = function (arg0) {
+  remoteModule.startListening = function (arg0, arg1) {
     return Observable.fromPromise(_client.marshalArguments(Array.from(arguments), [{
-      name: "port",
+      name: "serverPort",
       type: {
         kind: "number"
+      }
+    }, {
+      name: "family",
+      type: {
+        kind: "nullable",
+        type: {
+          kind: "union",
+          types: [{
+            kind: "number-literal",
+            value: 4
+          }, {
+            kind: "number-literal",
+            value: 6
+          }]
+        }
       }
     }])).switchMap(args => {
       return _client.callRemoteFunction("SocketService/startListening", "observable", args);
@@ -23,7 +38,7 @@ module.exports = _client => {
 
   remoteModule.stopListening = function (arg0) {
     return _client.marshalArguments(Array.from(arguments), [{
-      name: "port",
+      name: "serverPort",
       type: {
         kind: "number"
       }
@@ -32,9 +47,14 @@ module.exports = _client => {
     });
   };
 
-  remoteModule.writeToClient = function (arg0, arg1) {
+  remoteModule.writeToClient = function (arg0, arg1, arg2) {
     return _client.marshalArguments(Array.from(arguments), [{
-      name: "port",
+      name: "serverPort",
+      type: {
+        kind: "number"
+      }
+    }, {
+      name: "clientPort",
       type: {
         kind: "number"
       }
@@ -49,9 +69,14 @@ module.exports = _client => {
     });
   };
 
-  remoteModule.clientError = function (arg0, arg1) {
+  remoteModule.clientError = function (arg0, arg1, arg2) {
     return _client.marshalArguments(Array.from(arguments), [{
-      name: "port",
+      name: "serverPort",
+      type: {
+        kind: "number"
+      }
+    }, {
+      name: "clientPort",
       type: {
         kind: "number"
       }
@@ -65,14 +90,29 @@ module.exports = _client => {
     });
   };
 
-  remoteModule.closeClient = function (arg0) {
+  remoteModule.closeClient = function (arg0, arg1) {
     return _client.marshalArguments(Array.from(arguments), [{
-      name: "port",
+      name: "serverPort",
+      type: {
+        kind: "number"
+      }
+    }, {
+      name: "clientPort",
       type: {
         kind: "number"
       }
     }]).then(args => {
       return _client.callRemoteFunction("SocketService/closeClient", "void", args);
+    });
+  };
+
+  remoteModule.getAvailableServerPort = function () {
+    return _client.marshalArguments(Array.from(arguments), []).then(args => {
+      return _client.callRemoteFunction("SocketService/getAvailableServerPort", "promise", args);
+    }).then(value => {
+      return _client.unmarshal(value, {
+        kind: "number"
+      });
     });
   };
 
@@ -147,7 +187,7 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "SocketService.js",
-        line: 17
+        line: 19
       },
       name: "SocketEvent",
       definition: {
@@ -181,6 +221,12 @@ Object.defineProperty(module.exports, "defs", {
               value: "client_connected"
             },
             optional: false
+          }, {
+            name: "clientPort",
+            type: {
+              kind: "number"
+            },
+            optional: false
           }]
         }, {
           kind: "object",
@@ -191,6 +237,12 @@ Object.defineProperty(module.exports, "defs", {
               value: "client_disconnected"
             },
             optional: false
+          }, {
+            name: "clientPort",
+            type: {
+              kind: "number"
+            },
+            optional: false
           }]
         }, {
           kind: "object",
@@ -199,6 +251,12 @@ Object.defineProperty(module.exports, "defs", {
             type: {
               kind: "string-literal",
               value: "data"
+            },
+            optional: false
+          }, {
+            name: "clientPort",
+            type: {
+              kind: "number"
             },
             optional: false
           }, {
@@ -219,19 +277,34 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "SocketService.js",
-        line: 34
+        line: 37
       },
       type: {
         location: {
           type: "source",
           fileName: "SocketService.js",
-          line: 34
+          line: 37
         },
         kind: "function",
         argumentTypes: [{
-          name: "port",
+          name: "serverPort",
           type: {
             kind: "number"
+          }
+        }, {
+          name: "family",
+          type: {
+            kind: "nullable",
+            type: {
+              kind: "union",
+              types: [{
+                kind: "number-literal",
+                value: 4
+              }, {
+                kind: "number-literal",
+                value: 6
+              }]
+            }
           }
         }],
         returnType: {
@@ -249,17 +322,17 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "SocketService.js",
-        line: 73
+        line: 88
       },
       type: {
         location: {
           type: "source",
           fileName: "SocketService.js",
-          line: 73
+          line: 88
         },
         kind: "function",
         argumentTypes: [{
-          name: "port",
+          name: "serverPort",
           type: {
             kind: "number"
           }
@@ -275,17 +348,22 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "SocketService.js",
-        line: 84
+        line: 104
       },
       type: {
         location: {
           type: "source",
           fileName: "SocketService.js",
-          line: 84
+          line: 104
         },
         kind: "function",
         argumentTypes: [{
-          name: "port",
+          name: "serverPort",
+          type: {
+            kind: "number"
+          }
+        }, {
+          name: "clientPort",
           type: {
             kind: "number"
           }
@@ -307,17 +385,22 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "SocketService.js",
-        line: 95
+        line: 116
       },
       type: {
         location: {
           type: "source",
           fileName: "SocketService.js",
-          line: 95
+          line: 116
         },
         kind: "function",
         argumentTypes: [{
-          name: "port",
+          name: "serverPort",
+          type: {
+            kind: "number"
+          }
+        }, {
+          name: "clientPort",
           type: {
             kind: "number"
           }
@@ -338,23 +421,52 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "SocketService.js",
-        line: 106
+        line: 131
       },
       type: {
         location: {
           type: "source",
           fileName: "SocketService.js",
-          line: 106
+          line: 131
         },
         kind: "function",
         argumentTypes: [{
-          name: "port",
+          name: "serverPort",
+          type: {
+            kind: "number"
+          }
+        }, {
+          name: "clientPort",
           type: {
             kind: "number"
           }
         }],
         returnType: {
           kind: "void"
+        }
+      }
+    },
+    getAvailableServerPort: {
+      kind: "function",
+      name: "getAvailableServerPort",
+      location: {
+        type: "source",
+        fileName: "SocketService.js",
+        line: 152
+      },
+      type: {
+        location: {
+          type: "source",
+          fileName: "SocketService.js",
+          line: 152
+        },
+        kind: "function",
+        argumentTypes: [],
+        returnType: {
+          kind: "promise",
+          type: {
+            kind: "number"
+          }
         }
       }
     }

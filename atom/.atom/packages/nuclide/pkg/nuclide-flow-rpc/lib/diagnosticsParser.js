@@ -16,16 +16,18 @@ function _load_simpleTextBuffer() {
 // Flow sometimes reports this as the file path for an error. When this happens, we should simply
 // leave out the location, since it isn't very useful and it's not a well-formed path, which can
 // cause issues down the line.
-const BUILTIN_LOCATION = '(builtins)'; /**
-                                        * Copyright (c) 2015-present, Facebook, Inc.
-                                        * All rights reserved.
-                                        *
-                                        * This source code is licensed under the license found in the LICENSE file in
-                                        * the root directory of this source tree.
-                                        *
-                                        * 
-                                        * @format
-                                        */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
+const BUILTIN_LOCATION = '(builtins)';
 
 function flowStatusOutputToDiagnostics(statusOutput) {
   return statusOutput.errors.map(flowMessageToDiagnosticMessage);
@@ -149,7 +151,6 @@ function flowMessageToDiagnosticMessage(flowStatusError) {
   }
 
   const diagnosticMessage = {
-    scope: 'file',
     providerName: 'Flow',
     type: flowStatusError.level === 'error' ? 'Error' : 'Warning',
     text: mainMessage.descr,
@@ -189,8 +190,13 @@ function extractTraces(flowStatusError) {
   }
   const extra = flowStatusError.extra;
   if (extra != null) {
-    const flatExtra = [].concat(...extra.map(({ message }) => message));
-    trace.push(...flatExtra.map(flowMessageToTrace));
+    extra.forEach(({ message, children }) => {
+      trace.push(...message.map(flowMessageToTrace));
+      if (children != null) {
+        const childrenTraces = [].concat(...children.map(child => [].concat(child.message.map(flowMessageToTrace))));
+        trace.push(...childrenTraces);
+      }
+    });
   }
 
   if (trace.length > 0) {

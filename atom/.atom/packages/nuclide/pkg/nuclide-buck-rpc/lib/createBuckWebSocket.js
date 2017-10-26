@@ -53,6 +53,7 @@ function createBuckWebSocket(httpPort) {
       }
 
       const type = message.type;
+      // eslint-disable-next-line eqeqeq
       if (buildId === null) {
         if (type === 'BuildStarted') {
           buildId = message.buildId;

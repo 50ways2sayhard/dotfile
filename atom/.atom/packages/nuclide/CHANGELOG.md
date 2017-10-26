@@ -1,5 +1,99 @@
 # Nuclide Changelog
 
+## v0.263.0
+
+### Misc
+
+* Selected diagnostic is now expanded only when the table has focus.
+* Added an option to automatically hide/show diagnostics when available.
+
+### Hack
+
+* Improve Hack grammar parsing of types, constants in argument positions, and default arguments.
+* Fix parsing for lambda and pipe operators in Hack grammar.
+
+### Debugger
+
+* PHP/Hack Debugger: Added missing tooltips to debugger control buttons.
+* C++ Debugger: Fixed a bug that was causing “Continue To Location” not to work at all.
+* C++ Debugger: now accepting paths starting with './' or '~/' in all fields in the Debugger Launch dialog, and they will be expanded properly to be relative to the current working directory, or the user's home directory.
+
+### Flow
+
+* Other occurrences of the local variable under your cursor will now be highlighted.
+
+## v0.262.0
+
+**Hotfix from 0.261.0**
+
+* Fixed a bug causing some tooltips to not get dismissed
+* Await generated file service instead of throwing
+
+## v0.261.0
+
+### Diagnostics
+* Added text and regular expression filtering
+* Added type filtering toggle buttons
+* Improved column sorting
+* Fixed misc. table bugs
+* File directories are now hidden by default (but can be shown via the gear button and resized independently)
+* Added a setting to move status bar icons to the right side.
+
+### General
+
+* Fuzzy filename search on Windows now uses the significantly better native matching library
+* Integrated Terminal is now included in the open-source version of Nuclide.
+
+## v0.260.0
+
+### C++
+
+* A busy signal now indicates when Nuclide is building a compilation database with Buck. (Thanks Anthony Miller!)
+
+### Debugger
+
+* Native debugger: Added disassembly and register views
+* Native debugger: Added ability to set a breakpoint at an instruction address (even without source code available)
+* Native debugger: now allows specifying an executable path beginning with “./” to refer to the current working directory, or “~/” to refer to the user's home directory.
+
+## v0.259.0
+
+**Hotfix from 0.258.0**
+
+* Fix hhvm debugger crashing nuclide server.
+* Workaround broken reveal in remote file tree.
+
+## v0.258.0
+
+### General
+* Fuzzy filename search results now correctly respect .hgignore (Thanks Roy Li!)
+* File tree navigation performance was improved.
+* Fixed a bug causing empty datatips to occasionally appear.
+* The context menu in file-tree was found to sometimes target incorrect files. The menu was temporarily disabled to prevent accidental data loss.
+* Archive files are now correctly treated as read-only.
+* Updated to React 16
+* All Arcanist-related code has been removed from the open-source Nuclide.
+
+## Debugger
+* Fixed bug where console would scroll to the bottom of an expanded object whenever a property was expanded or collapsed for that object.
+* PHP Debugger: Fixed a bug causing variables in the Scopes pane not to update after issuing a console command that changed a variable's value.
+
+## v0.257.0
+
+### General
+* The "Add Remote Connection Profile" dialog now supports tab and shift-tab focusing between inputs.
+* File Tree: New setting to enable focusing the editor when previewing a file (after a single click). Defaults to `false`.
+* For performance reasons, the file tree option to "Reveal File on Switch" is now turned off by default.
+* Fixed bug where the console scroll would not be pinned to the bottom when many multiline comments are logged.
+* Fixed bug where clicking "new messages" in the console will not always scroll all the way to the bottom.
+
+### Debugger
+* PHP Debugger: Added ability to launch a PHP script in the Nuclide terminal - this will allow interacting with STDIN and STDOUT while debugging.
+* Watch Expressions now persist across reloads.
+* Console will now scroll to the bottom if a command is executed in the debugger prompt.
+* Fixed bug where "copy" command in scopes pane was not copying anything to the clipboard.
+
+
 ## v0.256.0
 
 **Hotfix from 0.255.0**

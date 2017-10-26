@@ -10,7 +10,11 @@ function _load_nuclideUri() {
   return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _DebuggerDispatcher;
 
@@ -25,9 +29,9 @@ class DebuggerActionsStore {
   constructor(dispatcher, bridge) {
     this._bridge = bridge;
     const dispatcherToken = dispatcher.register(this._handlePayload.bind(this));
-    this._disposables = new _atom.CompositeDisposable(new _atom.Disposable(() => {
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
       dispatcher.unregister(dispatcherToken);
-    }));
+    });
   }
 
   _handlePayload(payload) {

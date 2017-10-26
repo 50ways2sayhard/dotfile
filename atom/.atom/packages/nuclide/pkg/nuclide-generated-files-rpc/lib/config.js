@@ -22,6 +22,7 @@ try {
     generatedTag,
     partialGeneratedTag,
     generatedPathRegexes
+    // $FlowFB
   } = require('./fb/config'));
 } catch (e) {
   // fill in local configuration properties here

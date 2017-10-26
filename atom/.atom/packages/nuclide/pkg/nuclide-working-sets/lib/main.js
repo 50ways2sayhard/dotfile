@@ -48,7 +48,11 @@ exports.activate = activate;
 exports.deactivate = deactivate;
 exports.provideWorkingSetsStore = provideWorkingSetsStore;
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _nuclideAnalytics;
 
@@ -93,7 +97,7 @@ class Activation {
   constructor() {
     this.workingSetsStore = new (_WorkingSetsStore || _load_WorkingSetsStore()).WorkingSetsStore();
     this._workingSetsConfig = new (_WorkingSetsConfig || _load_WorkingSetsConfig()).WorkingSetsConfig();
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
 
     this._disposables.add(this.workingSetsStore.onSaveDefinitions(definitions => {
       this._workingSetsConfig.setDefinitions(definitions);

@@ -13,7 +13,9 @@ function _load_GraphQLLanguage() {
 }
 
 function activate() {
-  (_GraphQLLanguage || _load_GraphQLLanguage()).graphqlLanguageService.then(value => value.activate());
+  if (process.platform !== 'win32') {
+    (_GraphQLLanguage || _load_GraphQLLanguage()).graphqlLanguageService.then(value => value.activate());
+  }
 } /**
    * Copyright (c) 2015-present, Facebook, Inc.
    * All rights reserved.
@@ -26,5 +28,7 @@ function activate() {
    */
 
 function deactivate() {
-  (0, (_GraphQLLanguage || _load_GraphQLLanguage()).resetGraphQLLanguageService)();
+  if (process.platform !== 'win32') {
+    (0, (_GraphQLLanguage || _load_GraphQLLanguage()).resetGraphQLLanguageService)();
+  }
 }

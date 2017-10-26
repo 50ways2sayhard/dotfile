@@ -55,16 +55,16 @@ function _load_lruCache() {
   return _lruCache = _interopRequireDefault(require('lru-cache'));
 }
 
-var _eventKit;
-
-function _load_eventKit() {
-  return _eventKit = require('event-kit');
-}
-
 var _nuclideUri;
 
 function _load_nuclideUri() {
   return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
+}
+
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
 }
 
 var _which;
@@ -111,9 +111,10 @@ class FlowExecInfoContainer {
 
     this._flowExecInfoCache = (0, (_lruCache || _load_lruCache()).default)({
       max: 10,
-      maxAge: 1000 * 30 });
+      maxAge: 1000 * 30 // 30 seconds
+    });
 
-    this._disposables = new (_eventKit || _load_eventKit()).CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._versionInfo = versionInfo;
 
     this._observeSettings();

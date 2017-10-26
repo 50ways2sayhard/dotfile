@@ -6,10 +6,36 @@ Object.defineProperty(exports, "__esModule", {
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
-var _eventKit;
+var _fsPromise;
 
-function _load_eventKit() {
-  return _eventKit = require('event-kit');
+function _load_fsPromise() {
+  return _fsPromise = _interopRequireDefault(require('nuclide-commons/fsPromise'));
+}
+
+var _event;
+
+function _load_event() {
+  return _event = require('nuclide-commons/event');
+}
+
+var _nuclideUri;
+
+function _load_nuclideUri() {
+  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
+}
+
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
+var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
+
+var _hgUtils;
+
+function _load_hgUtils() {
+  return _hgUtils = require('../../../nuclide-hg-rpc/lib/hg-utils');
 }
 
 var _nuclideWatchmanHelpers;
@@ -34,6 +60,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 
 const S_IFDIR = 16384;
+const WATCHMAN_SUBSCRIPTION_BUFFER_TIME = 3000;
+const CONCURRENT_HG_STATUS = 2;
+const HG_STATUS_TIMEOUT = 10000;
+const HG_STATUS_FILE_CAP = 1000;
 
 /**
  * This class keeps the PathSets passed to it up to date by using file system
@@ -66,13 +96,20 @@ class PathSetUpdater {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
+      const isHgRepo = (yield (_fsPromise || _load_fsPromise()).default.findNearestFile('.hg', localDirectory)) != null;
       const subscription = yield _this._addWatchmanSubscription(localDirectory);
       _this._pathSetToSubscription.set(pathSet, subscription);
 
-      subscription.on('change', function (files) {
+      const changeSubscription = (0, (_event || _load_event()).observableFromSubscribeFunction)(function (callback) {
+        return subscription.on('change', callback);
+      }).bufferTime(WATCHMAN_SUBSCRIPTION_BUFFER_TIME).mergeMap(function (bufferedFiles) {
+        return _this._flattenBufferedChanges(bufferedFiles);
+      }).mergeMap(function (files) {
+        return isHgRepo ? _this._filterIgnoredFiles(localDirectory, files) : _rxjsBundlesRxMinJs.Observable.of(files);
+      }, CONCURRENT_HG_STATUS).subscribe(function (files) {
         return _this._processWatchmanUpdate(subscription.pathFromSubscriptionRootToSubscriptionPath, pathSet, files);
       });
-      return new (_eventKit || _load_eventKit()).Disposable(function () {
+      return new (_UniversalDisposable || _load_UniversalDisposable()).default(changeSubscription, function () {
         return _this._stopUpdatingPathSet(pathSet);
       });
     })();
@@ -155,6 +192,70 @@ class PathSetUpdater {
     if (deletedPaths.length) {
       pathSet.removePaths(deletedPaths);
     }
+  }
+
+  // Section: Buffering FileChanges
+
+  /**
+   * Flattens the array of array of FileChanges to a single array. Changes are
+   * deduped and only the most recent change will be considered.
+   * @param bufferedFiles Buffered FileChanges.
+   * @return Flattened and deduped FileChanges.
+   */
+  _flattenBufferedChanges(bufferedFiles) {
+    const filesMap = new Map();
+    bufferedFiles.forEach(files => {
+      files.forEach(file => {
+        filesMap.set(file.name, file);
+      });
+    });
+    return _rxjsBundlesRxMinJs.Observable.of(Array.from(filesMap.values()));
+  }
+
+  // Section: Filtering Ignored Files
+
+  /**
+   * New changes have the possibility of being ignored by hg, so they are
+   * filtered out by running hg status -i.
+   * @param directory Directory to passed into cwd flag for hg.
+   * @param changes FileChanges to be filtered
+   * @return Filtered FileChanges. Upon error, original changes are returned.
+   */
+  _filterIgnoredFiles(directory, changes) {
+    // Filter out hg internals because hg status will trigger changes in .hg/,
+    // which will result in infinite loop.
+
+    // Divide changes into new changes and deleted changes
+    const newChanges = [];
+    const deletedChanges = [];
+    changes.forEach(change => change.new ? newChanges.push(change) : deletedChanges.push(change));
+
+    // Filter out hg internals because hg status will trigger changes in .hg/,
+    // which will result in infinite loop.
+    const realNewChanges = newChanges.filter(change => !(_nuclideUri || _load_nuclideUri()).default.contains('.hg', change.name));
+
+    // Calling status -i without args takes forever and isn't productive.
+    // Also, just give up on calling hg if there are too many files changed.
+    if (realNewChanges.length === 0 || realNewChanges.length > HG_STATUS_FILE_CAP) {
+      return new _rxjsBundlesRxMinJs.Observable.of(changes);
+    }
+
+    let args = ['status', '-i', '-Tjson'];
+    const execOptions = {
+      cwd: directory
+    };
+
+    args = args.concat(realNewChanges.map(change => change.name));
+    return (0, (_hgUtils || _load_hgUtils()).hgRunCommand)(args, execOptions).map(stdout => {
+      const ignoredFiles = new Set();
+      const statuses = JSON.parse(stdout);
+      for (const status of statuses) {
+        ignoredFiles.add(status.path);
+      }
+
+      // Return filtered new changes along with all deleted changes.
+      return realNewChanges.filter(change => !ignoredFiles.has(change.name)).concat(deletedChanges);
+    }).timeout(HG_STATUS_TIMEOUT).catch(() => _rxjsBundlesRxMinJs.Observable.of(changes));
   }
 }
 exports.default = PathSetUpdater;

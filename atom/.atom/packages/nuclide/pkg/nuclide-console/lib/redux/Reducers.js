@@ -5,6 +5,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = accumulateState;
 
+var _collection;
+
+function _load_collection() {
+  return _collection = require('nuclide-commons/collection');
+}
+
 var _Actions;
 
 function _load_Actions() {
@@ -13,25 +19,49 @@ function _load_Actions() {
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const RECORD_PROPERTIES_TO_COMPARE = ['text', 'level', 'scopeName', 'sourceId', 'kind']; /**
+                                                                                          * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                          * All rights reserved.
+                                                                                          *
+                                                                                          * This source code is licensed under the license found in the LICENSE file in
+                                                                                          * the root directory of this source tree.
+                                                                                          *
+                                                                                          * 
+                                                                                          * @format
+                                                                                          */
+
+function shouldAccumulateRecordCount(recordA, recordB) {
+  const areRelevantPropertiesEqual = RECORD_PROPERTIES_TO_COMPARE.every(prop => recordA[prop] === recordB[prop]);
+
+  // if data exists, we should not accumulate this into the previous record
+  const doesDataExist = recordA.data || recordB.data;
+
+  const recATags = recordA.tags;
+  const recBTags = recordB.tags;
+  const areTagsEqual = !recATags && !recBTags || recATags && recBTags && (0, (_collection || _load_collection()).arrayEqual)(recATags, recBTags);
+
+  return areRelevantPropertiesEqual && !Boolean(doesDataExist) && Boolean(areTagsEqual);
+}
 
 function accumulateState(state, action) {
   switch (action.type) {
     case (_Actions || _load_Actions()).RECORD_RECEIVED:
       {
         const { record } = action.payload;
-        return Object.assign({}, state, {
-          records: state.records.concat(record).slice(-state.maxMessageCount)
-        });
+        // check if the message is exactly the same as the previous one, if so
+        // we add a count to it.
+        const lastRecord = state.records[state.records.length - 1];
+        if (state.records.length && shouldAccumulateRecordCount(lastRecord, record)) {
+          state.records[state.records.length - 1] = Object.assign({}, lastRecord, {
+            repeatCount: lastRecord.repeatCount + 1,
+            timestamp: record.timestamp
+          });
+          return state;
+        } else {
+          return Object.assign({}, state, {
+            records: state.records.concat(record).slice(-state.maxMessageCount)
+          });
+        }
       }
     case (_Actions || _load_Actions()).SET_MAX_MESSAGE_COUNT:
       {

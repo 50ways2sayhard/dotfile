@@ -13,6 +13,19 @@ function _load_textEditor() {
   return _textEditor = require('nuclide-commons-atom/text-editor');
 }
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const GRAMMAR_CHANGE_EVENT = 'grammar-change';
+
+/**
+ * A singleton that listens to grammar changes in all text editors.
+ */
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -24,16 +37,11 @@ function _load_textEditor() {
  * @format
  */
 
-const GRAMMAR_CHANGE_EVENT = 'grammar-change';
-
-/**
- * A singleton that listens to grammar changes in all text editors.
- */
 class GrammarForTextEditorsListener {
 
   constructor() {
     this._emitter = new _atom.Emitter();
-    this._subscriptions = new _atom.CompositeDisposable();
+    this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._subscriptions.add(this._emitter, (0, (_textEditor || _load_textEditor()).observeTextEditors)(textEditor => {
       const grammarSubscription = textEditor.observeGrammar(grammar => {
         this._emitter.emit(GRAMMAR_CHANGE_EVENT, textEditor);

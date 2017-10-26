@@ -40,6 +40,17 @@ function _load_ClangFlagsFileWatcher() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 class Provider {
 
   constructor(host, params) {
@@ -51,13 +62,18 @@ class Provider {
     this._params = params;
   }
 
-  getCompilationDatabase(src) {
+  _reportCompilationDBBusySignalWhile(src, getBusySignalService, dbPromise) {
+    const busySignal = getBusySignalService();
+    return busySignal == null ? dbPromise : busySignal.reportBusyWhile('Generating Buck compilation database for "' + (_nuclideUri || _load_nuclideUri()).default.basename(src) + '"', () => dbPromise, { onlyForFile: src });
+  }
+
+  getCompilationDatabase(src, getBusySignalService) {
     return this._compilationDBCache.getOrCreate(src, () => {
-      return (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).getBuckServiceByNuclideUri)(this._host).getCompilationDatabase(src, this._params).refCount().do(db => {
+      return this._reportCompilationDBBusySignalWhile(src, getBusySignalService, (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).getBuckServiceByNuclideUri)(this._host).getCompilationDatabase(src, this._params).refCount().do(db => {
         if (db != null && db.flagsFile != null) {
           this._flagsFileWatcher.watch(db.flagsFile, src, () => this.resetForSource(src));
         }
-      }).toPromise();
+      }).toPromise());
     });
   }
 
@@ -76,16 +92,7 @@ class Provider {
     (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).getBuckServiceByNuclideUri)(this._host).resetCompilationDatabase(this._params);
     this._flagsFileWatcher.reset();
   }
-} /**
-   * Copyright (c) 2015-present, Facebook, Inc.
-   * All rights reserved.
-   *
-   * This source code is licensed under the license found in the LICENSE file in
-   * the root directory of this source tree.
-   *
-   * 
-   * @format
-   */
+}
 
 const providersCache = new (_cache || _load_cache()).Cache({
   keyFactory: ([host, params]) => JSON.stringify([(_nuclideUri || _load_nuclideUri()).default.getHostnameOpt(host) || '', params]),
@@ -98,7 +105,7 @@ function getProvider(host, params) {
 
 const supportsSourceCache = new (_cache || _load_cache()).Cache();
 
-function getClangProvider(taskRunner) {
+function getClangProvider(taskRunner, getBusySignalService) {
   return {
     supportsSource(src) {
       return (0, _asyncToGenerator.default)(function* () {
@@ -111,7 +118,7 @@ function getClangProvider(taskRunner) {
       return (0, _asyncToGenerator.default)(function* () {
         const params = taskRunner.getCompilationDatabaseParamsForCurrentContext();
         const provider = getProvider(src, params);
-        const [compilationDatabase, projectRoot] = yield Promise.all([provider.getCompilationDatabase(src), provider.getProjectRoot(src)]);
+        const [compilationDatabase, projectRoot] = yield Promise.all([provider.getCompilationDatabase(src, getBusySignalService), provider.getProjectRoot(src)]);
         if (projectRoot == null) {
           return null;
         }

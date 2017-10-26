@@ -19,12 +19,6 @@ function _load_classnames() {
   return _classnames = _interopRequireDefault(require('classnames'));
 }
 
-var _debounce;
-
-function _load_debounce() {
-  return _debounce = _interopRequireDefault(require('nuclide-commons/debounce'));
-}
-
 var _AtomInput;
 
 function _load_AtomInput() {
@@ -59,19 +53,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const EDIT_WATCH_EXPRESSION_BLUR_DEBOUNCE_MS = 50;
-
 class WatchExpressionComponent extends _react.PureComponent {
 
   constructor(props) {
@@ -81,10 +62,6 @@ class WatchExpressionComponent extends _react.PureComponent {
       const text = this.refs.newExpressionEditor.getText();
       this.addExpression(text);
       this.refs.newExpressionEditor.setText('');
-    };
-
-    this._onEditorCancel = () => {
-      this._resetExpressionEditState();
     };
 
     this._resetExpressionEditState = () => {
@@ -104,8 +81,8 @@ class WatchExpressionComponent extends _react.PureComponent {
           startSelected: true,
           key: index,
           onConfirm: this._onConfirmExpressionEdit.bind(this, index),
-          onCancel: this._onEditorCancel,
-          onBlur: this._debouncedEditorBlur,
+          onCancel: this._resetExpressionEditState,
+          onBlur: this._resetExpressionEditState,
           ref: 'editExpressionEditor',
           size: 'sm',
           initialValue: expression
@@ -146,7 +123,6 @@ class WatchExpressionComponent extends _react.PureComponent {
       );
     };
 
-    this._debouncedEditorBlur = (0, (_debounce || _load_debounce()).default)(this._onEditorBlur.bind(this), EDIT_WATCH_EXPRESSION_BLUR_DEBOUNCE_MS);
     this._expansionStates = new Map();
     this.state = {
       rowBeingEdited: null
@@ -177,15 +153,6 @@ class WatchExpressionComponent extends _react.PureComponent {
     this._resetExpressionEditState();
   }
 
-  _onEditorBlur() {
-    if (this.refs.editExpressionEditor == null) {
-      return;
-    }
-    if (!this.refs.editExpressionEditor.getTextEditorElement().hasFocus()) {
-      this._resetExpressionEditState();
-    }
-  }
-
   _setRowBeingEdited(index) {
     this.setState({
       rowBeingEdited: index
@@ -207,7 +174,7 @@ class WatchExpressionComponent extends _react.PureComponent {
       onConfirm: this._onConfirmNewExpression,
       ref: 'newExpressionEditor',
       size: 'sm',
-      placeholderText: 'add new watch expression'
+      placeholderText: 'Add new watch expression'
     });
     return _react.createElement(
       'div',
@@ -217,4 +184,13 @@ class WatchExpressionComponent extends _react.PureComponent {
     );
   }
 }
-exports.WatchExpressionComponent = WatchExpressionComponent;
+exports.WatchExpressionComponent = WatchExpressionComponent; /**
+                                                              * Copyright (c) 2015-present, Facebook, Inc.
+                                                              * All rights reserved.
+                                                              *
+                                                              * This source code is licensed under the license found in the LICENSE file in
+                                                              * the root directory of this source tree.
+                                                              *
+                                                              * 
+                                                              * @format
+                                                              */

@@ -111,7 +111,8 @@ function lspLocation_atomDefinition(location, projectRoot) {
     path: lspUri_localPath(location.uri),
     position: lspPosition_atomPoint(location.range.start),
     language: 'lsp', // pointless; only ever used to judge equality of two defs
-    projectRoot };
+    projectRoot // used to relativize paths when showing multiple targets
+  };
 }
 
 function localPath_lspTextDocumentIdentifier(filePath) {
@@ -493,7 +494,6 @@ function lspDiagnostic_atomDiagnostic(diagnostic, filePath) {
     providerName = providerName + ': ' + String(diagnostic.code);
   }
   return {
-    scope: 'file',
     providerName,
     type: lspSeverity_atomDiagnosticMessageType(diagnostic.severity),
     filePath,
@@ -533,8 +533,5 @@ function atomDiagnostic_lspDiagnostic(diagnostic) {
 
 function lspDiagnostics_atomDiagnostics(params) {
   const filePath = lspUri_localPath(params.uri);
-  return [{
-    filePath,
-    messages: params.diagnostics.map(d => lspDiagnostic_atomDiagnostic(d, filePath))
-  }];
+  return new Map([[filePath, params.diagnostics.map(d => lspDiagnostic_atomDiagnostic(d, filePath))]]);
 }

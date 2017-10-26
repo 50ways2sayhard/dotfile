@@ -7,7 +7,11 @@ exports.activate = activate;
 exports.consumeRelatedFilesProvider = consumeRelatedFilesProvider;
 exports.deactivate = deactivate;
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _JumpToRelatedFile;
 
@@ -40,7 +44,7 @@ let subscriptions = null;
 const GRAMMARS_WITH_HEADER_FILES = new Set(['source.c', 'source.cpp', 'source.objc', 'source.objcpp', 'source.ocaml']);
 
 function activate() {
-  subscriptions = new _atom.CompositeDisposable(new (_JumpToRelatedFile || _load_JumpToRelatedFile()).default(), atom.contextMenu.add({
+  subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default(new (_JumpToRelatedFile || _load_JumpToRelatedFile()).default(), atom.contextMenu.add({
     'atom-text-editor': [{
       label: 'Switch Between Header/Source',
       command: 'nuclide-related-files:jump-to-next-related-file',

@@ -69,7 +69,8 @@ let getGeneratedFileTypes = exports.getGeneratedFileTypes = (() => {
       const tag = fileTags.get(file);
       if (tag == null) {
         cache.set(filePath, 'manual');
-        fileTypes.set(filePath, 'manual');
+        // don't send this across the wire; receiver should assume that if it gets
+        // a response, any files in the directory that aren't specified are manual
       } else {
         cache.set(filePath, tag);
         fileTypes.set(filePath, tag);
@@ -119,25 +120,51 @@ function _load_config() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// the first group will be greedy, so best not to use ':' in generated file tags
-const GREP_PARSE_PATTERN = /^(.*):(.*)$/; /**
-                                           * Copyright (c) 2015-present, Facebook, Inc.
-                                           * All rights reserved.
-                                           *
-                                           * This source code is licensed under the license found in the LICENSE file in
-                                           * the root directory of this source tree.
-                                           *
-                                           * 
-                                           * @format
-                                           */
+// assumes that filenames do not contain ':'
+const GREP_PARSE_PATTERN = /^([^:]*):(.*)$/; /**
+                                              * Copyright (c) 2015-present, Facebook, Inc.
+                                              * All rights reserved.
+                                              *
+                                              * This source code is licensed under the license found in the LICENSE file in
+                                              * the root directory of this source tree.
+                                              *
+                                              * 
+                                              * @format
+                                              */
 
 const cache = new (_lruCache || _load_lruCache()).default({ max: 1000 });
 
+function getTagPattern(forWindows) {
+  if ((_config || _load_config()).config.generatedTag == null) {
+    return (_config || _load_config()).config.partialGeneratedTag;
+  }
+  if ((_config || _load_config()).config.partialGeneratedTag == null) {
+    return (_config || _load_config()).config.generatedTag;
+  }
+  const separator = forWindows ? ' ' : '\\|';
+  return (_config || _load_config()).config.generatedTag + separator + (_config || _load_config()).config.partialGeneratedTag;
+}
+
 function findTaggedFiles(dirPath, filenames) {
-  const command = 'grep';
-  const pattern = (_config || _load_config()).config.generatedTag + '\\|' + (_config || _load_config()).config.partialGeneratedTag;
+  let command;
+  let baseArgs;
+  let pattern;
+  if (process.platform === 'win32' && (_nuclideUri || _load_nuclideUri()).default.isLocal(dirPath)) {
+    command = 'findstr';
+    // ignore "files with nonprintable characters"
+    baseArgs = ['-p'];
+    pattern = getTagPattern(true);
+  } else {
+    command = 'grep';
+    // print with filename, ignore binary files and skip directories
+    baseArgs = ['-HId', 'skip'];
+    pattern = getTagPattern(false);
+  }
+  if (pattern == null) {
+    return Promise.resolve(new Map());
+  }
   const filesToGrep = filenames.length === 0 ? ['*'] : filenames;
-  const args = ['-HId', 'skip', pattern, ...filesToGrep];
+  const args = [...baseArgs, pattern, ...filesToGrep];
   const options = {
     cwd: dirPath,
     isExitError: ({ exitCode, signal }) => {
@@ -150,10 +177,10 @@ function findTaggedFiles(dirPath, filenames) {
       const match = line.match(GREP_PARSE_PATTERN);
       if (match != null && match.length === 3) {
         const filename = match[1];
-        const tag = match[2];
-        if (tag === (_config || _load_config()).config.generatedTag) {
+        const matchedLine = match[2].trim();
+        if (matchedLine.includes((_config || _load_config()).config.generatedTag)) {
           fileTags.set(filename, 'generated');
-        } else if (tag === (_config || _load_config()).config.partialGeneratedTag && fileTags.get(filename) !== 'generated') {
+        } else if (matchedLine.includes((_config || _load_config()).config.partialGeneratedTag) && fileTags.get(filename) !== 'generated') {
           fileTags.set(filename, 'partial');
         }
       }

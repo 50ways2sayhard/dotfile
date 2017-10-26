@@ -231,9 +231,6 @@ function mountDatatipWithMarker(editor, element, {
     invalidate: 'never'
   });
 
-  element.style.display = 'block';
-  _reactDom.default.render(renderedProviders, element);
-
   editor.decorateMarker(marker, {
     type: 'overlay',
     position: 'tail',
@@ -243,6 +240,16 @@ function mountDatatipWithMarker(editor, element, {
   editor.decorateMarker(marker, {
     type: 'highlight',
     class: 'datatip-highlight-region'
+  });
+
+  // The editor may not mount the marker until the next update.
+  // It's not safe to render anything until that point, as datatips
+  // often need to measure their size in the DOM.
+  editor.getElement().getNextUpdatePromise().then(() => {
+    if (!marker.isDestroyed() && !editor.isDestroyed()) {
+      element.style.display = 'block';
+      _reactDom.default.render(renderedProviders, element);
+    }
   });
 
   return marker;
@@ -311,7 +318,7 @@ class DatatipManagerForEditor {
       this._hideIfOutside();
     }), _rxjsBundlesRxMinJs.Observable.fromEvent(this._editorView, 'mousedown').subscribe(e => {
       let node = e.target;
-      while (node !== null) {
+      while (node != null) {
         if (node === this._datatipElement) {
           return;
         }
@@ -322,6 +329,11 @@ class DatatipManagerForEditor {
     }), _rxjsBundlesRxMinJs.Observable.fromEvent(this._editorView, 'keydown').subscribe(e => {
       const modifierKey = (0, (_getModifierKeys || _load_getModifierKeys()).getModifierKeyFromKeyboardEvent)(e);
       if (modifierKey) {
+        // On Windows, key repeat applies to modifier keys too!
+        // So it's quite possible that we hit this twice without hitting keyup.
+        if (this._heldKeys.has(modifierKey)) {
+          return;
+        }
         this._heldKeys.add(modifierKey);
         if (this._datatipState !== DatatipState.HIDDEN) {
           this._fetchInResponseToKeyPress();
@@ -534,7 +546,9 @@ class DatatipManagerForEditor {
 
   _hideOrCancel() {
     if (this._datatipState === DatatipState.HIDDEN || this._datatipState === DatatipState.FETCHING) {
-      this._blacklistedPosition = getBufferPosition(this._editor, this._editorView, this._lastMoveEvent);
+      if (this._blacklistedPosition == null) {
+        this._blacklistedPosition = getBufferPosition(this._editor, this._editorView, this._lastMoveEvent);
+      }
       return;
     }
 
@@ -574,14 +588,15 @@ class DatatipManagerForEditor {
     this._setState(DatatipState.HIDDEN);
   }
 
-  createPinnedDataTip(datatip, editor) {
-    const pinnedDatatip = new (_PinnedDatatip || _load_PinnedDatatip()).PinnedDatatip(datatip, editor,
-    /* onDispose */() => {
-      this._pinnedDatatips.delete(pinnedDatatip);
-    },
-    /* hideDataTips */() => {
-      this._hideDatatip();
-    });
+  createPinnedDataTip(datatip, editor, options) {
+    const pinnedDatatip = new (_PinnedDatatip || _load_PinnedDatatip()).PinnedDatatip(datatip, editor, Object.assign({}, options, {
+      onDispose: () => {
+        this._pinnedDatatips.delete(pinnedDatatip);
+      },
+      hideDataTips: () => {
+        this._hideDatatip();
+      }
+    }));
     return pinnedDatatip;
   }
 
@@ -594,15 +609,17 @@ var _initialiseProps = function () {
     (_analytics || _load_analytics()).default.track('datatip-pinned-open');
     const startTime = (0, (_performanceNow || _load_performanceNow()).default)();
     this._setState(DatatipState.HIDDEN);
-    this._pinnedDatatips.add(new (_PinnedDatatip || _load_PinnedDatatip()).PinnedDatatip(datatip, editor,
-    /* onDispose */pinnedDatatip => {
-      this._pinnedDatatips.delete(pinnedDatatip);
-      (_analytics || _load_analytics()).default.track('datatip-pinned-close', {
-        duration: (0, (_performanceNow || _load_performanceNow()).default)() - startTime
-      });
-    },
-    /* hideDataTips */() => {
-      this._hideDatatip();
+    this._pinnedDatatips.add(new (_PinnedDatatip || _load_PinnedDatatip()).PinnedDatatip(datatip, editor, {
+      onDispose: pinnedDatatip => {
+        this._pinnedDatatips.delete(pinnedDatatip);
+        (_analytics || _load_analytics()).default.track('datatip-pinned-close', {
+          duration: (0, (_performanceNow || _load_performanceNow()).default)() - startTime
+        });
+      },
+      hideDataTips: () => {
+        this._hideDatatip();
+      },
+      position: 'end-of-line'
     }));
   };
 
@@ -616,6 +633,7 @@ var _initialiseProps = function () {
     // Note that we don't need to hide the tooltip, we already hide it on
     // keydown, which is going to be triggered before the key binding which is
     // evaluated on keyup.
+    // $FlowFixMe (v0.54.1 <)
     const maybeEventType = (_ref = e) != null ? (_ref2 = _ref.originalEvent) != null ? _ref2.type : _ref2 : _ref;
 
     // Unfortunately, when you do keydown of the shortcut, it's going to
@@ -700,12 +718,12 @@ class DatatipManager {
     return this._modifierDatatipProviders.addProvider(provider);
   }
 
-  createPinnedDataTip(datatip, editor) {
+  createPinnedDataTip(datatip, editor, options) {
     const manager = this._editorManagers.get(editor);
     if (!manager) {
       throw new Error('Trying to create a pinned data tip on an editor that has ' + 'no datatip manager');
     }
-    return manager.createPinnedDataTip(datatip, editor);
+    return manager.createPinnedDataTip(datatip, editor, options);
   }
 
   dispose() {

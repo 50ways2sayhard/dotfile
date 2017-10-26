@@ -15,5 +15,5 @@ Object.defineProperty(exports, "__esModule", {
  */
 
 const EVENT_HANDLER_SELECTOR = exports.EVENT_HANDLER_SELECTOR = '.nuclide-file-tree';
-const OPEN_FILES_MENU_SELECTOR = exports.OPEN_FILES_MENU_SELECTOR = '.nuclide-file-tree-open-files';
+const OPEN_FILES_MENU_SELECTOR = exports.OPEN_FILES_MENU_SELECTOR = '.nuclide-file-tree-open-files.doNotMatch';
 const COMMANDS_SELECTOR = exports.COMMANDS_SELECTOR = '.nuclide-file-tree-toolbar-container';

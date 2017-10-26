@@ -49,7 +49,8 @@ let _build = exports._build = (() => {
 
     try {
       yield runBuckCommandFromProjectRoot(rootPath, args, options.commandOptions, false, // Do not add the client ID, since we already do it in the build args.
-      true);
+      true // Build commands are blocking.
+      );
     } catch (e) {
       // The build failed. However, because --keep-going was specified, the
       // build report should have still been written unless any of the target

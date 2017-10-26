@@ -31,8 +31,16 @@ function _load_log4js() {
   return _log4js = require('log4js');
 }
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+const VALID_NUX_POSITIONS = new Set(['top', 'bottom', 'left', 'right', 'auto']);
+// The maximum number of times the NuxView will attempt to attach to the DOM.
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -46,8 +54,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /* global getComputedStyle */
 
-const VALID_NUX_POSITIONS = new Set(['top', 'bottom', 'left', 'right', 'auto']);
-// The maximum number of times the NuxView will attempt to attach to the DOM.
 const ATTACHMENT_ATTEMPT_THRESHOLD = 5;
 const ATTACHMENT_RETRY_TIMEOUT = 500; // milliseconds
 const RESIZE_EVENT_DEBOUNCE_DURATION = 100; // milliseconds
@@ -97,7 +103,7 @@ class NuxView {
     this._index = indexInTour;
     this._finalNuxInTour = indexInTour === tourSize - 1;
 
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
   }
 
   _createNux(creationAttempt = 1) {
@@ -114,6 +120,7 @@ class NuxView {
     if (elem == null) {
       const attachmentTimeout = setTimeout(this._createNux.bind(this, creationAttempt + 1), ATTACHMENT_RETRY_TIMEOUT);
       this._disposables.add(new _atom.Disposable(() => {
+        // eslint-disable-next-line eqeqeq
         if (attachmentTimeout !== null) {
           clearTimeout(attachmentTimeout);
         }
@@ -145,6 +152,7 @@ class NuxView {
       // so try and avoid it if possible.
       let isHidden;
       if (element.style.position !== 'fixed') {
+        // eslint-disable-next-line eqeqeq
         isHidden = element.offsetParent === null;
       } else {
         isHidden = getComputedStyle(element).display === 'none';
@@ -160,6 +168,7 @@ class NuxView {
     // would not be captured by the MutationObserver.
     const pollElementTimeout = setInterval(tryDismissTooltip.bind(this, elem), POLL_ELEMENT_TIMEOUT);
     this._disposables.add(new _atom.Disposable(() => {
+      // eslint-disable-next-line eqeqeq
       if (pollElementTimeout !== null) {
         clearTimeout(pollElementTimeout);
       }

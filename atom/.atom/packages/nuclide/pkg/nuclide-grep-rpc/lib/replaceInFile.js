@@ -90,7 +90,7 @@ function replaceInFile(path, regex, replacement) {
     // Copy the permissions from the orignal file.
     _rxjsBundlesRxMinJs.Observable.defer(() => copyPermissions(path, tempPath)).ignoreElements(),
     // Overwrite the original file with the temporary file.
-    _rxjsBundlesRxMinJs.Observable.defer(() => (_fsPromise || _load_fsPromise()).default.rename(tempPath, path)).ignoreElements()).catch(err => {
+    _rxjsBundlesRxMinJs.Observable.defer(() => (_fsPromise || _load_fsPromise()).default.mv(tempPath, path)).ignoreElements()).catch(err => {
       // Make sure we clean up the temporary file if an error occurs.
       (_fsPromise || _load_fsPromise()).default.unlink(tempPath).catch(() => {});
       return _rxjsBundlesRxMinJs.Observable.throw(err);

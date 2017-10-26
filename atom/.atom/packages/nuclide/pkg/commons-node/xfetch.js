@@ -18,7 +18,6 @@ function _load_nodeFetch() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// Stub out `fetch` in all tests so we don't inadvertently rely on external URLs.
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -61,10 +60,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // The export is typed with `typeof fetch` so flow treats the polyfill as the
 // real `fetch`.
 
-const testFetch = function testFetch() {
+const fetchImpl = typeof global.fetch === 'function' ? global.fetch : (_nodeFetch || _load_nodeFetch()).default;
+
+// Stub out `fetch` in all tests so we don't inadvertently rely on external URLs.
+const testFetch = function testFetch(url) {
+  if (typeof url === 'string' && url.startsWith('http://localhost')) {
+    return fetchImpl(url);
+  }
   return Promise.reject(Error('fetch is stubbed out for testing. Use a spy instead.'));
 };
-
-const fetchImpl = typeof global.fetch === 'function' ? global.fetch : (_nodeFetch || _load_nodeFetch()).default;
 
 exports.default = (0, (_systemInfo || _load_systemInfo()).isRunningInTest)() ? testFetch : fetchImpl;

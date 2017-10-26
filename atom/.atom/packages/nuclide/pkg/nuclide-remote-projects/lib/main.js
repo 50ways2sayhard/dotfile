@@ -37,32 +37,11 @@ let createEditorForNuclide = (() => {
       // Atom does this for local files.
       // https://github.com/atom/atom/blob/v1.9.8/src/workspace.coffee#L547
       const largeFileMode = buffer.getText().length > 2 * 1024 * 1024; // 2MB
-
-      // In Atom 1.11.0, `buildTextEditor` will call `textEditorRegistry.maintainGrammar`
-      // and `textEditorRegistry.maintainConfig` with the new editor. Since
-      // `createEditorForNuclide` is called via `openURIInPane` -> `addOpener`,
-      // that process will also call `maintainGrammar` and `maintainConfig`. This
-      // results in `undefined` disposables created in `Workspace.subscribeToAddedItems`.
-      // So when a pane is closed, the call to a non-existent `dispose` throws.
-      if (typeof atom.textEditors.build === 'function') {
-        // https://github.com/atom/atom/blob/v1.11.0-beta5/src/workspace.coffee#L564
-        const editor = atom.textEditors.build({
-          buffer,
-          largeFileMode,
-          autoHeight: false
-        });
-        return editor;
-      } else {
-        const editor = atom.workspace.buildTextEditor({ buffer, largeFileMode });
-        if (!atom.textEditors.editors.has(editor)) {
-          // https://github.com/atom/atom/blob/v1.9.8/src/workspace.coffee#L559-L562
-          const disposable = atom.textEditors.add(editor);
-          editor.onDidDestroy(function () {
-            disposable.dispose();
-          });
-        }
-        return editor;
-      }
+      return atom.textEditors.build({
+        buffer,
+        largeFileMode,
+        autoHeight: false
+      });
     } catch (err) {
       (_constants || _load_constants()).logger.warn('buffer load issue:', err);
       atom.notifications.addError(`Failed to open ${uri}: ${err.message}`);
@@ -74,12 +53,6 @@ let createEditorForNuclide = (() => {
     return _ref.apply(this, arguments);
   };
 })();
-
-/**
- * Check if the remote buffer has already been initialized in editor.
- * This checks if the buffer is instance of NuclideTextBuffer.
- */
-
 
 let reloadRemoteProjects = (() => {
   var _ref2 = (0, _asyncToGenerator.default)(function* (remoteProjects) {
@@ -118,6 +91,8 @@ let reloadRemoteProjects = (() => {
             textEditor.destroy();
           }
         });
+
+        (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).ServerConnection.cancelConnection(config.host);
       } else {
         // It's fine the user connected to a different project on the same host:
         // we should still be able to restore this using the new connection.
@@ -154,6 +129,12 @@ exports.provideRemoteProjectsService = provideRemoteProjectsService;
 exports.consumeNotifications = consumeNotifications;
 exports.consumeWorkingSetsStore = consumeWorkingSetsStore;
 
+var _textEditor;
+
+function _load_textEditor() {
+  return _textEditor = require('nuclide-commons-atom/text-editor');
+}
+
 var _nuclideRemoteConnection;
 
 function _load_nuclideRemoteConnection() {
@@ -184,7 +165,11 @@ function _load_loadingNotification() {
   return _loadingNotification = _interopRequireDefault(require('../../commons-atom/loading-notification'));
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _nuclideAnalytics;
 
@@ -249,20 +234,20 @@ function _load_windowsBufferSerializeHack() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
- * Stores the host and cwd of a remote connection.
+ * Stores the host, cwd, displayTitle of a remote connection and
+ * a property switch for whether to prompt to connect again if reconnect attempt fails.
  */
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+let packageSubscriptions = null; /**
+                                  * Copyright (c) 2015-present, Facebook, Inc.
+                                  * All rights reserved.
+                                  *
+                                  * This source code is licensed under the license found in the LICENSE file in
+                                  * the root directory of this source tree.
+                                  *
+                                  * 
+                                  * @format
+                                  */
 
-let packageSubscriptions = null;
 let controller = null;
 let remoteProjectsService = null;
 let workingSetsStore = null;
@@ -274,7 +259,8 @@ function createSerializableRemoteConnectionConfiguration(config) {
   return {
     host: config.host,
     cwd: config.cwd,
-    displayTitle: config.displayTitle
+    displayTitle: config.displayTitle,
+    promptReconnectOnFailure: config.promptReconnectOnFailure
   };
 }
 
@@ -367,12 +353,6 @@ function deleteDummyRemoteRootDirectories() {
       atom.project.removePath(directory.getPath());
     }
   }
-}function isRemoteBufferInitialized(editor) {
-  const buffer = editor.getBuffer();
-  if (buffer && buffer.constructor.name === 'NuclideTextBuffer') {
-    return true;
-  }
-  return false;
 }
 
 function shutdownServersAndRestartNuclide() {
@@ -401,7 +381,7 @@ function shutdownServersAndRestartNuclide() {
 }
 
 function activate(state) {
-  const subscriptions = new _atom.CompositeDisposable();
+  const subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
 
   controller = new (_RemoteProjectsController || _load_RemoteProjectsController()).default();
   remoteProjectsService = new (_RemoteProjectsService || _load_RemoteProjectsService()).default();
@@ -418,8 +398,8 @@ function activate(state) {
       // Then, we are ready to replace it with the remote tab in the same pane.
       const { pane, editor, uri, filePath } = openInstance;
 
-      // Skip restoring the editer who has remote content loaded.
-      if (isRemoteBufferInitialized(editor)) {
+      // Skip restoring the editor who has remote content loaded.
+      if (editor.getBuffer().file instanceof (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).RemoteFile) {
         continue;
       }
 
@@ -480,6 +460,13 @@ function activate(state) {
       const removeFromCache = () => delete pendingFiles[uri];
       textEditorPromise.then(removeFromCache, removeFromCache);
       return textEditorPromise;
+    }
+  }));
+
+  subscriptions.add((0, (_textEditor || _load_textEditor()).observeTextEditors)(editor => {
+    const uri = editor.getURI();
+    if (uri != null && (_nuclideUri || _load_nuclideUri()).default.isInArchive(uri)) {
+      (0, (_textEditor || _load_textEditor()).enforceReadOnlyEditor)(editor);
     }
   }));
 

@@ -57,7 +57,10 @@ class FileReferencesView extends _react.Component {
   }
 
   _onRefClick(evt, ref) {
-    (0, (_goToLocation || _load_goToLocation()).goToLocation)(this.props.uri, ref.range.start.row, ref.range.start.column);
+    (0, (_goToLocation || _load_goToLocation()).goToLocation)(this.props.uri, {
+      line: ref.range.start.row,
+      column: ref.range.start.column
+    });
     evt.stopPropagation();
   }
 
@@ -69,7 +72,7 @@ class FileReferencesView extends _react.Component {
   }
 
   _onFileNameClick(evt, line) {
-    (0, (_goToLocation || _load_goToLocation()).goToLocation)(this.props.uri, line);
+    (0, (_goToLocation || _load_goToLocation()).goToLocation)(this.props.uri, { line });
     evt.stopPropagation();
   }
 

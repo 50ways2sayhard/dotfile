@@ -169,7 +169,7 @@ class BuckBuildSystem {
           messages.push(diagnostic);
           changedFiles.set(diagnostic.filePath, messages);
         });
-        this._diagnosticUpdates.next({ filePathToMessages: changedFiles });
+        this._diagnosticUpdates.next(changedFiles);
       } else if (event.type === 'error') {
         errorMessage = event.message;
       }

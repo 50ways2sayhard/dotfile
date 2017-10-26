@@ -19,6 +19,8 @@ function _load_nuclideOpenFilesRpc() {
   return _nuclideOpenFilesRpc = require('../../nuclide-open-files-rpc');
 }
 
+var _os = _interopRequireDefault(require('os'));
+
 var _log4js;
 
 function _load_log4js() {
@@ -30,6 +32,8 @@ var _nuclideUri;
 function _load_nuclideUri() {
   return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
 }
+
+var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
 
 var _event;
 
@@ -45,20 +49,30 @@ function _load_collection() {
   return _collection = require('nuclide-commons/collection');
 }
 
+var _nuclideAnalytics;
+
+function _load_nuclideAnalytics() {
+  return _nuclideAnalytics = require('../../nuclide-analytics');
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-open-files'); /**
-                                                                                  * Copyright (c) 2015-present, Facebook, Inc.
-                                                                                  * All rights reserved.
-                                                                                  *
-                                                                                  * This source code is licensed under the license found in the LICENSE file in
-                                                                                  * the root directory of this source tree.
-                                                                                  *
-                                                                                  * 
-                                                                                  * @format
-                                                                                  */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
+const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-open-files');
 
 const RESYNC_TIMEOUT_MS = 2000;
+const TEN_MINUTES = 10 * 60 * 1000;
+const TWO_HOURS = 2 * 60 * 60 * 1000;
 
 function getOpenFilesService(connection) {
   return (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).getServiceByConnection)((_nuclideOpenFilesRpc || _load_nuclideOpenFilesRpc()).OPEN_FILES_SERVICE, connection);
@@ -98,11 +112,17 @@ class NotifiersByConnection {
       });
       return Promise.resolve(new _atom.Disposable(() => subscription.unsubscribe()));
     });
+    const user = _os.default.userInfo().username;
+    this._bufferTracking = _rxjsBundlesRxMinJs.Observable.timer(TEN_MINUTES, TWO_HOURS).switchMap(() => this._notifiers.observeEntries()).subscribe(([sc, notifier]) => {
+      const host = sc == null ? 'local' : sc.getRemoteHostname();
+      notifier.then(n => n.getTotalBufferSize()).then(bufferSize => (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)('open-file-buffer-usage', { bufferSize, user, host }));
+    });
   }
 
   dispose() {
     this._notifiers.dispose();
     this._subscriptions.dispose();
+    this._bufferTracking.unsubscribe();
   }
 
   // Returns null for a buffer to a file on a closed remote connection

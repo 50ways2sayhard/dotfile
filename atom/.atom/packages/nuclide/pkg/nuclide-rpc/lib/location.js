@@ -57,7 +57,7 @@ function locationsEqual(first, second) {
 
 function stripLocationsFileName(obj) {
   function inspect(key, value) {
-    if (key === 'location' && value !== null && typeof value.fileName === 'string') {
+    if (key === 'location' && value != null && typeof value.fileName === 'string') {
       value.fileName = (_nuclideUri || _load_nuclideUri()).default.basename(value.fileName);
     } else {
       stripLocationsFileName(value);

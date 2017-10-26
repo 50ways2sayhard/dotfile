@@ -39,6 +39,21 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
+const directoriesObs = new _rxjsBundlesRxMinJs.Subject();
+
+const SEARCH_TIMEOUT = 10000;
+
 const CodeSearchProvider = exports.CodeSearchProvider = {
   name: 'CodeSearchProvider',
   providerType: 'DIRECTORY',
@@ -56,6 +71,7 @@ const CodeSearchProvider = exports.CodeSearchProvider = {
   },
   executeQuery(query, directory) {
     return (0, _asyncToGenerator.default)(function* () {
+      directoriesObs.next(directory);
       if (query.length === 0) {
         return [];
       }
@@ -76,11 +92,11 @@ const CodeSearchProvider = exports.CodeSearchProvider = {
         };
         lastPath = match.file;
         return result;
-      }).catch(function () {
+      }).timeout(SEARCH_TIMEOUT).catch(function () {
         return _rxjsBundlesRxMinJs.Observable.empty();
-      }).toArray().map(function (results) {
-        return results.length <= 1 ? [] : results;
-      }).toPromise();
+      }).toArray().takeUntil(directoriesObs.filter(function (dir) {
+        return dir.getPath() === projectRoot;
+      })).toPromise();
     })();
   },
   getComponentForItem(_item) {
@@ -116,16 +132,7 @@ const CodeSearchProvider = exports.CodeSearchProvider = {
       )
     );
   }
-}; /**
-    * Copyright (c) 2015-present, Facebook, Inc.
-    * All rights reserved.
-    *
-    * This source code is licensed under the license found in the LICENSE file in
-    * the root directory of this source tree.
-    *
-    * 
-    * @format
-    */
+};
 
 function replaceAndWrap(str, search, wrapRest, wrapMatch) {
   // Generate a unique React `key` for each item in the result.

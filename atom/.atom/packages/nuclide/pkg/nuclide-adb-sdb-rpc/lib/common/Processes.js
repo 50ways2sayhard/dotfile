@@ -60,8 +60,9 @@ class Processes {
     });
   }
 
-  fetch() {
-    return _rxjsBundlesRxMinJs.Observable.forkJoin(this._db.getProcesses().catch(() => _rxjsBundlesRxMinJs.Observable.of([])), this._db.getDebuggableProcesses().catch(() => _rxjsBundlesRxMinJs.Observable.of([])), this._getProcessAndMemoryUsage().catch(() => _rxjsBundlesRxMinJs.Observable.of(new Map()))).map(([processes, javaProcesses, cpuAndMemUsage]) => {
+  fetch(timeout) {
+    const internalTimeout = timeout * 2 / 3;
+    return _rxjsBundlesRxMinJs.Observable.forkJoin(this._db.getProcesses().timeout(internalTimeout).catch(() => _rxjsBundlesRxMinJs.Observable.of([])), this._db.getDebuggableProcesses().timeout(internalTimeout).catch(() => _rxjsBundlesRxMinJs.Observable.of([])), this._getProcessAndMemoryUsage().timeout(internalTimeout).catch(() => _rxjsBundlesRxMinJs.Observable.of(new Map()))).map(([processes, javaProcesses, cpuAndMemUsage]) => {
       const javaPids = new Set(javaProcesses.map(javaProc => Number(javaProc.pid)));
       return (0, (_collection || _load_collection()).arrayCompact)(processes.map(simpleProcess => {
         const pid = parseInt(simpleProcess.pid, 10);
@@ -82,7 +83,8 @@ class Processes {
           name: simpleProcess.name,
           cpuUsage: cpu,
           memUsage: mem,
-          isJava };
+          isJava // TODO(wallace) rename this to debuggable or make this a list of possible debugger types
+        };
       }));
     });
   }
@@ -122,7 +124,8 @@ class Processes {
         const info = line.trim().split(/\s/);
         return [parseInt(info[0], 10), [parseInt(info[12], 10) + parseInt(info[13], 10), // stime + utime
         parseInt(info[23], 10)]];
-      }));
+      } // RSS
+      ));
     });
   }
 

@@ -9,13 +9,19 @@ exports.deactivate = deactivate;
 
 var _electron = _interopRequireDefault(require('electron'));
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _featureConfig;
 
 function _load_featureConfig() {
   return _featureConfig = _interopRequireDefault(require('nuclide-commons-atom/feature-config'));
 }
+
+var _atom = require('atom');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -37,7 +43,7 @@ if (!(remote != null)) {
 let subscriptions = null;
 
 function activate(state) {
-  subscriptions = new _atom.CompositeDisposable(
+  subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default(
   // Listen for Atom notifications:
   atom.notifications.onDidAddNotification(proxyToNativeNotification));
 }

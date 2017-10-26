@@ -8,6 +8,12 @@ var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
 var _atom = require('atom');
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _react = _interopRequireWildcard(require('react'));
 
 var _Icon;
@@ -44,27 +50,26 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const GK_THREAD_SWITCH_UI = 'nuclide_debugger_thread_switch_ui'; /**
+                                                                  * Copyright (c) 2015-present, Facebook, Inc.
+                                                                  * All rights reserved.
+                                                                  *
+                                                                  * This source code is licensed under the license found in the LICENSE file in
+                                                                  * the root directory of this source tree.
+                                                                  *
+                                                                  * 
+                                                                  * @format
+                                                                  */
 
-const GK_THREAD_SWITCH_UI = 'nuclide_debugger_thread_switch_ui';
 const GK_TIMEOUT = 5000;
 
 class ThreadStore {
 
   constructor(dispatcher) {
     const dispatcherToken = dispatcher.register(this._handlePayload.bind(this));
-    this._disposables = new _atom.CompositeDisposable(new _atom.Disposable(() => {
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
       dispatcher.unregister(dispatcherToken);
-    }));
+    });
     this._datatipService = null;
     this._emitter = new _atom.Emitter();
     this._threadMap = new Map();

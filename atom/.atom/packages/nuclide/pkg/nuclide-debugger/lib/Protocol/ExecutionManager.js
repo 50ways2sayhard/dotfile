@@ -4,6 +4,12 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _nuclideUri;
+
+function _load_nuclideUri() {
+  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
+}
+
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
 
 var _EventReporter;
@@ -12,20 +18,11 @@ function _load_EventReporter() {
   return _EventReporter = require('./EventReporter');
 }
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 /**
  * Bridge between Nuclide IPC and RPC execution control protocols.
  */
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
 class ExecutionManager {
 
   constructor(debuggerDispatcher, getIsReadonlyTarget) {
@@ -72,9 +69,10 @@ class ExecutionManager {
     if (!this._getIsReadonlyTarget()) {
       // Chrome's continueToLocation implementation incorrect
       // uses source uri instead of scriptId as the location ScriptId
-      // field, we mirrow the same behavior for compatibility reason.
-      const scriptId = this._debuggerDispatcher.getSourceUriFromUri(fileUri);
-      if (scriptId != null) {
+      // field, we mirror the same behavior for compatibility reason.
+      const sourceUri = this._debuggerDispatcher.getSourceUriFromUri(fileUri);
+      if (sourceUri != null) {
+        const scriptId = (_nuclideUri || _load_nuclideUri()).default.getPath(sourceUri);
         this._debuggerDispatcher.continueToLocation({
           scriptId,
           lineNumber: line,
@@ -127,4 +125,13 @@ class ExecutionManager {
     this._executionEvent$.next(args);
   }
 }
-exports.default = ExecutionManager;
+exports.default = ExecutionManager; /**
+                                     * Copyright (c) 2015-present, Facebook, Inc.
+                                     * All rights reserved.
+                                     *
+                                     * This source code is licensed under the license found in the LICENSE file in
+                                     * the root directory of this source tree.
+                                     *
+                                     * 
+                                     * @format
+                                     */

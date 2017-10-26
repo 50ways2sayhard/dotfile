@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.createAdapters = createAdapters;
+exports.createAdapter = createAdapter;
 exports.validateLinter = validateLinter;
 
 var _LinterAdapter;
@@ -24,7 +24,7 @@ function _load_LinterAdapter() {
  * @format
  */
 
-function createSingleAdapter(provider, busyReporter) {
+function createAdapter(provider, busyReporter) {
   const validationErrors = validateLinter(provider);
   if (validationErrors.length === 0) {
     return new (_LinterAdapter || _load_LinterAdapter()).LinterAdapter(provider, busyReporter);
@@ -35,25 +35,6 @@ function createSingleAdapter(provider, busyReporter) {
     atom.notifications.addError(message, { dismissable: true });
     return null;
   }
-}
-
-function addSingleAdapter(adapters, provider, busyReporter) {
-  const adapter = createSingleAdapter(provider, busyReporter);
-  if (adapter) {
-    adapters.add(adapter);
-  }
-}
-
-function createAdapters(providers, busyReporter) {
-  const adapters = new Set();
-  if (Array.isArray(providers)) {
-    for (const provider of providers) {
-      addSingleAdapter(adapters, provider, busyReporter);
-    }
-  } else {
-    addSingleAdapter(adapters, providers, busyReporter);
-  }
-  return adapters;
 }
 
 function validateLinter(provider) {

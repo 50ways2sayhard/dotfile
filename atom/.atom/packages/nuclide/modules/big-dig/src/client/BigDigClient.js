@@ -44,6 +44,14 @@ class BigDigClient {
     });
   }
 
+  isClosed() {
+    return this._webSocketTransport.isClosed();
+  }
+
+  onClose(callback) {
+    return this._webSocketTransport.onClose(callback);
+  }
+
   sendMessage(tag, body) {
     this._webSocketTransport.send(`${tag}\0${body}`);
   }

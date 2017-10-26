@@ -12,10 +12,19 @@ var _electron = _interopRequireDefault(require('electron'));
 
 var _fs = _interopRequireDefault(require('fs'));
 
+var _testHelpers;
+
+function _load_testHelpers() {
+  return _testHelpers = require('nuclide-commons/test-helpers');
+}
+
 var _path = _interopRequireDefault(require('path'));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+const { ipcRenderer } = _electron.default;
+
+// eslint-disable-next-line rulesdir/prefer-nuclide-uri
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -27,32 +36,24 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @format
  */
 
-const { ipcRenderer } = _electron.default;
-
-// eslint-disable-next-line rulesdir/prefer-nuclide-uri
-
 if (!(ipcRenderer != null)) {
   throw new Error('Invariant violation: "ipcRenderer != null"');
 }
 
-// When chromiums verbosity is off, patch `console` to output through the main
-// process. `--v=-3` is used by the CI.
+// Patch `console` to output through the main process.
 
 
-if (process.argv.includes('--v=-3')) {
-  // https://github.com/nodejs/node/blob/v5.1.1/lib/console.js
-  global.console = new _console.Console(
-  /* stdout */{
-    write(chunk) {
-      ipcRenderer.send('write-to-stdout', chunk);
-    }
-  },
-  /* stderr */{
-    write(chunk) {
-      ipcRenderer.send('write-to-stderr', chunk);
-    }
-  });
-}
+global.console = new _console.Console(
+/* stdout */{
+  write(chunk) {
+    ipcRenderer.send('write-to-stdout', chunk);
+  }
+},
+/* stderr */{
+  write(chunk) {
+    ipcRenderer.send('write-to-stderr', chunk);
+  }
+});
 
 const integrationTestsDir = _path.default.join(__dirname, '../spec');
 
@@ -84,9 +85,11 @@ exports.default = (() => {
 
         if (isIntegrationTest) {
           jasmine.getEnv().beforeEach(() => {
+            // Integration tests have to activate all Nuclide packages.
+            jasmine.getEnv().defaultTimeoutInterval = 10000;
             // If we're running integration tests in parallel, double the timeout.
             if (process.env.SANDCASTLE === '1') {
-              jasmine.getEnv().defaultTimeoutInterval = 10000;
+              jasmine.getEnv().defaultTimeoutInterval *= 2;
             }
             // `atom.confirm` blocks Atom and stops the integration tests.
             spyOn(atomGlobal, 'confirm');
@@ -123,6 +126,7 @@ exports.default = (() => {
     yield new Promise(function (resolve) {
       const temp = require('temp');
       if (statusCode === 0) {
+        (0, (_testHelpers || _load_testHelpers()).writeCoverage)();
         // Atom intercepts "process.exit" so we have to do our own manual cleanup.
         temp.cleanup(function (err, stats) {
           resolve();

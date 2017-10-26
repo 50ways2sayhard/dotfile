@@ -133,6 +133,7 @@ class FsFileSystem {
 
   readdir(path) {
     return (0, _asyncToGenerator.default)(function* () {
+      // $FlowFixMe(>=0.55.0) Flow suppress
       const files = yield (_fsPromise || _load_fsPromise()).default.readdir(path);
       const entries = yield Promise.all(files.map((() => {
         var _ref = (0, _asyncToGenerator.default)(function* (file) {
@@ -166,7 +167,10 @@ class FsFileSystem {
   }
 
   move(sourcePath, destinationPath) {
-    return (_fsPromise || _load_fsPromise()).default.move(sourcePath, destinationPath);
+    return (_fsPromise || _load_fsPromise()).default.mv(sourcePath, destinationPath, {
+      mkdirp: true,
+      clobber: false
+    });
   }
 
   copy(sourcePath, destinationPath) {
@@ -205,6 +209,10 @@ class FsFileSystem {
 
   isNfs(path) {
     return (_fsPromise || _load_fsPromise()).default.isNfs(path);
+  }
+
+  isFuse(path) {
+    return (_fsPromise || _load_fsPromise()).default.isFuse(path);
   }
 
   openArchive(path) {

@@ -5,6 +5,26 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.HgRepositoryClient = undefined;
 
+var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
+
+var _nuclideUri;
+
+function _load_nuclideUri() {
+  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
+}
+
+var _promise;
+
+function _load_promise() {
+  return _promise = require('nuclide-commons/promise');
+}
+
+var _string;
+
+function _load_string() {
+  return _string = require('nuclide-commons/string');
+}
+
 var _hgDiffOutputParser;
 
 function _load_hgDiffOutputParser() {
@@ -232,9 +252,9 @@ class HgRepositoryClient {
       this._emitter.emit('did-change-statuses');
     });
 
-    const shouldRevisionsUpdate = _rxjsBundlesRxMinJs.Observable.merge(this._bookmarks.asObservable(), commitChanges, repoStateChanges).debounceTime(REVISION_DEBOUNCE_DELAY);
+    const shouldRevisionsUpdate = _rxjsBundlesRxMinJs.Observable.merge(this._bookmarks.asObservable(), commitChanges, repoStateChanges).let((0, (_observable || _load_observable()).fastDebounce)(REVISION_DEBOUNCE_DELAY));
 
-    const bookmarksUpdates = _rxjsBundlesRxMinJs.Observable.merge(activeBookmarkChanges, allBookmarkChanges).startWith(null).debounceTime(BOOKMARKS_DEBOUNCE_DELAY).switchMap(() => _rxjsBundlesRxMinJs.Observable.defer(() => {
+    const bookmarksUpdates = _rxjsBundlesRxMinJs.Observable.merge(activeBookmarkChanges, allBookmarkChanges).startWith(null).let((0, (_observable || _load_observable()).fastDebounce)(BOOKMARKS_DEBOUNCE_DELAY)).switchMap(() => _rxjsBundlesRxMinJs.Observable.defer(() => {
       return this._service.fetchBookmarks().refCount().timeout(FETCH_BOOKMARKS_TIMEOUT);
     }).retry(2).catch(error => {
       (0, (_log4js || _load_log4js()).getLogger)('nuclide-hg-repository-client').error('failed to fetch bookmarks info:', error);
@@ -249,8 +269,23 @@ class HgRepositoryClient {
   } // legacy, only for uncommitted
 
 
+  getAdditionalLogFiles(expire) {
+    var _this = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      const path = _this._workingDirectory.getPath();
+      const prefix = (_nuclideUri || _load_nuclideUri()).default.isRemote(path) ? `${(_nuclideUri || _load_nuclideUri()).default.getHostname(path)}:` : '';
+      const results = yield (0, (_promise || _load_promise()).expirePromise)(expire, _this._service.getAdditionalLogFiles(expire - 1000)).catch(function (e) {
+        return [{ title: `${path}:hg`, data: (0, (_string || _load_string()).stringifyError)(e) }];
+      });
+      return results.map(function (log) {
+        return Object.assign({}, log, { title: prefix + log.title });
+      });
+    })();
+  }
+
   _observeStatus(fileChanges, repoStateChanges, fetchStatuses) {
-    const triggers = _rxjsBundlesRxMinJs.Observable.merge(fileChanges, repoStateChanges).debounceTime(STATUS_DEBOUNCE_DELAY_MS).share().startWith(null);
+    const triggers = _rxjsBundlesRxMinJs.Observable.merge(fileChanges, repoStateChanges).let((0, (_observable || _load_observable()).fastDebounce)(STATUS_DEBOUNCE_DELAY_MS)).share().startWith(null);
     // Share comes before startWith. That's because fileChanges/repoStateChanges
     // are already hot and can be shared fine. But we want both our subscribers,
     // statusChanges and isCalculatingChanges, to pick up their own copy of
@@ -565,6 +600,7 @@ class HgRepositoryClient {
     for (const [filePath, status] of this._hgStatusCache) {
       pathStatuses[filePath] = status;
     }
+    // $FlowFixMe(>=0.55.0) Flow suppress
     return pathStatuses;
   }
 

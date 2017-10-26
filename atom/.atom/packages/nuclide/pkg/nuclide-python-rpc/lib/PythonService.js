@@ -360,6 +360,14 @@ class PythonSingleFileLanguageService {
     throw new Error('Not Yet Implemented');
   }
 
+  getExpandedSelectionRange(filePath, buffer, currentSelection) {
+    throw new Error('Not Yet Implemented');
+  }
+
+  getCollapsedSelectionRange(filePath, buffer, currentSelection, originalCursorPosition) {
+    throw new Error('Not Yet Implemented');
+  }
+
   dispose() {}
 }
 

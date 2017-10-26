@@ -182,6 +182,12 @@ class ZipFileSystem {
     })();
   }
 
+  isFuse(path) {
+    return (0, _asyncToGenerator.default)(function* () {
+      return false;
+    })();
+  }
+
   openArchive(path) {
     var _this6 = this;
 

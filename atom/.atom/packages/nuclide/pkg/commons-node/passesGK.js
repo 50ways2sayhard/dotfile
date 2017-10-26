@@ -9,6 +9,7 @@ var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 exports.isGkEnabled = isGkEnabled;
 exports.onceGkInitialized = onceGkInitialized;
 exports.onceGkInitializedAsync = onceGkInitializedAsync;
+exports.getCacheEntries = getCacheEntries;
 
 var _once;
 
@@ -58,6 +59,9 @@ const getGatekeeper = (0, (_once || _load_once()).default)(() => {
         });
         return new (_eventKit || _load_eventKit()).Disposable();
       }
+      getCacheEntries() {
+        return [];
+      }
     };
   }
   return new Gatekeeper();
@@ -103,4 +107,8 @@ function onceGkInitializedAsync() {
   return new Promise(resolve => {
     getGatekeeper().onceGkInitialized(() => resolve());
   });
+}
+
+function getCacheEntries() {
+  return getGatekeeper().getCacheEntries();
 }

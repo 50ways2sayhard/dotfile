@@ -40,7 +40,12 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/* eslint-enable react/no-unused-prop-types */
+
 // The number of extra rows to render beyond what is visible
+
+
+/* eslint-disable react/no-unused-prop-types */
 const OVERSCAN_COUNT = 5; /**
                            * Copyright (c) 2015-present, Facebook, Inc.
                            * All rights reserved.
@@ -133,16 +138,14 @@ class OutputTable extends _react.Component {
         // $FlowIgnore Untyped react-virtualized List component method
         this._list.recomputeRowHeights();
 
-        // If the element in the viewport when its height changes, scroll to ensure that the entirety
-        // of the record is in the viewport. This is important not just for if the last record changes
-        // height through user interaction (e.g. expanding a debugger variable), but also because this
-        // is the mechanism through which the record's true initial height is reported. Therefore, we
-        // may have scrolled to the bottom, and only afterwards received its true height. In this
-        // case, it's important that we then scroll to the new bottom.
-        const index = this.props.displayableRecords.findIndex(record => record.id === recordId);
-        if (index >= this._startIndex && index <= this._stopIndex) {
-          // $FlowIgnore Untyped react-virtualized List component method
-          this._list.scrollToRow(index);
+        // If we are already scrolled to the bottom, scroll to ensure that the scrollbar remains at
+        // the bottom. This is important not just for if the last record changes height through user
+        // interaction (e.g. expanding a debugger variable), but also because this is the mechanism
+        // through which the record's true initial height is reported. Therefore, we may have scrolled
+        // to the bottom, and only afterwards received its true height. In this case, it's important
+        // that we then scroll to the new bottom.
+        if (this.props.shouldScrollToBottom()) {
+          this.scrollToBottom();
         }
       });
     };

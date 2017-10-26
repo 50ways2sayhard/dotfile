@@ -7,6 +7,12 @@ exports.__test__ = exports.ServerConnection = undefined;
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
+var _passesGK;
+
+function _load_passesGK() {
+  return _passesGK = _interopRequireDefault(require('../../commons-node/passesGK'));
+}
+
 var _event;
 
 function _load_event() {
@@ -143,6 +149,10 @@ class ServerConnection {
     })();
   }
 
+  static cancelConnection(hostname) {
+    ServerConnection._emitter.emit('did-cancel', hostname);
+  }
+
   // WARNING: This shuts down all Nuclide servers _without_ closing their
   // RemoteConnections first! This is extremely unsafe and
   // should only be used to forcibly kill Nuclide servers before restarting.
@@ -235,6 +245,12 @@ class ServerConnection {
     return new (_RemoteFile || _load_RemoteFile()).RemoteFile(this, this.getUriOfRemotePath(path), symlink);
   }
 
+  createFileAsDirectory(uri, hgRepositoryDescription, symlink = false) {
+    let { path } = (_nuclideUri || _load_nuclideUri()).default.parse(uri);
+    path = (_nuclideUri || _load_nuclideUri()).default.normalize(path);
+    return new (_RemoteDirectory || _load_RemoteDirectory()).RemoteDirectory(this, this.getUriOfRemotePath(path), symlink, Object.assign({}, hgRepositoryDescription, { isArchive: true }));
+  }
+
   getFileWatch(path) {
     return this._fileWatches.get(path);
   }
@@ -247,7 +263,8 @@ class ServerConnection {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      _this._startRpc();
+      const useAck = yield (0, (_passesGK || _load_passesGK()).default)('nuclide_connection_ack');
+      _this._startRpc(useAck);
       const client = _this.getClient();
       const clientVersion = (0, (_nuclideVersion || _load_nuclideVersion()).getVersion)();
 
@@ -307,9 +324,9 @@ class ServerConnection {
     return this._client;
   }
 
-  _startRpc() {
+  _startRpc(useAck) {
     let uri;
-    let options;
+    let options = { useAck };
 
     // Use https if we have key, cert, and ca
     if (this._isSecure()) {
@@ -325,15 +342,15 @@ class ServerConnection {
         throw new Error('Invariant violation: "this._config.clientKey != null"');
       }
 
-      options = {
+      options = Object.assign({}, options, {
         ca: this._config.certificateAuthorityCertificate,
         cert: this._config.clientCertificate,
         key: this._config.clientKey,
         family: this._config.family
-      };
+      });
       uri = `https://${this.getRemoteHostname()}:${this.getPort()}`;
     } else {
-      options = { family: this._config.family };
+      options = Object.assign({}, options, { family: this._config.family });
       uri = `http://${this.getRemoteHostname()}:${this.getPort()}`;
     }
 
@@ -385,6 +402,24 @@ class ServerConnection {
 
   static onDidAddServerConnection(handler) {
     return ServerConnection._emitter.on('did-add', handler);
+  }
+
+  // exposes an Observable of all the ServerConnection additions,
+  // including those that have already connected
+  static connectionAdded() {
+    return _rxjsBundlesRxMinJs.Observable.concat(_rxjsBundlesRxMinJs.Observable.from(ServerConnection._connections.values()), (0, (_event || _load_event()).observableFromSubscribeFunction)(ServerConnection.onDidAddServerConnection));
+  }
+
+  static onDidCancelServerConnection(handler) {
+    return ServerConnection._emitter.on('did-cancel', handler);
+  }
+
+  static connectionAddedToHost(hostname) {
+    const addEvents = ServerConnection.connectionAdded().filter(sc => sc.getRemoteHostname() === hostname);
+    const cancelEvents = (0, (_event || _load_event()).observableFromSubscribeFunction)(ServerConnection.onDidCancelServerConnection).filter(cancelledHostname => cancelledHostname === hostname);
+    return _rxjsBundlesRxMinJs.Observable.merge(addEvents, cancelEvents.map(x => {
+      throw new Error('Cancelled server connection to ' + hostname);
+    }));
   }
 
   static onDidCloseServerConnection(handler) {
@@ -458,7 +493,8 @@ class ServerConnection {
 
   static observeRemoteConnections() {
     const emitter = ServerConnection._emitter;
-    return _rxjsBundlesRxMinJs.Observable.merge((0, (_event || _load_event()).observableFromSubscribeFunction)(cb => emitter.on('did-add', cb)), (0, (_event || _load_event()).observableFromSubscribeFunction)(cb => emitter.on('did-close', cb)), _rxjsBundlesRxMinJs.Observable.of(null)).map(() => Array.from(ServerConnection._connections.values()));
+    return _rxjsBundlesRxMinJs.Observable.merge((0, (_event || _load_event()).observableFromSubscribeFunction)(cb => emitter.on('did-add', cb)), (0, (_event || _load_event()).observableFromSubscribeFunction)(cb => emitter.on('did-close', cb)), _rxjsBundlesRxMinJs.Observable.of(null) // so subscribers get a full list immediately
+    ).map(() => Array.from(ServerConnection._connections.values()));
   }
 }
 

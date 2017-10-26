@@ -49,7 +49,6 @@ const DEBUGGER_MODE_CHANGE_EVENT = 'debugger mode change';
  */
 class DebuggerStore {
 
-  // Stored values
   constructor(dispatcher, model) {
     this._dispatcher = dispatcher;
     this._model = model;
@@ -65,6 +64,7 @@ class DebuggerStore {
     this._togglePauseOnException = false;
     this._togglePauseOnCaughtException = false;
     this._enableSingleThreadStepping = false;
+    this._enableShowDisassembly = false;
     this._registerExecutor = null;
     this._consoleDisposable = null;
     this._customControlButtons = [];
@@ -74,6 +74,9 @@ class DebuggerStore {
       this._onLoaderBreakpointResume = resolve;
     });
   }
+
+  // Stored values
+
 
   dispose() {
     this._emitter.dispose();
@@ -172,6 +175,22 @@ class DebuggerStore {
 
   onDebuggerModeChange(callback) {
     return this._emitter.on(DEBUGGER_MODE_CHANGE_EVENT, callback);
+  }
+
+  supportsSetVariable() {
+    const currentDebugInfo = this.getDebugProcessInfo();
+    return currentDebugInfo ? currentDebugInfo.getDebuggerCapabilities().setVariable : false;
+  }
+
+  setShowDisassembly(enable) {
+    this._enableShowDisassembly = enable;
+    if (this.isDebugging()) {
+      this.getBridge().setShowDisassembly(enable);
+    }
+  }
+
+  getShowDisassembly() {
+    return this._debugProcessInfo != null && this._debugProcessInfo.getDebuggerCapabilities().disassembly && this._enableShowDisassembly;
   }
 
   _handlePayload(payload) {

@@ -53,7 +53,7 @@ const QUALIFYING_FIELDS = ['class', 'namespace', 'struct', 'enum', 'Module'];
 function createCallback(tag) {
   return (0, _asyncToGenerator.default)(function* () {
     const lineNumber = yield (0, (_utils || _load_utils()).getLineNumberForTag)(tag);
-    (0, (_goToLocation || _load_goToLocation()).goToLocation)(tag.file, lineNumber, 0);
+    (0, (_goToLocation || _load_goToLocation()).goToLocation)(tag.file, { line: lineNumber, column: 0 });
   });
 }
 

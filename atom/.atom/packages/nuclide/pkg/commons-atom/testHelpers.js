@@ -16,6 +16,8 @@ function _load_nuclideUri() {
   return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
 }
 
+var _react = _interopRequireDefault(require('react'));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
@@ -29,17 +31,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param metaKeys An object denoting which meta keys are pressed for this
  * keyboard event.
  */
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
 function dispatchKeyboardEvent(key, target, metaKeys = {}) {
   const { alt, cmd, ctrl, shift } = metaKeys;
   // Atom requires `key` to be uppercase when `shift` is specified.
@@ -66,6 +57,17 @@ function dispatchKeyboardEvent(key, target, metaKeys = {}) {
  * Custom matchers for jasmine testing, as described in:
  * http://jasmine.github.io/1.3/introduction.html#section-Writing_a_custom_matcher.
  */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 const rangeMatchers = exports.rangeMatchers = {
   /**
    * Determines if two Ranges are equal. This function should not be called
@@ -173,13 +175,11 @@ function waitsForFilePosition(filename, row, column, timeoutMs = 10000) {
  *    });
  */
 function getMountedReactRootNames() {
-  const ReactComponentTreeHookPath = Object.keys(require.cache).find(x => x.endsWith('react/lib/ReactComponentTreeHook.js'));
+  const {
+    ReactComponentTreeHook
+    // $FlowFixMe This is not typed for obvious reasons
+  } = _react.default.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 
-  if (!(ReactComponentTreeHookPath != null)) {
-    throw new Error('ReactComponentTreeHook could not be found in the module cache.');
-  }
-
-  const ReactComponentTreeHook = require.cache[ReactComponentTreeHookPath].exports;
   const reactRootNames = ReactComponentTreeHook.getRootIDs().map(rootID => {
     return ReactComponentTreeHook.getDisplayName(rootID);
   });

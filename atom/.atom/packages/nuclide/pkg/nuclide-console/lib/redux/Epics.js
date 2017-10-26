@@ -101,7 +101,8 @@ function executeEpic(actions, store) {
       level: 'log',
       text: code,
       scopeName: executor.scopeName,
-      data: null
+      data: null,
+      repeatCount: 1
     }))
     // Execute the code as a side-effect.
     .finally(() => {

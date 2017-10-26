@@ -21,6 +21,12 @@ function _load_collection() {
   return _collection = require('nuclide-commons/collection');
 }
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _passesGK;
 
 function _load_passesGK() {
@@ -66,18 +72,17 @@ function _load_NuxView() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Limits the number of NUXes displayed every session
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const NUX_PER_SESSION_LIMIT = 3; /**
+                                  * Copyright (c) 2015-present, Facebook, Inc.
+                                  * All rights reserved.
+                                  *
+                                  * This source code is licensed under the license found in the LICENSE file in
+                                  * the root directory of this source tree.
+                                  *
+                                  * 
+                                  * @format
+                                  */
 
-const NUX_PER_SESSION_LIMIT = 3;
 const NEW_TOUR_EVENT = 'nuxTourNew';
 const READY_TOUR_EVENT = 'nuxTourReady';
 
@@ -91,7 +96,7 @@ class NuxManager {
     this._syncCompletedNux = syncCompletedNux;
 
     this._emitter = new _atom.Emitter();
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
 
     this._pendingNuxes = new Map();
     this._readyToDisplayNuxes = [];

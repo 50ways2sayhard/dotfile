@@ -11,7 +11,11 @@ function _load_CwdApi() {
   return _CwdApi = require('./CwdApi');
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _projects;
 
@@ -34,7 +38,7 @@ class Activation {
     const { initialCwdPath } = state;
     this._cwdApi = new (_CwdApi || _load_CwdApi()).CwdApi(initialCwdPath);
     this._currentWorkingRootDirectory = this._cwdApi.getCwd();
-    this._disposables = new _atom.CompositeDisposable(this._cwdApi, atom.commands.add('atom-workspace', 'nuclide-current-working-root:set-from-active-file', this._setFromActiveFile.bind(this)), atom.commands.add('atom-workspace', 'nuclide-current-working-root:switch-to-previous', this._switchToLastWorkingRoot.bind(this)), this._cwdApi.observeCwd(newCwd => {
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(this._cwdApi, atom.commands.add('atom-workspace', 'nuclide-current-working-root:set-from-active-file', this._setFromActiveFile.bind(this)), atom.commands.add('atom-workspace', 'nuclide-current-working-root:switch-to-previous', this._switchToLastWorkingRoot.bind(this)), this._cwdApi.observeCwd(newCwd => {
       if (this._currentWorkingRootDirectory != null) {
         const oldCwd = this._currentWorkingRootDirectory.getPath();
         if (newCwd === oldCwd) {

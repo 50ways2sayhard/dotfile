@@ -64,7 +64,9 @@ class SocketServer {
 
   _onConnection(socket) {
     const transport = new (_SocketTransport || _load_SocketTransport()).SocketTransport(socket);
-    const connection = (_RpcConnection || _load_RpcConnection()).RpcConnection.createServer(this._serviceRegistry, transport);
+    const connection = (_RpcConnection || _load_RpcConnection()).RpcConnection.createServer(this._serviceRegistry, transport,
+    // Track calls with a sampling rate of 1/10.
+    { trackSampleRate: 10 });
     transport.onClose(() => {
       this._connections.delete(connection);
     });

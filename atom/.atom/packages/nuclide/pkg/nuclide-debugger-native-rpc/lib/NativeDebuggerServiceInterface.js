@@ -49,6 +49,10 @@ class NativeDebuggerService {
     throw new Error('Not implemented');
   }
 
+  prepareForTerminalLaunch(launchInfo) {
+    throw new Error('Not implemented');
+  }
+
   bootstrap(bootstrapInfo) {
     throw new Error('Not implemented');
   }

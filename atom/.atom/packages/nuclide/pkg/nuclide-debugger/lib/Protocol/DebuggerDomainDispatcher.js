@@ -25,7 +25,7 @@ class DebuggerDomainDispatcher {
 
 
   setDebuggerSettings(settings) {
-    this._agent.setDebuggerSettings(settings.singleThreadStepping);
+    this._agent.setDebuggerSettings(settings.singleThreadStepping, settings.showDisassembly);
   }
 
   getSourceUriFromUri(fileUri) {
@@ -98,6 +98,10 @@ class DebuggerDomainDispatcher {
     undefined, // returnByValue
     undefined, // generatePreview
     callback);
+  }
+
+  setVariable(scopeObjectId, expression, newValue, callback) {
+    this._agent.setVariableValue(expression, newValue, scopeObjectId, callback);
   }
 
   selectThread(threadId) {

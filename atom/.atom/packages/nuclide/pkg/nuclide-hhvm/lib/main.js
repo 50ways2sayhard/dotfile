@@ -2,7 +2,11 @@
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _createPackage;
 
@@ -20,12 +24,6 @@ var _consumeFirstProvider;
 
 function _load_consumeFirstProvider() {
   return _consumeFirstProvider = _interopRequireDefault(require('../../commons-atom/consumeFirstProvider'));
-}
-
-var _UniversalDisposable;
-
-function _load_UniversalDisposable() {
-  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
 }
 
 var _goToLocation;
@@ -55,10 +53,21 @@ function _load_HhvmBuildSystem() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // eslint-disable-next-line rulesdir/no-cross-atom-imports
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 class Activation {
 
   constructor(state) {
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
   }
 
   dispose() {
@@ -166,7 +175,7 @@ class Activation {
         (0, (_goToLocation || _load_goToLocation()).goToLocation)(navUri);
       } else {
         // NOTE: line numbers start at 0, so subtract 1.
-        (0, (_goToLocation || _load_goToLocation()).goToLocation)(navUri, lineNumber - 1);
+        (0, (_goToLocation || _load_goToLocation()).goToLocation)(navUri, { line: lineNumber - 1 });
       }
 
       // Debug the remote HHVM server!
@@ -182,15 +191,6 @@ class Activation {
       notification.dismiss();
     })();
   }
-} /**
-   * Copyright (c) 2015-present, Facebook, Inc.
-   * All rights reserved.
-   *
-   * This source code is licensed under the license found in the LICENSE file in
-   * the root directory of this source tree.
-   *
-   * 
-   * @format
-   */
+}
 
 (0, (_createPackage || _load_createPackage()).default)(module.exports, Activation);

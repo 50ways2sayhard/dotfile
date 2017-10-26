@@ -1,5 +1,11 @@
 'use strict';
 
+var _idx;
+
+function _load_idx() {
+  return _idx = _interopRequireDefault(require('idx'));
+}
+
 var _vscodeLanguageserver;
 
 function _load_vscodeLanguageserver() {
@@ -86,18 +92,17 @@ function _load_nuclideUri() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const reader = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageReader(process.stdin); /**
+                                                                                                  * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                                  * All rights reserved.
+                                                                                                  *
+                                                                                                  * This source code is licensed under the license found in the LICENSE file in
+                                                                                                  * the root directory of this source tree.
+                                                                                                  *
+                                                                                                  * 
+                                                                                                  * @format
+                                                                                                  */
 
-const reader = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageReader(process.stdin);
 const writer = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageWriter(process.stdout);
 
 const connection = (0, (_vscodeLanguageserver || _load_vscodeLanguageserver()).createConnection)(reader, writer);
@@ -114,7 +119,7 @@ const shouldProvideFlags = {
 
 let autoImportsManager = new (_AutoImportsManager || _load_AutoImportsManager()).AutoImportsManager([]);
 let importFormatter = new (_ImportFormatter || _load_ImportFormatter()).ImportFormatter([], false);
-let completion = new (_Completions || _load_Completions()).Completions(documents, autoImportsManager, importFormatter, false);
+let completion = new (_Completions || _load_Completions()).Completions(documents, autoImportsManager, importFormatter);
 let diagnostics = new (_Diagnostics || _load_Diagnostics()).Diagnostics(autoImportsManager, importFormatter);
 let codeActions = new (_CodeActions || _load_CodeActions()).CodeActions(autoImportsManager, importFormatter);
 let commandExecuter = new (_CommandExecutor || _load_CommandExecutor()).CommandExecutor(connection, importFormatter, documents);
@@ -125,10 +130,10 @@ connection.onInitialize(params => {
   const envs = (0, (_getConfig || _load_getConfig()).getEslintEnvs)(root);
   const flowConfig = (0, (_getConfig || _load_getConfig()).getConfigFromFlow)(root);
   shouldProvideFlags.diagnostics = shouldProvideDiagnostics(params, root);
-  importFormatter = new (_ImportFormatter || _load_ImportFormatter()).ImportFormatter(flowConfig.moduleDirs, flowConfig.hasteSettings.isHaste);
+  importFormatter = new (_ImportFormatter || _load_ImportFormatter()).ImportFormatter(flowConfig.moduleDirs, shouldUseRequires(params, root));
   autoImportsManager = new (_AutoImportsManager || _load_AutoImportsManager()).AutoImportsManager(envs);
   autoImportsManager.indexAndWatchDirectory(root);
-  completion = new (_Completions || _load_Completions()).Completions(documents, autoImportsManager, importFormatter, flowConfig.hasteSettings.isHaste);
+  completion = new (_Completions || _load_Completions()).Completions(documents, autoImportsManager, importFormatter);
   diagnostics = new (_Diagnostics || _load_Diagnostics()).Diagnostics(autoImportsManager, importFormatter);
   codeActions = new (_CodeActions || _load_CodeActions()).CodeActions(autoImportsManager, importFormatter);
   commandExecuter = new (_CommandExecutor || _load_CommandExecutor()).CommandExecutor(connection, importFormatter, documents);
@@ -219,5 +224,15 @@ function getAllTriggerCharacters() {
 }
 
 function shouldProvideDiagnostics(params, root) {
-  return params.initializationOptions != null && params.initializationOptions.diagnosticsWhitelist != null && params.initializationOptions.diagnosticsWhitelist.length !== 0 ? params.initializationOptions.diagnosticsWhitelist.some(regex => root.match(new RegExp(regex))) : (_Settings || _load_Settings()).Settings.shouldProvideDiagnosticsDefault;
+  var _ref, _ref2;
+
+  const diagnosticsWhitelist = ((_ref = params) != null ? (_ref2 = _ref.initializationOptions) != null ? _ref2.diagnosticsWhitelist : _ref2 : _ref) || [];
+  return diagnosticsWhitelist.length !== 0 ? diagnosticsWhitelist.some(regex => root.match(new RegExp(regex))) : (_Settings || _load_Settings()).Settings.shouldProvideDiagnosticsDefault;
+}
+
+function shouldUseRequires(params, root) {
+  var _ref3, _ref4;
+
+  const requiresWhitelist = ((_ref3 = params) != null ? (_ref4 = _ref3.initializationOptions) != null ? _ref4.requiresWhitelist : _ref4 : _ref3) || [];
+  return requiresWhitelist.some(regex => root.match(new RegExp(regex)));
 }

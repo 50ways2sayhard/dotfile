@@ -16,12 +16,18 @@ function _load_ShellActivation() {
   return _ShellActivation = require('./shell/ShellActivation');
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class Activation {
 
   constructor(state) {
-    this._disposables = new _atom.CompositeDisposable(this._packagerActivation = new (_PackagerActivation || _load_PackagerActivation()).PackagerActivation(), new (_ShellActivation || _load_ShellActivation()).ShellActivation());
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(this._packagerActivation = new (_PackagerActivation || _load_PackagerActivation()).PackagerActivation(), new (_ShellActivation || _load_ShellActivation()).ShellActivation());
   }
 
   dispose() {

@@ -118,7 +118,7 @@ class Activation {
 }
 
 function openFile(uri, line, column, isWaiting) {
-  return _rxjsBundlesRxMinJs.Observable.fromPromise((0, (_goToLocation || _load_goToLocation()).goToLocation)(uri, line, column).then(editor => {
+  return _rxjsBundlesRxMinJs.Observable.fromPromise((0, (_goToLocation || _load_goToLocation()).goToLocation)(uri, { line, column }).then(editor => {
     atom.applicationDelegate.focusWindow();
 
     if (isWaiting && (_featureConfig || _load_featureConfig()).default.get('nuclide-remote-atom.shouldNotifyWhenCommandLineIsWaitingOnFile')) {

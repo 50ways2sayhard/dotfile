@@ -36,25 +36,27 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+const gotoLine = (file, line) => (0, (_goToLocation || _load_goToLocation()).goToLocation)(file, { line }); /**
+                                                                                                             * Copyright (c) 2017-present, Facebook, Inc.
+                                                                                                             * All rights reserved.
+                                                                                                             *
+                                                                                                             * This source code is licensed under the BSD-style license found in the
+                                                                                                             * LICENSE file in the root directory of this source tree. An additional grant
+                                                                                                             * of patent rights can be found in the PATENTS file in the same directory.
+                                                                                                             *
+                                                                                                             * 
+                                                                                                             * @format
+                                                                                                             */
+
 function makeDatatipComponent(messages, diagnosticUpdater) {
   const fixer = message => diagnosticUpdater.applyFix(message);
   return (0, (_bindObservableAsProps || _load_bindObservableAsProps()).bindObservableAsProps)((0, (_event || _load_event()).observableFromSubscribeFunction)(cb => diagnosticUpdater.observeCodeActionsForMessage(cb)).map(codeActionsForMessage => ({
     messages,
     fixer,
-    goToLocation: (_goToLocation || _load_goToLocation()).goToLocation,
+    goToLocation: gotoLine,
     codeActionsForMessage
   })), (_DiagnosticsPopup || _load_DiagnosticsPopup()).DiagnosticsPopup);
-} /**
-   * Copyright (c) 2017-present, Facebook, Inc.
-   * All rights reserved.
-   *
-   * This source code is licensed under the BSD-style license found in the
-   * LICENSE file in the root directory of this source tree. An additional grant
-   * of patent rights can be found in the PATENTS file in the same directory.
-   *
-   * 
-   * @format
-   */
+}
 
 exports.default = (() => {
   var _ref = (0, _asyncToGenerator.default)(function* (editor, position, messagesAtPosition, diagnosticUpdater) {

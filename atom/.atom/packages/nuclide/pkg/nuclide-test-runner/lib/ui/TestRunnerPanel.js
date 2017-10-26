@@ -72,6 +72,17 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 class TestRunnerPanel extends _react.Component {
 
   // Bound Functions for use as callbacks.
@@ -84,6 +95,8 @@ class TestRunnerPanel extends _react.Component {
 
     this.state = {
       roots: [],
+      treeContainer: null,
+      consoleContainer: null,
       // If there are test runners, start with the first one selected. Otherwise store -1 to
       // later indicate there were no active test runners.
       selectedTestRunnerIndex: props.testRunners.length > 0 ? 0 : -1
@@ -92,8 +105,8 @@ class TestRunnerPanel extends _react.Component {
 
   componentDidMount() {
     this._paneContainer = (0, (_createPaneContainer || _load_createPaneContainer()).default)();
-    this._leftPane = this._paneContainer.getActivePane();
-    this._rightPane = this._leftPane.splitRight({
+    const leftPane = this._paneContainer.getActivePane();
+    const rightPane = leftPane.splitRight({
       // Prevent Atom from cloning children on splitting; this panel wants an empty container.
       copyActiveItem: false,
       // Make the right pane 2/3 the width of the parent since console output is generally wider
@@ -101,15 +114,13 @@ class TestRunnerPanel extends _react.Component {
       flexScale: 2
     });
 
-    this.renderTree();
-    this.renderConsole();
-
     // $FlowFixMe
     _reactDom.default.findDOMNode(this.refs.paneContainer).appendChild(atom.views.getView(this._paneContainer));
-  }
 
-  componentDidUpdate() {
-    this.renderTree();
+    this.setState({
+      treeContainer: atom.views.getView(leftPane).querySelector('.item-views'),
+      consoleContainer: atom.views.getView(rightPane).querySelector('.item-views')
+    });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -122,8 +133,6 @@ class TestRunnerPanel extends _react.Component {
   }
 
   componentWillUnmount() {
-    _reactDom.default.unmountComponentAtNode(atom.views.getView(this._rightPane).querySelector('.item-views'));
-    _reactDom.default.unmountComponentAtNode(atom.views.getView(this._leftPane).querySelector('.item-views'));
     this._paneContainer.destroy();
   }
 
@@ -242,9 +251,20 @@ class TestRunnerPanel extends _react.Component {
       title: 'Test progress'
     }, progressAttrs)) : null;
 
+    const tree = this.state.treeContainer == null ? null : // $FlowIssue: This API isn't known by our current version of Flow.
+    _reactDom.default.createPortal(_react.createElement((_TestClassTree || _load_TestClassTree()).default, {
+      isRunning: this.props.executionState === TestRunnerPanel.ExecutionState.RUNNING,
+      testSuiteModel: this.props.testSuiteModel
+    }), this.state.treeContainer);
+
+    const console = this.state.consoleContainer == null ? null : // $FlowIssue: This API isn't known by our current version of Flow.
+    _reactDom.default.createPortal(_react.createElement((_Console || _load_Console()).default, { textBuffer: this.props.buffer }), this.state.consoleContainer);
+
     return _react.createElement(
       'div',
       { className: 'nuclide-test-runner-panel' },
+      tree,
+      console,
       _react.createElement(
         (_Toolbar || _load_Toolbar()).Toolbar,
         { location: 'top' },
@@ -286,35 +306,8 @@ class TestRunnerPanel extends _react.Component {
       return this.props.testRunners[selectedTestRunnerIndex];
     }
   }
-
-  renderTree() {
-    const component = _reactDom.default.render(_react.createElement((_TestClassTree || _load_TestClassTree()).default, {
-      isRunning: this.props.executionState === TestRunnerPanel.ExecutionState.RUNNING,
-      testSuiteModel: this.props.testSuiteModel
-    }), atom.views.getView(this._leftPane).querySelector('.item-views'));
-
-    if (!(component instanceof (_TestClassTree || _load_TestClassTree()).default)) {
-      throw new Error('Invariant violation: "component instanceof TestClassTree"');
-    }
-
-    this._tree = component;
-  }
-
-  renderConsole() {
-    _reactDom.default.render(_react.createElement((_Console || _load_Console()).default, { textBuffer: this.props.buffer }), atom.views.getView(this._rightPane).querySelector('.item-views'));
-  }
 }
-exports.default = TestRunnerPanel; /**
-                                    * Copyright (c) 2015-present, Facebook, Inc.
-                                    * All rights reserved.
-                                    *
-                                    * This source code is licensed under the license found in the LICENSE file in
-                                    * the root directory of this source tree.
-                                    *
-                                    * 
-                                    * @format
-                                    */
-
+exports.default = TestRunnerPanel;
 TestRunnerPanel.ExecutionState = Object.freeze({
   RUNNING: 0,
   STOPPED: 1

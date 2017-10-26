@@ -68,6 +68,12 @@ function _load_nuclideAnalytics() {
   return _nuclideAnalytics = require('../../nuclide-analytics');
 }
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _url = _interopRequireDefault(require('url'));
 
 var _react = _interopRequireWildcard(require('react'));
@@ -82,19 +88,20 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const SHOW_LOG_FILE_TREE_CONTEXT_MENU_PRIORITY = 500; /**
-                                                       * Copyright (c) 2015-present, Facebook, Inc.
-                                                       * All rights reserved.
-                                                       *
-                                                       * This source code is licensed under the license found in the LICENSE file in
-                                                       * the root directory of this source tree.
-                                                       *
-                                                       * 
-                                                       * @format
-                                                       */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 // TODO: Make it possible to move or split a pane with a VcsLogPaneItem.
 
+const SHOW_LOG_FILE_TREE_CONTEXT_MENU_PRIORITY = 500;
 const NUM_LOG_RESULTS = 100;
 
 const CONTEXT_MENU_LABEL = 'Show history';
@@ -104,7 +111,7 @@ const VCS_LOG_URI_PATHS_QUERY_PARAM = 'path';
 class Activation {
 
   constructor() {
-    this._subscriptions = new _atom.CompositeDisposable();
+    this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._registerOpener();
   }
 

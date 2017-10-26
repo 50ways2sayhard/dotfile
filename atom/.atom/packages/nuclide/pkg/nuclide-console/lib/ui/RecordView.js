@@ -217,7 +217,16 @@ class RecordView extends _react.Component {
         _react.createElement(
           'div',
           { className: 'nuclide-console-record-content-wrapper' },
-          this._renderContent(displayableRecord)
+          displayableRecord.record.repeatCount > 1 && _react.createElement(
+            'div',
+            { className: 'nuclide-console-record-duplicate-number' },
+            displayableRecord.record.repeatCount
+          ),
+          _react.createElement(
+            'div',
+            { className: 'nuclide-console-record-content' },
+            this._renderContent(displayableRecord)
+          )
         ),
         sourceLabel,
         renderedTimestamp

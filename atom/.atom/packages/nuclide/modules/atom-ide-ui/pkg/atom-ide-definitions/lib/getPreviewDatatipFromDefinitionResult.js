@@ -20,7 +20,7 @@ let getPreview = (() => {
     });
   });
 
-  return function getPreview(_x4, _x5) {
+  return function getPreview(_x5, _x6) {
     return _ref2.apply(this, arguments);
   };
 })();
@@ -42,9 +42,7 @@ var _react = _interopRequireDefault(require('react'));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = (() => {
-  var _ref = (0, _asyncToGenerator.default)(function* (definitionResult, definitionPreviewProvider, grammar) {
-    const { queryRange, definitions } = definitionResult;
-
+  var _ref = (0, _asyncToGenerator.default)(function* (range, definitions, definitionPreviewProvider, grammar) {
     if (definitions.length === 1) {
       const definition = definitions[0];
       // Some providers (e.g. Flow) return negative positions.
@@ -67,7 +65,7 @@ exports.default = (() => {
               src: `data:${definitionPreview.mime};${definitionPreview.encoding},${definitionPreview.contents}`
             });
           },
-          range: queryRange[0]
+          range
         };
       }
       return {
@@ -76,7 +74,7 @@ exports.default = (() => {
           value: definitionPreview.contents,
           grammar
         }],
-        range: queryRange[0]
+        range
       };
     }
 
@@ -86,11 +84,11 @@ exports.default = (() => {
         value: `${definitions.length} definitions found. Click to jump.`,
         grammar
       }],
-      range: queryRange[0]
+      range
     };
   });
 
-  function getPreviewDatatipFromDefinition(_x, _x2, _x3) {
+  function getPreviewDatatipFromDefinition(_x, _x2, _x3, _x4) {
     return _ref.apply(this, arguments);
   }
 

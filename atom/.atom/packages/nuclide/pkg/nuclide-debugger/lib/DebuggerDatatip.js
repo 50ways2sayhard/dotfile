@@ -28,7 +28,7 @@ let debuggerDatatip = exports.debuggerDatatip = (() => {
     const evaluation = watchExpressionStore.evaluateWatchExpression(expression);
     // Avoid creating a datatip if the evaluation fails
     const evaluationResult = yield evaluation.take(1).toPromise();
-    if (evaluationResult === null) {
+    if (evaluationResult == null) {
       return null;
     }
     const propStream = evaluation.filter(function (result) {
@@ -100,5 +100,6 @@ function getEvaluationExpression(model, editor, position) {
       break;
     }
   }
+  // eslint-disable-next-line eqeqeq
   return matchingProvider === null ? Promise.resolve((0, (_nuclideDebuggerBase || _load_nuclideDebuggerBase()).getDefaultEvaluationExpression)(editor, position)) : matchingProvider.getEvaluationExpression(editor, position);
 }

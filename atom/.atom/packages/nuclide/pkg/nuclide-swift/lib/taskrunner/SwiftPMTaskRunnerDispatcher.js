@@ -21,6 +21,7 @@ const ActionTypes = exports.ActionTypes = Object.freeze({
 });
 
 // Flow hack: Every SwiftPMTaskRunnerAction actionType must be in ActionTypes.
+// $FlowFixMe(>=0.55.0) Flow suppress
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.

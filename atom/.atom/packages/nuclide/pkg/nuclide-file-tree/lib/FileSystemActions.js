@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", {
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
-var _FileDialogComponent;
+var _FileActionModal;
 
-function _load_FileDialogComponent() {
-  return _FileDialogComponent = _interopRequireDefault(require('../components/FileDialogComponent'));
+function _load_FileActionModal() {
+  return _FileActionModal = require('../../nuclide-ui/FileActionModal');
 }
 
 var _FileTreeHelpers;
@@ -31,8 +31,6 @@ function _load_FileTreeStore() {
 }
 
 var _react = _interopRequireWildcard(require('react'));
-
-var _reactDom = _interopRequireDefault(require('react-dom'));
 
 var _nuclideUri;
 
@@ -64,20 +62,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-let atomPanel;
-let dialogComponent;
-
 class FileSystemActions {
   openAddFolderDialog(onDidConfirm) {
     const node = this._getSelectedContainerNode();
@@ -100,7 +84,14 @@ class FileSystemActions {
         const { path } = (_nuclideUri || _load_nuclideUri()).default.parse(filePath);
         const basename = (_nuclideUri || _load_nuclideUri()).default.basename(path);
         const newDirectory = directory.getSubdirectory(basename);
-        const created = yield newDirectory.create();
+        let created;
+        try {
+          created = yield newDirectory.create();
+        } catch (e) {
+          atom.notifications.addError(`Could not create directory '${basename}': ${e.toString()}`);
+          onDidConfirm(null);
+          return;
+        }
         if (!created) {
           atom.notifications.addError(`'${basename}' already exists.`);
           onDidConfirm(null);
@@ -162,21 +153,29 @@ class FileSystemActions {
         }
 
         const newFile = directory.getFile(pathToCreate);
-        const created = yield newFile.create();
-        if (created) {
-          const newFilePath = newFile.getPath();
-          // Open a new text editor while VCS actions complete in the background.
-          onDidConfirm(newFilePath);
-          if (hgRepository != null && options.addToVCS === true) {
-            try {
-              yield hgRepository.addAll([newFilePath]);
-            } catch (e) {
-              atom.notifications.addError(`Failed to add '${newFilePath}' to version control. Error: ${e.toString()}`);
-            }
-          }
-        } else {
+        let created;
+        try {
+          created = yield newFile.create();
+        } catch (e) {
+          atom.notifications.addError(`Could not create file '${newFile.getPath()}': ${e.toString()}`);
+          onDidConfirm(null);
+          return;
+        }
+        if (!created) {
           atom.notifications.addError(`'${pathToCreate}' already exists.`);
           onDidConfirm(null);
+          return;
+        }
+
+        const newFilePath = newFile.getPath();
+        // Open a new text editor while VCS actions complete in the background.
+        onDidConfirm(newFilePath);
+        if (hgRepository != null && options.addToVCS === true) {
+          try {
+            yield hgRepository.addAll([newFilePath]);
+          } catch (e) {
+            atom.notifications.addError(`Failed to add '${newFilePath}' to version control. Error: ${e.toString()}`);
+          }
         }
       });
 
@@ -284,6 +283,8 @@ class FileSystemActions {
       })()));
 
       const successfulPaths = [].concat(...copiedPaths);
+      onDidConfirm(successfulPaths);
+
       if (successfulPaths.length !== 0) {
         const hgRepository = _this3._getHgRepositoryForPath(successfulPaths[0]);
         if (hgRepository != null && addToVCS) {
@@ -294,13 +295,10 @@ class FileSystemActions {
           } catch (e) {
             const message = 'Paths were duplicated, but there was an error adding them to ' + 'version control.  Error: ' + e.toString();
             atom.notifications.addError(message);
-            onDidConfirm([]);
             return;
           }
         }
       }
-
-      onDidConfirm(successfulPaths);
     })();
   }
 
@@ -314,7 +312,7 @@ class FileSystemActions {
 
     const node = targetNodes.first();
     const nodePath = node.localPath;
-    this._openDialog({
+    (0, (_FileActionModal || _load_FileActionModal()).openDialog)({
       iconClassName: 'icon-arrow-right',
       initialValue: (_nuclideUri || _load_nuclideUri()).default.basename(nodePath),
       message: node.isContainer ? _react.createElement(
@@ -331,7 +329,7 @@ class FileSystemActions {
           atom.notifications.addError(`Rename to ${newBasename} failed: ${error.message}`);
         });
       },
-      onClose: this._closeDialog,
+      onClose: (_FileActionModal || _load_FileActionModal()).closeDialog,
       selectBasename: true
     });
   }
@@ -350,6 +348,7 @@ class FileSystemActions {
     initialValue = initialValue.substr(0, initialValue.length - ext.length) + '-copy' + ext;
     const hgRepository = (_FileTreeHgHelpers || _load_FileTreeHgHelpers()).default.getHgRepositoryForNode(node);
     const additionalOptions = {};
+    // eslint-disable-next-line eqeqeq
     if (hgRepository !== null) {
       additionalOptions.addToVCS = 'Add the new file to version control.';
     }
@@ -376,13 +375,13 @@ class FileSystemActions {
         if (nodes.rest().count() > 0) {
           this.openNextDuplicateDialog(nodes.rest(), onDidConfirm);
         } else {
-          this._closeDialog();
+          (0, (_FileActionModal || _load_FileActionModal()).closeDialog)();
         }
       },
       selectBasename: true,
       additionalOptions
     };
-    this._openDialog(dialogProps);
+    (0, (_FileActionModal || _load_FileActionModal()).openDialog)(dialogProps);
   }
 
   openPasteDialog() {
@@ -404,10 +403,11 @@ class FileSystemActions {
     }
 
     const additionalOptions = {};
+    // eslint-disable-next-line eqeqeq
     if ((_FileTreeHgHelpers || _load_FileTreeHgHelpers()).default.getHgRepositoryForNode(node) !== null) {
       additionalOptions.addToVCS = 'Add the new file(s) to version control.';
     }
-    this._openDialog({
+    (0, (_FileActionModal || _load_FileActionModal()).openDialog)({
       iconClassName: 'icon-arrow-right',
       initialValue: (_FileTreeHelpers || _load_FileTreeHelpers()).default.dirPathToKey(newDir.getPath()),
       message: _react.createElement(
@@ -420,7 +420,7 @@ class FileSystemActions {
           atom.notifications.addError(`Failed to paste into '${pasteDirPath}': ${error}`);
         });
       },
-      onClose: this._closeDialog,
+      onClose: (_FileActionModal || _load_FileActionModal()).closeDialog,
       additionalOptions
     });
   }
@@ -441,7 +441,7 @@ class FileSystemActions {
   }
 
   _openAddDialog(entryType, path, onConfirm, additionalOptions = {}) {
-    this._openDialog({
+    (0, (_FileActionModal || _load_FileActionModal()).openDialog)({
       iconClassName: 'icon-file-add',
       message: _react.createElement(
         'span',
@@ -453,29 +453,19 @@ class FileSystemActions {
         path
       ),
       onConfirm,
-      onClose: this._closeDialog,
+      onClose: (_FileActionModal || _load_FileActionModal()).closeDialog,
       additionalOptions
     });
   }
-
-  _openDialog(props) {
-    this._closeDialog();
-    const dialogHostElement = document.createElement('div');
-    atomPanel = atom.workspace.addModalPanel({ item: dialogHostElement });
-    dialogComponent = _reactDom.default.render(_react.createElement((_FileDialogComponent || _load_FileDialogComponent()).default, props), dialogHostElement);
-  }
-
-  _closeDialog() {
-    if (atomPanel != null) {
-      if (dialogComponent != null) {
-        _reactDom.default.unmountComponentAtNode(atomPanel.getItem());
-        dialogComponent = null;
-      }
-
-      atomPanel.destroy();
-      atomPanel = null;
-    }
-  }
-}
+} /**
+   * Copyright (c) 2015-present, Facebook, Inc.
+   * All rights reserved.
+   *
+   * This source code is licensed under the license found in the LICENSE file in
+   * the root directory of this source tree.
+   *
+   * 
+   * @format
+   */
 
 exports.default = new FileSystemActions();

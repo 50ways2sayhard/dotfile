@@ -6,8 +6,10 @@ Object.defineProperty(exports, "__esModule", {
 exports.setUseLocalRpc = setUseLocalRpc;
 exports.getlocalService = getlocalService;
 exports.getServiceByNuclideUri = getServiceByNuclideUri;
+exports.awaitServiceByNuclideUri = awaitServiceByNuclideUri;
 exports.getServiceByConnection = getServiceByConnection;
 exports.getService = getService;
+exports.awaitService = awaitService;
 
 var _ServerConnection;
 
@@ -124,6 +126,17 @@ function getServiceByNuclideUri(serviceName, uri = null) {
 }
 
 /**
+ * Asynchronously create or get a cached service.
+ * @param uri It could either be either a local path or a remote path in form of
+ *    `nuclide://$host/$path`. The function will use the $host from remote path to
+ *    create a remote service or create a local service if the uri is local path.
+ */
+function awaitServiceByNuclideUri(serviceName, uri = null) {
+  const hostname = (_nuclideUri || _load_nuclideUri()).default.getHostnameOpt(uri);
+  return awaitService(serviceName, hostname);
+}
+
+/**
  * Create or get cached service.
  * null connection implies get local service.
  */
@@ -140,8 +153,7 @@ function getServiceByConnection(serviceName, connection) {
  * it returns a local service, otherwise a remote service will be returned.
  */
 function getService(serviceName, hostname) {
-  // flowlint-next-line sketchy-null-string:off
-  if (hostname) {
+  if (hostname != null && hostname !== '') {
     const serverConnection = (_ServerConnection || _load_ServerConnection()).ServerConnection.getByHostname(hostname);
     if (serverConnection == null) {
       return null;
@@ -149,5 +161,17 @@ function getService(serviceName, hostname) {
     return serverConnection.getService(serviceName);
   } else {
     return getlocalService(serviceName);
+  }
+}
+
+/**
+ * Asynchronously create or get a cached service. If hostname is null or empty
+ * string, it returns a local service, otherwise a remote service will be returned.
+ */
+function awaitService(serviceName, hostname) {
+  if (hostname != null && hostname !== '') {
+    return (_ServerConnection || _load_ServerConnection()).ServerConnection.connectionAddedToHost(hostname).first().toPromise().then(serverConnection => serverConnection.getService(serviceName));
+  } else {
+    return Promise.resolve(getlocalService(serviceName));
   }
 }

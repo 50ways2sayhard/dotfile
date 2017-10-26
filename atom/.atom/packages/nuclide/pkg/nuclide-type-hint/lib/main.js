@@ -10,6 +10,12 @@ exports.deactivate = deactivate;
 
 var _atom = require('atom');
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _TypeHintManager;
 
 function _load_TypeHintManager() {
@@ -18,23 +24,21 @@ function _load_TypeHintManager() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const PACKAGE_NAME = 'nuclide-type-hint';
+const PACKAGE_NAME = 'nuclide-type-hint'; /**
+                                           * Copyright (c) 2015-present, Facebook, Inc.
+                                           * All rights reserved.
+                                           *
+                                           * This source code is licensed under the license found in the LICENSE file in
+                                           * the root directory of this source tree.
+                                           *
+                                           * 
+                                           * @format
+                                           */
 
 class Activation {
 
   constructor(state) {
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     if (this.typeHintManager == null) {
       this.typeHintManager = new (_TypeHintManager || _load_TypeHintManager()).default();
     }

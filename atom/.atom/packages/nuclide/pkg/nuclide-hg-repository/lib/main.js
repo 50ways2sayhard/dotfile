@@ -3,10 +3,53 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
+
+let getAllHgAdditionalLogFiles = (() => {
+  var _ref = (0, _asyncToGenerator.default)(function* (expire) {
+    // Atom provides one repository object per project.
+    const repositories = atom.project.getRepositories();
+    // We want to avoid duplication in the case where two different projects both
+    // are served by the same repository path.
+    // Start by transforming into an array of [path, HgRepositoryClient] pairs.
+    const hgRepositories = (0, (_collection || _load_collection()).arrayCompact)(repositories.map(function (r) {
+      return r != null && r.getType() === 'hg' ? [r.getWorkingDirectory(), r] : null;
+    }));
+    // For each repository path, arbitrarily pick just the first of the
+    // HgRepositoryClients that serves that path.
+    const uniqueRepositories = Array.from((0, (_collection || _load_collection()).mapTransform)((0, (_collection || _load_collection()).collect)(hgRepositories), function (clients, dir) {
+      return clients[0];
+    }).values());
+
+    const results = yield Promise.all(uniqueRepositories.map(function (r) {
+      return r.getAdditionalLogFiles(expire);
+    }));
+    return (0, (_collection || _load_collection()).arrayFlatten)(results);
+  });
+
+  return function getAllHgAdditionalLogFiles(_x) {
+    return _ref.apply(this, arguments);
+  };
+})();
+
 exports.activate = activate;
 exports.addItemsToFileTreeContextMenu = addItemsToFileTreeContextMenu;
 exports.deactivate = deactivate;
 exports.createHgRepositoryProvider = createHgRepositoryProvider;
+exports.createHgAdditionalLogFilesProvider = createHgAdditionalLogFilesProvider;
+
+var _collection;
+
+function _load_collection() {
+  return _collection = require('nuclide-commons/collection');
+}
+
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _registerGrammar;
 
@@ -30,18 +73,17 @@ function _load_HgRepositoryProvider() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const HG_ADD_TREE_CONTEXT_MENU_PRIORITY = 400; /**
+                                                * Copyright (c) 2015-present, Facebook, Inc.
+                                                * All rights reserved.
+                                                *
+                                                * This source code is licensed under the license found in the LICENSE file in
+                                                * the root directory of this source tree.
+                                                *
+                                                * 
+                                                * @format
+                                                */
 
-const HG_ADD_TREE_CONTEXT_MENU_PRIORITY = 400;
 const HG_REVERT_FILE_TREE_CONTEXT_MENU_PRIORITY = 1050;
 
 let subscriptions = null;
@@ -107,12 +149,7 @@ function isActivePathAddable() {
 }
 
 function activate(state) {
-  subscriptions = new _atom.CompositeDisposable();
-
-  subscriptions.add(atom.commands.add('atom-text-editor', 'nuclide-hg-repository:revert', event => {
-    const editorElement = event.currentTarget;
-    (0, (_nuclideVcsBase || _load_nuclideVcsBase()).revertPath)(editorElement.getModel().getPath());
-  }));
+  subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
 
   subscriptions.add(atom.commands.add('atom-text-editor', 'nuclide-hg-repository:confirm-and-revert', event => {
     const editorElement = event.currentTarget;
@@ -199,4 +236,11 @@ function deactivate(state) {
 
 function createHgRepositoryProvider() {
   return new (_HgRepositoryProvider || _load_HgRepositoryProvider()).default();
+}
+
+function createHgAdditionalLogFilesProvider() {
+  return {
+    id: 'hg',
+    getAdditionalLogFiles: getAllHgAdditionalLogFiles
+  };
 }

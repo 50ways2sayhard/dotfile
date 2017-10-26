@@ -7,10 +7,10 @@ exports.LLDBLaunchAttachProvider = undefined;
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
-var _promise;
+var _nuclideUri;
 
-function _load_promise() {
-  return _promise = require('nuclide-commons/promise');
+function _load_nuclideUri() {
+  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
 }
 
 var _nuclideDebuggerBase;
@@ -56,6 +56,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @format
  */
 
+function isNativeDebuggerEnabled(targetUri) {
+  if ((_nuclideUri || _load_nuclideUri()).default.isRemote(targetUri)) {
+    return true;
+  } else {
+    // Local native debugger is not supported on Windows.
+    return process.platform !== 'win32';
+  }
+}
+
 class LLDBLaunchAttachProvider extends (_nuclideDebuggerBase || _load_nuclideDebuggerBase()).DebuggerLaunchAttachProvider {
 
   constructor(debuggingTypeName, targetUri) {
@@ -63,16 +72,7 @@ class LLDBLaunchAttachProvider extends (_nuclideDebuggerBase || _load_nuclideDeb
     this._dispatcher = new (_LaunchAttachDispatcher || _load_LaunchAttachDispatcher()).default();
     this._actions = new (_LaunchAttachActions || _load_LaunchAttachActions()).LaunchAttachActions(this._dispatcher, this.getTargetUri());
     this._store = new (_LaunchAttachStore || _load_LaunchAttachStore()).LaunchAttachStore(this._dispatcher);
-
-    this._uiProviderMap = new Map();
-    this._enabledProviderNames = new Map();
-    this._loadAction(new (_NativeActionUIProvider || _load_NativeActionUIProvider()).NativeActionUIProvider(targetUri));
-  }
-
-  _loadAction(actionProvider) {
-    if (actionProvider != null) {
-      this._uiProviderMap.set(actionProvider.getName(), actionProvider);
-    }
+    this._actionProvider = new (_NativeActionUIProvider || _load_NativeActionUIProvider()).NativeActionUIProvider(targetUri);
   }
 
   getCallbacksForAction(action) {
@@ -84,25 +84,7 @@ class LLDBLaunchAttachProvider extends (_nuclideDebuggerBase || _load_nuclideDeb
        */
       isEnabled: (() => {
         var _ref = (0, _asyncToGenerator.default)(function* () {
-          if (_this._enabledProviderNames.get(action) == null) {
-            _this._enabledProviderNames.set(action, []);
-          }
-
-          const providers = yield (0, (_promise || _load_promise()).asyncFilter)(Array.from(_this._uiProviderMap.values()), function (provider) {
-            return provider.isEnabled(action);
-          });
-
-          const list = _this._enabledProviderNames.get(action);
-
-          if (!(list != null)) {
-            throw new Error('Invariant violation: "list != null"');
-          }
-
-          for (const provider of providers) {
-            list.push(provider.getName());
-          }
-
-          return providers.length > 0;
+          return isNativeDebuggerEnabled(_this.getTargetUri());
         });
 
         return function isEnabled() {
@@ -114,18 +96,14 @@ class LLDBLaunchAttachProvider extends (_nuclideDebuggerBase || _load_nuclideDeb
        * Returns a list of supported debugger types + environments for the specified action.
        */
       getDebuggerTypeNames: () => {
-        return this._enabledProviderNames.get(action) || [];
+        return isNativeDebuggerEnabled(this.getTargetUri()) ? [this._actionProvider.getName()] : [];
       },
 
       /**
        * Returns the UI component for configuring the specified debugger type and action.
        */
       getComponent: (debuggerTypeName, configIsValidChanged) => {
-        const provider = this._uiProviderMap.get(debuggerTypeName);
-        if (provider) {
-          return provider.getComponent(this._store, this._actions, debuggerTypeName, action, configIsValidChanged);
-        }
-        return null;
+        return this._actionProvider.getComponent(this._store, this._actions, debuggerTypeName, action, configIsValidChanged);
       }
     };
   }

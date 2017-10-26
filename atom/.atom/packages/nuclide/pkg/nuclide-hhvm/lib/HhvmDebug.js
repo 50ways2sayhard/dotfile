@@ -20,7 +20,7 @@ var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
  */
 
 let debug = exports.debug = (() => {
-  var _ref = (0, _asyncToGenerator.default)(function* (debugMode, activeProjectRoot, target) {
+  var _ref = (0, _asyncToGenerator.default)(function* (debugMode, activeProjectRoot, target, useTerminal, scriptArguments) {
     let processInfo = null;
 
     if (!(activeProjectRoot != null)) {
@@ -33,12 +33,12 @@ let debug = exports.debug = (() => {
     try {
       // $FlowFB
       const helper = require('./fb-hhvm');
-      processInfo = helper.getCustomLaunchInfo(debugMode, activeProjectRoot, target);
+      processInfo = helper.getCustomLaunchInfo(debugMode, activeProjectRoot, target, scriptArguments);
     } catch (e) {}
 
     if (processInfo == null) {
       if (debugMode === 'script') {
-        processInfo = new (_LaunchProcessInfo || _load_LaunchProcessInfo()).LaunchProcessInfo(activeProjectRoot, target);
+        processInfo = new (_LaunchProcessInfo || _load_LaunchProcessInfo()).LaunchProcessInfo(activeProjectRoot, target, null, useTerminal, scriptArguments);
       } else {
         processInfo = new (_AttachProcessInfo || _load_AttachProcessInfo()).AttachProcessInfo(activeProjectRoot);
       }
@@ -50,7 +50,7 @@ let debug = exports.debug = (() => {
     yield debuggerService.startDebugging(processInfo);
   });
 
-  return function debug(_x, _x2, _x3) {
+  return function debug(_x, _x2, _x3, _x4, _x5) {
     return _ref.apply(this, arguments);
   };
 })();

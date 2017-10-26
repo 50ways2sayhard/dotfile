@@ -27,7 +27,8 @@ let initializeLsp = exports.initializeLsp = (() => {
       fileNotifier,
       host,
       projectFileNames,
-      fileExtensions
+      fileExtensions,
+      additionalLogFilesRetentionPeriod: 5 * 60 * 1000 // 5 minutes
     });
   });
 
@@ -257,10 +258,7 @@ class HackSingleFileLanguageService {
         return hackDiagnostics.filename !== '';
       }).map(hackDiagnostics => {
         (_hackConfig || _load_hackConfig()).logger.debug(`Got hack error in ${hackDiagnostics.filename}`);
-        return [{
-          filePath: hackDiagnostics.filename,
-          messages: hackDiagnostics.errors.map(diagnostic => (0, (_Diagnostics || _load_Diagnostics()).hackMessageToDiagnosticMessage)(diagnostic.message))
-        }];
+        return new Map([[hackDiagnostics.filename, hackDiagnostics.errors.map(diagnostic => (0, (_Diagnostics || _load_Diagnostics()).hackMessageToDiagnosticMessage)(diagnostic.message))]]);
       }));
     }).catch(error => {
       (_hackConfig || _load_hackConfig()).logger.error(`Error: observeDiagnostics ${error}`);
@@ -442,6 +440,14 @@ class HackSingleFileLanguageService {
       const hhconfigPath = yield (0, (_hackConfig || _load_hackConfig()).findHackConfigDir)(fileUri);
       return hhconfigPath != null;
     })();
+  }
+
+  getExpandedSelectionRange(filePath, buffer, currentSelection) {
+    throw new Error('Not implemented');
+  }
+
+  getCollapsedSelectionRange(filePath, buffer, currentSelection, originalCursorPosition) {
+    throw new Error('Not implemented');
   }
 
   dispose() {}

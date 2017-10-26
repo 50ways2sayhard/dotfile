@@ -10,6 +10,12 @@ exports.createConfigObs = createConfigObs;
 exports.getStore = getStore;
 exports.portsForDebugBridge = portsForDebugBridge;
 
+var _DebugBridge;
+
+function _load_DebugBridge() {
+  return _DebugBridge = require('./DebugBridge');
+}
+
 var _process;
 
 function _load_process() {
@@ -32,13 +38,29 @@ var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 class DebugBridgePathStore {
-  constructor() {
+
+  constructor(defaultPort) {
     this._registeredPaths = new Map();
     this._sortedPaths = [];
     this._lastWorkingPath = null;
     this._customPath = null;
     this._ports = [];
+
+    if (defaultPort != null) {
+      this._ports.push(defaultPort);
+    }
   }
 
   registerPath(id, dbPath) {
@@ -95,16 +117,7 @@ class DebugBridgePathStore {
   getPorts() {
     return Array.from(this._ports);
   }
-} /**
-   * Copyright (c) 2015-present, Facebook, Inc.
-   * All rights reserved.
-   *
-   * This source code is licensed under the license found in the LICENSE file in
-   * the root directory of this source tree.
-   *
-   * 
-   * @format
-   */
+}
 
 const runningPromises = new Map();
 
@@ -168,7 +181,7 @@ const pathStore = new Map();
 function getStore(db) {
   let cached = pathStore.get(db);
   if (cached == null) {
-    cached = new DebugBridgePathStore();
+    cached = new DebugBridgePathStore(db === 'adb' ? (_DebugBridge || _load_DebugBridge()).DEFAULT_ADB_PORT : null);
     cached.registerPath('default', { path: db, priority: -1 });
     pathStore.set(db, cached);
   }

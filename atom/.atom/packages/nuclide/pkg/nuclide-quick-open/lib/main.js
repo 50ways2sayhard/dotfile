@@ -143,7 +143,10 @@ class Activation {
       if (typeof selection.callback === 'function') {
         selection.callback();
       } else if (selection.resultType === 'FILE' || selection.resultType === 'SYMBOL') {
-        (0, (_goToLocation || _load_goToLocation()).goToLocation)(selection.path, selection.line, selection.column);
+        (0, (_goToLocation || _load_goToLocation()).goToLocation)(selection.path, {
+          line: selection.line,
+          column: selection.column
+        });
         (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)('quickopen-select-file', {
           'quickopen-filepath': selection.path,
           'quickopen-query': query,

@@ -112,7 +112,7 @@ function initAtomWindow(blobStore, initialPaths) {
 // Read the previous window state and create Atom windows as appropriate.
 // If newWindow is set, leave the current window empty.
 function restoreWindows(blobStore, newWindow) {
-  var _ref3, _ref4;
+  var _ref, _ref2;
 
   // flowlint-next-line sketchy-null-string:off
   if (!process.env.ATOM_HOME) {
@@ -122,12 +122,8 @@ function restoreWindows(blobStore, newWindow) {
   const windowStates = getApplicationState(process.env.ATOM_HOME) || [];
 
   const windowsToRestore = newWindow ? // The current window will replace any previously blank windows.
-  windowStates.filter(state => {
-    var _ref, _ref2;
-
-    return (_ref = state) != null ? (_ref2 = _ref.initialPaths) != null ? _ref2.length : _ref2 : _ref;
-  }) : windowStates.slice(1);
-  const windowInitialPaths = newWindow ? [] : ((_ref3 = windowStates) != null ? (_ref4 = _ref3[0]) != null ? _ref4.initialPaths : _ref4 : _ref3) || [];
+  windowStates.filter(state => state.initialPaths && state.initialPaths.length) : windowStates.slice(1);
+  const windowInitialPaths = newWindow ? [] : ((_ref = windowStates) != null ? (_ref2 = _ref[0]) != null ? _ref2.initialPaths : _ref2 : _ref) || [];
 
   initAtomWindow(blobStore, windowInitialPaths);
 
@@ -156,16 +152,16 @@ function releaseLock() {
 }
 
 function hasPaths(browserWindow) {
-  var _ref5, _ref6;
+  var _ref3, _ref4;
 
-  return ((_ref5 = (0, (_windowLoadSettings || _load_windowLoadSettings()).getWindowLoadSettings)(browserWindow)) != null ? (_ref6 = _ref5.initialPaths) != null ? _ref6[0] : _ref6 : _ref5) != null;
+  return ((_ref3 = (0, (_windowLoadSettings || _load_windowLoadSettings()).getWindowLoadSettings)(browserWindow)) != null ? (_ref4 = _ref3.initialPaths) != null ? _ref4[0] : _ref4 : _ref3) != null;
 }
 
 // This function gets called by the Atom package-level URL handler.
 // Normally this is expected to set up the Atom application window.
 
 exports.default = (() => {
-  var _ref7 = (0, _asyncToGenerator.default)(function* (blobStore) {
+  var _ref5 = (0, _asyncToGenerator.default)(function* (blobStore) {
     const currentWindow = remote.getCurrentWindow();
     try {
       const { urlToOpen } = (0, (_windowLoadSettings || _load_windowLoadSettings()).getWindowLoadSettings)();
@@ -219,7 +215,7 @@ exports.default = (() => {
   });
 
   function initialize(_x) {
-    return _ref7.apply(this, arguments);
+    return _ref5.apply(this, arguments);
   }
 
   return initialize;

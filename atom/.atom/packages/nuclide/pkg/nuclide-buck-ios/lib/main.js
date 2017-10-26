@@ -91,6 +91,9 @@ function provideIosPlatformGroup(buckRoot, ruleType, buildTarget) {
   if (!(_types || _load_types()).SUPPORTED_RULE_TYPES.has(ruleType)) {
     return _rxjsBundlesRxMinJs.Observable.of(null);
   }
+  if (ruleType === 'apple_binary' && buildTarget.endsWith('AppleMac')) {
+    return _rxjsBundlesRxMinJs.Observable.of(null);
+  }
 
   return _rxjsBundlesRxMinJs.Observable.fromPromise((_fsPromise || _load_fsPromise()).default.exists((_nuclideUri || _load_nuclideUri()).default.join(buckRoot, 'mode', 'oculus-mobile'))).switchMap(result => {
     if (result) {

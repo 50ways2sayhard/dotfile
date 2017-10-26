@@ -140,11 +140,22 @@ class FileCache {
     return Promise.resolve(undefined);
   }
 
-  onDirectoriesChanged(openDirectories) {
+  getTotalBufferSize() {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      _this._directoryEvents.next(openDirectories);
+      const addLength = function (acc, buffer) {
+        return acc + buffer.getText().length;
+      };
+      return [..._this._buffers.values()].reduce(addLength, 0);
+    })();
+  }
+
+  onDirectoriesChanged(openDirectories) {
+    var _this2 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      _this2._directoryEvents.next(openDirectories);
     })();
   }
 
@@ -218,14 +229,14 @@ class FileCache {
   // then returns null. See comments in _requests.waitForBufferAtVersion for
   // the subtle scenarios where it might return null.
   getBufferAtVersion(fileVersion) {
-    var _this2 = this;
+    var _this3 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       // TODO: change this to return a string, like getBuffer() above.
-      if (!(yield _this2._requests.waitForBufferAtVersion(fileVersion))) {
+      if (!(yield _this3._requests.waitForBufferAtVersion(fileVersion))) {
         return null;
       }
-      const buffer = _this2.getBuffer(fileVersion.filePath);
+      const buffer = _this3.getBuffer(fileVersion.filePath);
       return buffer != null && buffer.changeCount === fileVersion.version ? buffer : null;
     })();
   }

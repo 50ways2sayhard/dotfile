@@ -78,6 +78,25 @@ class HhvmDebugSession extends (_vscodeDebugadapter || _load_vscodeDebugadapter(
     this._debuggerHandler = new (_DebuggerHandler || _load_DebuggerHandler()).DebuggerHandler(this.sendEvent.bind(this));
   }
 
+  _catchAsyncRequestError(response, fn) {
+    fn().catch(error => {
+      const errorMessage = error.stack || error.message || String(error);
+      if (response != null) {
+        response.success = false;
+        // $FlowIgnore: returning an ErrorResponse.
+        response.body = {
+          error: {
+            id: -1,
+            format: errorMessage
+          }
+        };
+        this.sendResponse(response);
+      }
+      this.sendEvent(new (_vscodeDebugadapter || _load_vscodeDebugadapter()).OutputEvent(`HHVM Debugger ran into an error:\n\`${errorMessage}\``, 'nuclide_notification', { type: 'error' }));
+      this.sendEvent(new (_vscodeDebugadapter || _load_vscodeDebugadapter()).TerminatedEvent());
+    });
+  }
+
   /**
    * The 'initialize' request is the first request called by the frontend
    * to interrogate the features the debug adapter provides.
@@ -96,6 +115,7 @@ class HhvmDebugSession extends (_vscodeDebugadapter || _load_vscodeDebugadapter(
       filter: 'all'
     }];
     response.body.supportsConditionalBreakpoints = true;
+    response.body.supportsSetVariable = true;
 
     this.sendResponse(response);
   }
@@ -103,7 +123,7 @@ class HhvmDebugSession extends (_vscodeDebugadapter || _load_vscodeDebugadapter(
   launchRequest(response, args) {
     var _this = this;
 
-    return (0, _asyncToGenerator.default)(function* () {
+    this._catchAsyncRequestError(response, (0, _asyncToGenerator.default)(function* () {
       // make sure to 'Stop' the buffered logging if 'trace' is not set
       (_vscodeDebugadapter || _load_vscodeDebugadapter()).logger.setup(args.trace ? (_vscodeDebugadapter || _load_vscodeDebugadapter()).Logger.LogLevel.Verbose : (_vscodeDebugadapter || _load_vscodeDebugadapter()).Logger.LogLevel.Stop, false);
 
@@ -116,26 +136,26 @@ class HhvmDebugSession extends (_vscodeDebugadapter || _load_vscodeDebugadapter(
       _this._debuggerHandler.resume();
 
       _this.sendResponse(response);
-    })();
+    }));
   }
 
   setBreakPointsRequest(response, args) {
     var _this2 = this;
 
-    return (0, _asyncToGenerator.default)(function* () {
+    this._catchAsyncRequestError(response, (0, _asyncToGenerator.default)(function* () {
       const breakpoints = yield _this2._debuggerHandler.setBreakpoints((0, (_nullthrows || _load_nullthrows()).default)(args.source.path), (0, (_nullthrows || _load_nullthrows()).default)(args.breakpoints));
       // Send back the actual breakpoint positions.
       response.body = {
         breakpoints
       };
       _this2.sendResponse(response);
-    })();
+    }));
   }
 
   setExceptionBreakPointsRequest(response, args) {
     var _this3 = this;
 
-    return (0, _asyncToGenerator.default)(function* () {
+    this._catchAsyncRequestError(response, (0, _asyncToGenerator.default)(function* () {
       let state;
       if (args.filters.indexOf('uncaught') !== -1) {
         state = 'uncaught';
@@ -146,7 +166,7 @@ class HhvmDebugSession extends (_vscodeDebugadapter || _load_vscodeDebugadapter(
       }
       yield _this3._debuggerHandler.setPauseOnExceptions(_this3._breakpointId++, state);
       _this3.sendResponse(response);
-    })();
+    }));
   }
 
   // TODO(most): proper thread updates support.
@@ -163,80 +183,90 @@ class HhvmDebugSession extends (_vscodeDebugadapter || _load_vscodeDebugadapter(
   stackTraceRequest(response, args) {
     var _this4 = this;
 
-    return (0, _asyncToGenerator.default)(function* () {
+    this._catchAsyncRequestError(response, (0, _asyncToGenerator.default)(function* () {
       const frames = yield _this4._debuggerHandler.getStackFrames(args.threadId);
       response.body = {
         stackFrames: frames
       };
       _this4.sendResponse(response);
-    })();
+    }));
   }
 
   scopesRequest(response, args) {
     var _this5 = this;
 
-    return (0, _asyncToGenerator.default)(function* () {
+    this._catchAsyncRequestError(response, (0, _asyncToGenerator.default)(function* () {
       const scopes = yield _this5._debuggerHandler.getScopesForFrame(args.frameId);
       response.body = {
         scopes
       };
       _this5.sendResponse(response);
-    })();
+    }));
   }
 
   variablesRequest(response, args) {
     var _this6 = this;
 
-    return (0, _asyncToGenerator.default)(function* () {
+    this._catchAsyncRequestError(response, (0, _asyncToGenerator.default)(function* () {
       const variables = yield _this6._debuggerHandler.getProperties(args.variablesReference);
       response.body = {
         variables
       };
       _this6.sendResponse(response);
-    })();
+    }));
   }
 
   continueRequest(response, args) {
     this.sendResponse(response);
-    this._debuggerHandler.resume();
+    this._catchAsyncRequestError(null, () => this._debuggerHandler.resume());
   }
 
   pauseRequest(response, args) {
     this.sendResponse(response);
-    this._debuggerHandler.pause();
+    this._catchAsyncRequestError(null, () => this._debuggerHandler.pause());
   }
 
   nextRequest(response, args) {
     this.sendResponse(response);
-    this._debuggerHandler.stepOver();
+    this._catchAsyncRequestError(null, () => this._debuggerHandler.stepOver());
   }
 
   stepInRequest(response, args) {
     this.sendResponse(response);
-    this._debuggerHandler.stepInto();
+    this._catchAsyncRequestError(null, () => this._debuggerHandler.stepInto());
   }
 
   stepOutRequest(response, args) {
     this.sendResponse(response);
-    this._debuggerHandler.stepOut();
+    this._catchAsyncRequestError(null, () => this._debuggerHandler.stepOut());
   }
 
   evaluateRequest(response, args) {
     var _this7 = this;
 
-    return (0, _asyncToGenerator.default)(function* () {
+    this._catchAsyncRequestError(response, (0, _asyncToGenerator.default)(function* () {
+      // Evaluation failures doesn't break the debugger state machine.
       yield _this7._debuggerHandler.evaluate(args.expression, args.frameId, response);
       _this7.sendResponse(response);
-    })();
+    }));
+  }
+
+  setVariableRequest(response, args) {
+    var _this8 = this;
+
+    this._catchAsyncRequestError(response, (0, _asyncToGenerator.default)(function* () {
+      yield _this8._debuggerHandler.setVariable(args.variablesReference, args.name, args.value, response);
+      _this8.sendResponse(response);
+    }));
   }
 
   nuclide_continueToLocation(response, args) {
-    var _this8 = this;
+    var _this9 = this;
 
-    return (0, _asyncToGenerator.default)(function* () {
-      yield _this8._debuggerHandler.continueToLocation(args);
-      _this8.sendResponse(response);
-    })();
+    this._catchAsyncRequestError(response, (0, _asyncToGenerator.default)(function* () {
+      yield _this9._debuggerHandler.continueToLocation(args);
+      _this9.sendResponse(response);
+    }));
   }
 
   customRequest(command, response, args) {

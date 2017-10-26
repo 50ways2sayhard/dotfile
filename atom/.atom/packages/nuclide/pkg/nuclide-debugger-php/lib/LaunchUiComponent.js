@@ -55,22 +55,30 @@ function _load_nuclideDebuggerBase() {
   return _nuclideDebuggerBase = require('../../nuclide-debugger-base');
 }
 
+var _Checkbox;
+
+function _load_Checkbox() {
+  return _Checkbox = require('nuclide-commons-ui/Checkbox');
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-const MAX_RECENTLY_LAUNCHED = 5; /**
-                                  * Copyright (c) 2015-present, Facebook, Inc.
-                                  * All rights reserved.
-                                  *
-                                  * This source code is licensed under the license found in the LICENSE file in
-                                  * the root directory of this source tree.
-                                  *
-                                  * 
-                                  * @format
-                                  */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 /* global localStorage */
+
+const MAX_RECENTLY_LAUNCHED = 5;
 
 class LaunchUiComponent extends _react.Component {
 
@@ -87,7 +95,7 @@ class LaunchUiComponent extends _react.Component {
       const scriptPath = this.refs.scriptPath.getText().trim();
       this._setRecentlyLaunchedScript(scriptPath, this.state.recentlyLaunchedScripts);
 
-      const processInfo = new (_LaunchProcessInfo || _load_LaunchProcessInfo()).LaunchProcessInfo(this.props.targetUri, scriptPath);
+      const processInfo = new (_LaunchProcessInfo || _load_LaunchProcessInfo()).LaunchProcessInfo(this.props.targetUri, scriptPath, null, this.state.runInTerminal);
       (0, (_consumeFirstProvider || _load_consumeFirstProvider()).default)('nuclide-debugger.remote').then(debuggerService => debuggerService.startDebugging(processInfo));
 
       (0, (_nuclideDebuggerBase || _load_nuclideDebuggerBase()).serializeDebuggerConfig)(...this._getSerializationArgs(), {
@@ -111,7 +119,8 @@ class LaunchUiComponent extends _react.Component {
       pathsDropdownIndex: 0,
       pathMenuItems: this._getPathMenuItems(),
       recentlyLaunchedScripts: this._getRecentlyLaunchedScripts(),
-      recentlyLaunchedScript: null
+      recentlyLaunchedScript: null,
+      runInTerminal: false
     };
   }
 
@@ -175,6 +184,13 @@ class LaunchUiComponent extends _react.Component {
         initialValue: this._getActiveFilePath(),
         value: this.state.recentlyLaunchedScript || '',
         onDidChange: value => this.setState({ recentlyLaunchedScript: value })
+      }),
+      _react.createElement((_Checkbox || _load_Checkbox()).Checkbox, {
+        checked: this.state.runInTerminal,
+        label: 'Run in Terminal',
+        ref: 'runInTerminal',
+        onChange: checked => this.setState({ runInTerminal: checked }),
+        title: 'When checked, the target script\'s STDIN and STDOUT will be redirected to a new Nuclide Terminal pane'
       })
     );
   }

@@ -5,6 +5,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.LazyNestedValueComponent = undefined;
 
+var _AtomInput;
+
+function _load_AtomInput() {
+  return _AtomInput = require('nuclide-commons-ui/AtomInput');
+}
+
 var _react = _interopRequireWildcard(require('react'));
 
 var _bindObservableAsProps;
@@ -19,6 +25,12 @@ function _load_highlightOnUpdate() {
   return _highlightOnUpdate = require('./highlightOnUpdate');
 }
 
+var _SimpleValueComponent;
+
+function _load_SimpleValueComponent() {
+  return _SimpleValueComponent = require('./SimpleValueComponent');
+}
+
 var _ValueComponentClassNames;
 
 function _load_ValueComponentClassNames() {
@@ -28,7 +40,7 @@ function _load_ValueComponentClassNames() {
 var _Tree;
 
 function _load_Tree() {
-  return _Tree = require('./Tree');
+  return _Tree = require('nuclide-commons-ui/Tree');
 }
 
 var _LoadingSpinner;
@@ -156,9 +168,34 @@ class ValueComponent extends _react.Component {
 
   constructor(props) {
     super(props);
+
+    this._showSetVariableDisplay = _ => {
+      const { isRoot, setVariable } = this.props;
+      if (isRoot && setVariable) {
+        this.setState({ isBeingEdited: true });
+      }
+    };
+
+    this._hideSetVariableDisplay = () => {
+      this.setState({
+        isBeingEdited: false,
+        newValueForExpression: null
+      });
+    };
+
+    this._setVariable = () => {
+      const { setVariable, expression } = this.props;
+      if (setVariable) {
+        setVariable(expression, this.state.newValueForExpression);
+        this.setState({ isBeingEdited: false });
+      }
+    };
+
     this.state = {
       isExpanded: false,
-      children: null
+      children: null,
+      isBeingEdited: false,
+      newValueForExpression: null
     };
     this._toggleExpandFiltered = (0, (_ignoreTextSelectionEvents || _load_ignoreTextSelectionEvents()).default)(this._toggleExpand.bind(this));
   }
@@ -198,12 +235,12 @@ class ValueComponent extends _react.Component {
    * (see shouldFetchChildren()).
    */
   _getNextState(props, toggleExpansion) {
+    const { evaluationResult, expandedValuePaths, fetchChildren, path } = props;
     let isExpanded = false;
     let children = null;
     // The value of isExpanded is taken from its cached value in nodeData
     // unless it is being toggled. In that case, we toggle the current value.
     if (!toggleExpansion) {
-      const { path, expandedValuePaths } = props;
       const nodeData = expandedValuePaths.get(path);
       isExpanded = nodeData != null && nodeData.isExpanded;
     } else {
@@ -212,22 +249,62 @@ class ValueComponent extends _react.Component {
     // Children are loaded if the component will be expanded
     // and other conditions (see shouldFetchChildren()) are true
     if (isExpanded && shouldFetchChildren(props)) {
-      if (!(props.fetchChildren != null)) {
-        throw new Error('Invariant violation: "props.fetchChildren != null"');
+      if (!(fetchChildren != null)) {
+        throw new Error('Invariant violation: "fetchChildren != null"');
       }
 
-      if (!(props.evaluationResult != null)) {
-        throw new Error('Invariant violation: "props.evaluationResult != null"');
+      if (!(evaluationResult != null)) {
+        throw new Error('Invariant violation: "evaluationResult != null"');
       }
 
-      if (!(props.evaluationResult.objectId != null)) {
-        throw new Error('Invariant violation: "props.evaluationResult.objectId != null"');
+      if (!(evaluationResult.objectId != null)) {
+        throw new Error('Invariant violation: "evaluationResult.objectId != null"');
       }
 
-      children = props.fetchChildren(props.evaluationResult.objectId);
+      children = fetchChildren(evaluationResult.objectId);
     }
 
-    return { isExpanded, children };
+    return {
+      isExpanded,
+      children,
+      isBeingEdited: false,
+      newValueForExpression: null
+    };
+  }
+
+  _getStringRepresentationForEvaluationResult(evaluationResult) {
+    if (evaluationResult) {
+      if (evaluationResult.value != null) {
+        if (evaluationResult.type === 'string' && !(_SimpleValueComponent || _load_SimpleValueComponent()).STRING_REGEX.test(evaluationResult.value)) {
+          return '"' + evaluationResult.value + '"';
+        } else {
+          return evaluationResult.value;
+        }
+      } else if (evaluationResult.description != null) {
+        return evaluationResult.description;
+      }
+    }
+    return '';
+  }
+
+  _renderEditView() {
+    return _react.createElement(
+      'div',
+      { className: 'nuclide-ui-lazy-nested-value-container' },
+      _react.createElement((_AtomInput || _load_AtomInput()).AtomInput, {
+        className: 'nuclide-debugger-watch-expression-input',
+        size: 'sm',
+        autofocus: true,
+        startSelected: true,
+        initialValue: this._getStringRepresentationForEvaluationResult(this.props.evaluationResult),
+        onDidChange: newValueForExpression => {
+          this.setState({ newValueForExpression });
+        },
+        onConfirm: this._setVariable,
+        onCancel: this._hideSetVariableDisplay,
+        onBlur: this._hideSetVariableDisplay
+      })
+    );
   }
 
   render() {
@@ -247,12 +324,17 @@ class ValueComponent extends _react.Component {
     if (evaluationResult == null) {
       return renderValueLine(expression, NOT_AVAILABLE_MESSAGE);
     }
+
     if (!isObjectValue(evaluationResult)) {
-      const simpleValueElement = _react.createElement(SimpleValueComponent, {
-        expression: expression,
-        evaluationResult: evaluationResult,
-        simpleValueComponent: SimpleValueComponent
-      });
+      const simpleValueElement = this.state.isBeingEdited ? this._renderEditView() : _react.createElement(
+        'div',
+        { onDoubleClick: this._showSetVariableDisplay },
+        _react.createElement(SimpleValueComponent, {
+          expression: expression,
+          evaluationResult: evaluationResult,
+          simpleValueComponent: SimpleValueComponent
+        })
+      );
       return isRoot ? simpleValueElement : _react.createElement(
         (_Tree || _load_Tree()).TreeItem,
         null,
@@ -294,7 +376,7 @@ class ValueComponent extends _react.Component {
         });
       }
     }
-    const title = renderValueLine(expression, description);
+    const title = this.state.isBeingEdited ? this._renderEditView() : renderValueLine(expression, description);
     return _react.createElement(
       (_Tree || _load_Tree()).TreeList,
       {
@@ -304,7 +386,8 @@ class ValueComponent extends _react.Component {
         (_Tree || _load_Tree()).NestedTreeItem,
         {
           collapsed: !this.state.isExpanded,
-          onClick: this._toggleExpandFiltered,
+          onConfirm: this._showSetVariableDisplay,
+          onSelect: this.state.isBeingEdited ? () => {} : this._toggleExpandFiltered,
           title: title },
         childListElement
       )
@@ -386,7 +469,6 @@ class TopLevelLazyNestedValueComponent extends _react.PureComponent {
 
   render() {
     const className = (0, (_classnames || _load_classnames()).default)(this.props.className, {
-      'native-key-bindings': true,
       // Note(vjeux): the following line should probably be `: true`
       'nuclide-ui-lazy-nested-value': this.props.className == null
     });

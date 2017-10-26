@@ -68,22 +68,26 @@ function _load_redux() {
   return _redux = require('redux');
 }
 
+var _ToolbarUtils;
+
+function _load_ToolbarUtils() {
+  return _ToolbarUtils = require('../../nuclide-ui/ToolbarUtils');
+}
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const MAXIMUM_SERIALIZED_MESSAGES_CONFIG = 'nuclide-console.maximumSerializedMessages';
+const MAXIMUM_SERIALIZED_MESSAGES_CONFIG = 'nuclide-console.maximumSerializedMessages'; /**
+                                                                                         * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                         * All rights reserved.
+                                                                                         *
+                                                                                         * This source code is licensed under the license found in the LICENSE file in
+                                                                                         * the root directory of this source tree.
+                                                                                         *
+                                                                                         * 
+                                                                                         * @format
+                                                                                         */
 
 class Activation {
 
@@ -121,12 +125,12 @@ class Activation {
 
   consumeToolBar(getToolBar) {
     const toolBar = getToolBar('nuclide-console');
-    toolBar.addButton({
+    toolBar.addButton((0, (_ToolbarUtils || _load_ToolbarUtils()).makeToolbarButtonSpec)({
       icon: 'terminal',
       callback: 'nuclide-console:toggle',
       tooltip: 'Toggle Console',
       priority: 700
-    });
+    }));
     this._disposables.add(() => {
       toolBar.removeItems();
     });
@@ -214,7 +218,9 @@ class Activation {
             scopeName: message.scopeName,
             sourceId: sourceInfo.id,
             kind: message.kind || 'message',
-            timestamp: new Date() }));
+            timestamp: new Date(), // TODO: Allow this to come with the message?
+            repeatCount: 1
+          }));
         },
         setStatus(status) {
           if (!(activation != null && !disposed)) {

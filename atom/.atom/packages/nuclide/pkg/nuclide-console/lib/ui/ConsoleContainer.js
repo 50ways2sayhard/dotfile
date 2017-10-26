@@ -72,6 +72,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 const WORKSPACE_VIEW_URI = exports.WORKSPACE_VIEW_URI = 'atom://nuclide/console';
 
+const ERROR_TRANSCRIBING_MESSAGE = "// Nuclide couldn't find the right text to display";
 const INITIAL_RECORD_HEIGHT = 21;
 
 // NOTE: We're not accounting for the "store" prop being changed.
@@ -100,7 +101,8 @@ class ConsoleContainer extends _react.Component {
         const record = displayable.record;
         const level = record.level != null ? record.level.toString().toUpperCase() : 'LOG';
         const timestamp = record.timestamp.toLocaleString();
-        return `[${level}][${record.sourceId}][${timestamp}]\t ${record.text}`;
+        const text = record.text || record.data && record.data.value || ERROR_TRANSCRIBING_MESSAGE;
+        return `[${level}][${record.sourceId}][${timestamp}]\t ${text}`;
       }).join('\n');
 
       if (lines === '') {

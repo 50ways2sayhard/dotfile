@@ -569,7 +569,8 @@ class NuclideBridge {
     }
     (_WebInspector || _load_WebInspector()).default.breakpointManager.setBreakpoint(source, lineNumber, 0, // columnNumber
     condition || '', // Condition
-    true);
+    true // enabled
+    );
     return true;
   }
 

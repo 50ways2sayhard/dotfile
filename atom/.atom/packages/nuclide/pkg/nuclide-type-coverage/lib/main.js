@@ -102,8 +102,7 @@ class Activation {
   }
 
   consumeStatusBar(statusBar) {
-    const item = document.createElement('div');
-    item.className = 'inline-block';
+    const item = document.createElement('span');
 
     const statusBarTile = statusBar.addLeftTile({
       item,

@@ -22,6 +22,12 @@ exports.deactivate = deactivate;
 
 var _atom = require('atom');
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _AutocompleteHelpers;
 
 function _load_AutocompleteHelpers() {
@@ -84,19 +90,21 @@ function _load_libclang() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-let subscriptions = null; /**
-                           * Copyright (c) 2015-present, Facebook, Inc.
-                           * All rights reserved.
-                           *
-                           * This source code is licensed under the license found in the LICENSE file in
-                           * the root directory of this source tree.
-                           *
-                           * 
-                           * @format
-                           */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
+let subscriptions = null;
 
 function activate() {
-  subscriptions = new _atom.CompositeDisposable();
+  subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
   // Provide a 'Clean and rebuild' command to restart the Clang server for the current file
   // and reset all compilation flags. Useful when BUCK targets or headers change,
   // since those are heavily cached for performance. Also great for testing!

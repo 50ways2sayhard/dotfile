@@ -46,7 +46,7 @@ function _load_PathWithFileIcon() {
 var _Tree;
 
 function _load_Tree() {
-  return _Tree = require('../../nuclide-ui/Tree');
+  return _Tree = require('nuclide-commons-ui/Tree');
 }
 
 var _nuclideAnalytics;
@@ -111,7 +111,7 @@ class OpenFilesListComponent extends _react.PureComponent {
     }
   }
 
-  _onClick(entry, event) {
+  _onSelect(entry, event) {
     if (event.defaultPrevented) {
       return;
     }
@@ -124,7 +124,11 @@ class OpenFilesListComponent extends _react.PureComponent {
     }
 
     (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)('filetree-open-from-open-files', { uri });
-    (0, (_goToLocation || _load_goToLocation()).goToLocation)(uri);
+    (0, (_goToLocation || _load_goToLocation()).goToLocation)(uri, { activatePane: false });
+  }
+
+  _onConfirm(entry, event) {
+    (0, (_goToLocation || _load_goToLocation()).goToLocation)(entry.uri);
   }
 
   _onCloseClick(entry, event) {
@@ -173,12 +177,13 @@ class OpenFilesListComponent extends _react.PureComponent {
                   }),
                   selected: e.isSelected,
                   key: e.uri,
-                  onClick: this._onClick.bind(this, e),
+                  onConfirm: this._onConfirm.bind(this, e),
+                  onSelect: this._onSelect.bind(this, e),
                   onMouseEnter: this._onListItemMouseEnter.bind(this, e),
                   onMouseLeave: this._onListItemMouseLeave,
                   onMouseDown: this._onMouseDown.bind(this, e),
-                  'data-path': e.uri,
-                  'data-name': e.name,
+                  path: e.uri,
+                  name: e.name,
                   ref: e.isSelected ? 'selectedRow' : null },
                 _react.createElement('span', {
                   className: (0, (_classnames || _load_classnames()).default)('icon', {

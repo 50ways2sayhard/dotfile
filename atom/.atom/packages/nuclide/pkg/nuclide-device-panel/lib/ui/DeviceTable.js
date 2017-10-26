@@ -39,12 +39,14 @@ class DeviceTable extends _react.Component {
     super(props);
 
     this._handleDeviceWillSelect = (item, selectedIndex, event) => {
-      let element = event.target;
-      while (element != null) {
-        if (element.classList.contains('nuclide-device-panel-device-action-button')) {
-          return false;
+      if (event != null) {
+        let element = event.target;
+        while (element != null) {
+          if (element.classList.contains('nuclide-device-panel-device-action-button')) {
+            return false;
+          }
+          element = element.parentElement;
         }
-        element = element.parentElement;
       }
       if (!this.props.devices.isError && this.props.devices.value[selectedIndex].ignoresSelection) {
         return false;

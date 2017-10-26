@@ -47,6 +47,8 @@ class ProjectStore {
     this._debugMode = 'webserver';
     this._filePathsToScriptCommand = new Map();
     this._stickyCommand = '';
+    this._useTerminal = false;
+    this._scriptArguments = '';
 
     const onDidChange = this._onDidChangeActivePaneItem.bind(this);
     this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(this._projectRoot.do(() => {
@@ -122,6 +124,14 @@ class ProjectStore {
     this._emitter.emit('change');
   }
 
+  setScriptArguments(args) {
+    this._scriptArguments = args;
+  }
+
+  getScriptArguments() {
+    return this._scriptArguments;
+  }
+
   setStickyCommand(command, sticky) {
     if (sticky) {
       this._stickyCommand = command;
@@ -132,6 +142,14 @@ class ProjectStore {
       }
       this._stickyCommand = '';
     }
+  }
+
+  setUseTerminal(useTerminal) {
+    this._useTerminal = useTerminal;
+  }
+
+  getUseTerminal() {
+    return this._useTerminal;
   }
 
   getDebugTarget() {

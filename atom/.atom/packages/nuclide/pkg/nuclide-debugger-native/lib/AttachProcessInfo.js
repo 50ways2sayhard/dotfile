@@ -59,6 +59,8 @@ class AttachProcessInfo extends (_nuclideDebuggerBase || _load_nuclideDebuggerBa
     return Object.assign({}, super.getDebuggerCapabilities(), {
       conditionalBreakpoints: true,
       continueToLocation: true,
+      disassembly: true,
+      registers: true,
       singleThreadStepping: true,
       threads: true
     });

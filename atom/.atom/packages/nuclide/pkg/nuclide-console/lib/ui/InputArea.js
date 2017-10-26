@@ -35,10 +35,27 @@ const ENTER_KEY_CODE = 13;
 const UP_KEY_CODE = 38;
 const DOWN_KEY_CODE = 40;
 
-class OutputTable extends _react.Component {
+class InputArea extends _react.Component {
 
   constructor(props) {
     super(props);
+
+    this._submit = () => {
+      // Clear the text and trigger the `onSubmit` callback
+      const editor = this._textEditorModel;
+      if (editor == null) {
+        return;
+      }
+
+      const text = editor.getText();
+      if (text === '') {
+        return;
+      }
+
+      editor.setText(''); // Clear the text field.
+      this.props.onSubmit(text);
+      this.setState({ historyIndex: -1 });
+    };
 
     this._handleTextEditor = component => {
       if (this._keySubscription) {
@@ -66,16 +83,7 @@ class OutputTable extends _react.Component {
           return;
         }
 
-        // Clear the text and trigger the `onSubmit` callback
-        const text = editor.getText();
-
-        if (text === '') {
-          return;
-        }
-
-        editor.setText(''); // Clear the text field.
-        this.props.onSubmit(text);
-        this.setState({ historyIndex: -1 });
+        this._submit();
       } else if (event.which === UP_KEY_CODE) {
         if (this.props.history.length === 0) {
           return;
@@ -121,9 +129,10 @@ class OutputTable extends _react.Component {
         grammar: grammar,
         gutterHidden: true,
         autoGrow: true,
-        lineNumberGutterVisible: false
+        lineNumberGutterVisible: false,
+        onConfirm: this._submit
       })
     );
   }
 }
-exports.default = OutputTable;
+exports.default = InputArea;

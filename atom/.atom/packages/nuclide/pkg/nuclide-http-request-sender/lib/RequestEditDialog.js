@@ -133,7 +133,19 @@ class RequestEditDialog extends _react.Component {
     // TODO: It's better to store changes, even if they are illegal JSON.
     let headers;
     try {
-      headers = JSON.parse(event.newText);
+      const editorComponent = this._editorComponent;
+
+      if (!(editorComponent != null)) {
+        throw new Error('Invariant violation: "editorComponent != null"');
+      }
+
+      const editor = editorComponent.getModel();
+
+      if (!(editor != null)) {
+        throw new Error('Invariant violation: "editor != null"');
+      }
+
+      headers = JSON.parse(editor.getText());
     } catch (_) {
       return; // Do not store illegal JSON.
     }

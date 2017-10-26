@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.STRING_REGEX = undefined;
 
 var _react = _interopRequireWildcard(require('react'));
 
@@ -33,7 +34,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 // TODO @jxg export debugger typedefs from main module. (t11406963)
 const booleanRegex = /^true|false$/i;
-const stringRegex = /^(['"]).*\1$/;
+const STRING_REGEX = exports.STRING_REGEX = /^(['"]).*\1$/;
 
 function renderNullish(evaluationResult) {
   const { type } = evaluationResult;
@@ -49,21 +50,31 @@ function renderString(evaluationResult) {
   if (value == null) {
     return null;
   }
-  return type === 'string' || stringRegex.test(value) ? _react.createElement(
-    'span',
-    { className: (_ValueComponentClassNames || _load_ValueComponentClassNames()).ValueComponentClassNames.string },
-    _react.createElement(
+  if (STRING_REGEX.test(value)) {
+    return _react.createElement(
       'span',
-      { className: (_ValueComponentClassNames || _load_ValueComponentClassNames()).ValueComponentClassNames.stringOpeningQuote },
-      '"'
-    ),
-    value,
-    _react.createElement(
+      { className: (_ValueComponentClassNames || _load_ValueComponentClassNames()).ValueComponentClassNames.string },
+      value
+    );
+  } else if (type === 'string') {
+    return _react.createElement(
       'span',
-      { className: (_ValueComponentClassNames || _load_ValueComponentClassNames()).ValueComponentClassNames.stringClosingQuote },
-      '"'
-    )
-  ) : null;
+      { className: (_ValueComponentClassNames || _load_ValueComponentClassNames()).ValueComponentClassNames.string },
+      _react.createElement(
+        'span',
+        { className: (_ValueComponentClassNames || _load_ValueComponentClassNames()).ValueComponentClassNames.stringOpeningQuote },
+        '"'
+      ),
+      value,
+      _react.createElement(
+        'span',
+        { className: (_ValueComponentClassNames || _load_ValueComponentClassNames()).ValueComponentClassNames.stringClosingQuote },
+        '"'
+      )
+    );
+  } else {
+    return null;
+  }
 }
 
 function renderNumber(evaluationResult) {
@@ -96,7 +107,12 @@ function renderDefault(evaluationResult) {
 
 const valueRenderers = [(_TextRenderer || _load_TextRenderer()).TextRenderer, renderString, renderNumber, renderNullish, renderBoolean, renderDefault];
 
-class SimpleValueComponent extends _react.PureComponent {
+class SimpleValueComponent extends _react.Component {
+  shouldComponentUpdate(nextProps) {
+    const { expression, evaluationResult } = this.props;
+    return expression !== nextProps.expression || evaluationResult.type !== nextProps.evaluationResult.type || evaluationResult.value !== nextProps.evaluationResult.value || evaluationResult.description !== nextProps.evaluationResult.description;
+  }
+
   render() {
     const { expression, evaluationResult } = this.props;
     let displayValue;

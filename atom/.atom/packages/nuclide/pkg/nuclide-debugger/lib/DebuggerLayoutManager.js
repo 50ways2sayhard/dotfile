@@ -91,6 +91,18 @@ function _load_WatchView() {
   return _WatchView = require('./WatchView');
 }
 
+var _DisassemblyView;
+
+function _load_DisassemblyView() {
+  return _DisassemblyView = require('./DisassemblyView');
+}
+
+var _RegisterView;
+
+function _load_RegisterView() {
+  return _RegisterView = require('./RegisterView');
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -189,6 +201,7 @@ class DebuggerLayoutManager {
       uri: debuggerUriBase + 'controls',
       isLifetimeView: true,
       title: () => 'Debugger',
+      defaultLocation: 'right',
       isEnabled: () => true,
       createView: () => _react.createElement((_DebuggerControlsView || _load_DebuggerControlsView()).DebuggerControlsView, { model: this._model }),
       onPaneResize: (dockPane, newFlexScale) => {
@@ -210,6 +223,7 @@ class DebuggerLayoutManager {
     }, {
       uri: debuggerUriBase + 'callstack',
       isLifetimeView: false,
+      defaultLocation: 'right',
       title: () => 'Call Stack',
       isEnabled: () => true,
       createView: () => _react.createElement((_CallstackView || _load_CallstackView()).CallstackView, { model: this._model }),
@@ -217,12 +231,14 @@ class DebuggerLayoutManager {
     }, {
       uri: debuggerUriBase + 'breakpoints',
       isLifetimeView: false,
+      defaultLocation: 'right',
       title: () => 'Breakpoints',
       isEnabled: () => true,
       createView: () => _react.createElement((_BreakpointsView || _load_BreakpointsView()).BreakpointsView, { model: this._model })
     }, {
       uri: debuggerUriBase + 'scopes',
       isLifetimeView: false,
+      defaultLocation: 'right',
       title: () => 'Scopes',
       isEnabled: () => true,
       createView: () => _react.createElement((_ScopesView || _load_ScopesView()).ScopesView, { model: this._model }),
@@ -230,15 +246,14 @@ class DebuggerLayoutManager {
     }, {
       uri: debuggerUriBase + 'watch-expressions',
       isLifetimeView: false,
+      defaultLocation: 'right',
       title: () => 'Watch Expressions',
       isEnabled: () => true,
-      createView: () => _react.createElement((_WatchView || _load_WatchView()).WatchView, {
-        model: this._model,
-        watchExpressionListStore: this._model.getWatchExpressionListStore()
-      })
+      createView: () => _react.createElement((_WatchView || _load_WatchView()).WatchView, { model: this._model })
     }, {
       uri: debuggerUriBase + 'threads',
       isLifetimeView: false,
+      defaultLocation: 'right',
       title: () => {
         return String(this._model.getStore().getSettings().get('threadsComponentTitle'));
       },
@@ -247,6 +262,38 @@ class DebuggerLayoutManager {
       },
       createView: () => _react.createElement((_ThreadsView || _load_ThreadsView()).ThreadsView, { model: this._model }),
       debuggerModeFilter: mode => mode !== (_DebuggerStore || _load_DebuggerStore()).DebuggerMode.STOPPED
+    }, {
+      uri: debuggerUriBase + 'disassembly',
+      isLifetimeView: false,
+      defaultLocation: 'bottom',
+      title: () => {
+        return 'Dissasembly View';
+      },
+      isEnabled: () => true,
+      createView: () => _react.createElement((_DisassemblyView || _load_DisassemblyView()).DisassemblyView, { model: this._model }),
+      debuggerModeFilter: mode => {
+        if (mode === (_DebuggerStore || _load_DebuggerStore()).DebuggerMode.STOPPED) {
+          return false;
+        }
+        const info = this._model.getStore().getDebugProcessInfo();
+        return info != null && info.getDebuggerCapabilities().disassembly;
+      }
+    }, {
+      uri: debuggerUriBase + 'registers',
+      isLifetimeView: false,
+      defaultLocation: 'bottom',
+      title: () => {
+        return 'Register View';
+      },
+      isEnabled: () => true,
+      createView: () => _react.createElement((_RegisterView || _load_RegisterView()).RegisterView, { model: this._model }),
+      debuggerModeFilter: mode => {
+        if (mode === (_DebuggerStore || _load_DebuggerStore()).DebuggerMode.STOPPED) {
+          return false;
+        }
+        const info = this._model.getStore().getDebugProcessInfo();
+        return info != null && info.getDebuggerCapabilities().registers;
+      }
     }];
 
     this._restoreDebuggerPaneLocations();
@@ -260,7 +307,26 @@ class DebuggerLayoutManager {
           dock.dock.hide();
         }
       });
+
+      // Hiding the docks might have changed the visibility of the debugger
+      // if the only docks containing debugger panes are now hidden.
+      this._updateDebuggerVisibility();
     }
+  }
+
+  _updateDebuggerVisibility() {
+    this._debuggerVisible = false;
+
+    // See if any visible docks contain a pane that contains a debugger pane.
+    this._getWorkspaceDocks().forEach(dock => {
+      if (dock.dock.isVisible != null && dock.dock.isVisible()) {
+        dock.dock.getPanes().forEach(pane => {
+          if (pane.getItems().find(item => item instanceof (_DebuggerPaneViewModel || _load_DebuggerPaneViewModel()).DebuggerPaneViewModel || item instanceof (_DebuggerPaneContainerViewModel || _load_DebuggerPaneContainerViewModel()).DebuggerPaneContainerViewModel) != null) {
+            this._debuggerVisible = true;
+          }
+        });
+      }
+    });
   }
 
   showHiddenDebuggerPane(uri) {
@@ -627,12 +693,10 @@ class DebuggerLayoutManager {
       let targetDock = defaultDock;
 
       // If this pane had a previous location, restore to the previous dock.
-      const loc = debuggerPane.previousLocation;
-      if (loc != null) {
-        const previousDock = this._getWorkspaceDocks().find(d => d.name === loc.dock);
-        if (previousDock != null) {
-          targetDock = previousDock;
-        }
+      const loc = debuggerPane.previousLocation != null ? debuggerPane.previousLocation.dock : debuggerPane.defaultLocation;
+      const previousDock = this._getWorkspaceDocks().find(d => d.name === loc);
+      if (previousDock != null) {
+        targetDock = previousDock;
       }
 
       // Render to a nested pane container for the two vertical docks

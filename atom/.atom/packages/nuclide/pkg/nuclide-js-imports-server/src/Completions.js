@@ -69,11 +69,10 @@ const IMPORT_STATEMENT_REGEXES = {
 
 class Completions {
 
-  constructor(documents, autoImportsManager, importsFormatter, isHaste) {
+  constructor(documents, autoImportsManager, importsFormatter) {
     this.documents = documents;
     this.autoImportsManager = autoImportsManager;
     this.importsFormatter = importsFormatter;
-    this.isHaste = isHaste;
   }
 
   provideCompletions(textDocumentPosition, nuclideFormattedUri) {
@@ -88,7 +87,7 @@ class Completions {
       const prefix = line.substr(0, position.character);
       const importInformation = getImportInformation(prefix);
       if (importInformation) {
-        return importInformation.isComplete ? provideImportFileCompletions(importInformation, this.importsFormatter, this.autoImportsManager, nuclideFormattedUri, line, position.line, this.isHaste) : provideFullImportCompletions(importInformation, this.importsFormatter, this.autoImportsManager, nuclideFormattedUri, line, position.line, this.isHaste);
+        return importInformation.isComplete ? provideImportFileCompletions(importInformation, this.importsFormatter, this.autoImportsManager, nuclideFormattedUri, line, position.line) : provideFullImportCompletions(importInformation, this.importsFormatter, this.autoImportsManager, nuclideFormattedUri, line, position.line);
       }
     }
     return [];
@@ -98,12 +97,8 @@ class Completions {
 exports.Completions = Completions; // Provides autocompletion of IDs that could be imported. When selected
 // the entire import line is added.
 
-function provideFullImportCompletions(importInformation, importsFormatter, autoImportsManager, nuclideFormattedUri, line, lineNum, isHaste) {
+function provideFullImportCompletions(importInformation, importsFormatter, autoImportsManager, nuclideFormattedUri, line, lineNum) {
   const { ids, importType } = importInformation;
-  if (isHaste && (importType === 'defaultValue' || importType === 'namedValue')) {
-    // Value imports should not be used with haste. Require is used instead.
-    return [];
-  }
   const exportsIndex = autoImportsManager.exportsManager.getExportsIndex();
   // 1) Find all IDs that fuzzily match the given string.
   const matchingIds = exportsIndex.getIdsMatching(ids[0], MAX_RESULTS);
@@ -115,7 +110,7 @@ function provideFullImportCompletions(importInformation, importsFormatter, autoI
     // 2) For each ID, find all exports for the ID.
     const exportsForId = exportsIndex.getExportsFromId(id);
     // 3) Filter and sort the exports, and add them to the return list of completions.
-    const importPaths = filterSuggestions(exportsForId, importType).map(suggestion => importsFormatter.formatImportFile(nuclideFormattedUri, suggestion)).sort((_util || _load_util()).compareForSuggestion);
+    const importPaths = filterSuggestions(exportsForId, importType).filter(jsExport => jsExport.uri !== nuclideFormattedUri).map(suggestion => importsFormatter.formatImportFile(nuclideFormattedUri, suggestion)).sort((_util || _load_util()).compareForSuggestion);
     return results.concat(importPaths.slice(0, needed).map(importPath => {
       return {
         label: id,
@@ -129,11 +124,11 @@ function provideFullImportCompletions(importInformation, importsFormatter, autoI
 
 // Given a list of IDs that are already typed, provide autocompletion for
 // the files that those IDs might be imported from.
-function provideImportFileCompletions(importInformation, importsFormatter, autoImportsManager, nuclideFormattedUri, line, lineNum, isHaste) {
+function provideImportFileCompletions(importInformation, importsFormatter, autoImportsManager, nuclideFormattedUri, line, lineNum) {
   const { ids, importType } = importInformation;
   // Intersect all exports for `ids` and then filter/sort the result.
   const suggestions = findCommonSuggestions(autoImportsManager, ids, importType);
-  return filterSuggestions(suggestions, importType).map(suggestion => importsFormatter.formatImportFile(nuclideFormattedUri, suggestion)).sort((_util || _load_util()).compareForSuggestion).slice(0, MAX_RESULTS).map(importPath => {
+  return filterSuggestions(suggestions, importType).filter(jsExport => jsExport.uri !== nuclideFormattedUri).map(suggestion => importsFormatter.formatImportFile(nuclideFormattedUri, suggestion)).sort((_util || _load_util()).compareForSuggestion).slice(0, MAX_RESULTS).map(importPath => {
     return {
       label: importType === 'requireImport' || importType === 'requireDestructured' ? `= require('${importPath}');` : `from '${importPath}';`,
       kind: (_protocol || _load_protocol()).CompletionItemKind.Module,

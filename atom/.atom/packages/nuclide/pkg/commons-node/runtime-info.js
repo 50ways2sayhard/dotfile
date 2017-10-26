@@ -42,6 +42,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 let cachedInformation = null;
 
 function getCacheableRuntimeInformation() {
+  // eslint-disable-next-line eqeqeq
   if (cachedInformation !== null) {
     return cachedInformation;
   }

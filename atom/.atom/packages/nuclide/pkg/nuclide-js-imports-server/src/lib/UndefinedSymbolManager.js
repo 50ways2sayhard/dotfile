@@ -50,7 +50,7 @@ class UndefinedSymbolManager {
 
   findUndefined(ast) {
     try {
-      return traveseTreeForUndefined(ast, this.globals);
+      return traverseTreeForUndefined(ast, this.globals);
     } catch (error) {
       // babel-traverse throws errors when something is imported twice.
       // We try-catch to avoid logging any babel-traverse errors.
@@ -61,9 +61,10 @@ class UndefinedSymbolManager {
 }
 
 exports.UndefinedSymbolManager = UndefinedSymbolManager;
-function traveseTreeForUndefined(ast, globals) {
+function traverseTreeForUndefined(ast, globals) {
   const undefinedSymbols = [];
   const definedTypes = new Set();
+  const definedValues = new Set();
   (0, (_babelTraverse || _load_babelTraverse()).default)(ast, {
     ImportDeclaration: path => {
       saveImports(path, definedTypes);
@@ -93,9 +94,22 @@ function traveseTreeForUndefined(ast, globals) {
       exit(path) {
         findUndefinedTypes(path, undefinedSymbols, globals);
       }
+    },
+    Identifier(path) {
+      // Allow identifiers on the LHS of an assignment.
+      // In non-strict JavaScript, this might just be a declaration.
+      if (path.parent.type === 'AssignmentExpression' && path.node === path.parent.left) {
+        definedValues.add(path.node.name);
+      }
+    },
+    LabeledStatement(path) {
+      // Create a fake binding for the label.
+      if (path.node.label && path.node.label.name) {
+        definedValues.add(path.node.label.name);
+      }
     }
   });
-  return undefinedSymbols.filter(symbol => symbol.type === 'value' || !definedTypes.has(symbol.id));
+  return undefinedSymbols.filter(symbol => symbol.type === 'value' && !definedValues.has(symbol.id) || symbol.type === 'type' && !definedTypes.has(symbol.id));
 }
 
 function findUndefinedValues(path, undefinedSymbols, globals) {

@@ -157,6 +157,7 @@ function launchPhpScriptWithXDebugEnabled(scriptPath, sendToOutputWindowAndResol
   const {
     phpRuntimePath,
     phpRuntimeArgs,
+    scriptArguments,
     dummyRequestFilePath,
     launchWrapperCommand
   } = (0, (_config || _load_config()).getConfig)();
@@ -171,7 +172,7 @@ function launchPhpScriptWithXDebugEnabled(scriptPath, sendToOutputWindowAndResol
   }
 
   const scriptArgs = (0, (_string || _load_string()).shellParse)(scriptPath);
-  const args = [...runtimeArgs, ...scriptArgs];
+  const args = [...runtimeArgs, ...scriptArgs, ...scriptArguments];
   const proc = _child_process.default.spawn(processPath, args, processOptions);
   (_utils || _load_utils()).default.debug((_dedent || _load_dedent()).default`
     child_process(${proc.pid}) spawned with xdebug enabled.

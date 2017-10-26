@@ -41,16 +41,19 @@ function _load_EventReporter() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // eslint-disable-next-line rulesdir/no-commonjs
-require('./Protocol/Object'); /**
-                               * Copyright (c) 2015-present, Facebook, Inc.
-                               * All rights reserved.
-                               *
-                               * This source code is licensed under the license found in the LICENSE file in
-                               * the root directory of this source tree.
-                               *
-                               * 
-                               * @format
-                               */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
+require('./Protocol/Object');
+
 
 /**
   * Class that dispatches Nuclide commands to debugger engine.
@@ -59,9 +62,10 @@ require('./Protocol/Object'); /**
   */
 class CommandDispatcher {
 
-  constructor(getIsReadonlyTarget) {
+  constructor(getIsReadonlyTarget, shouldFilterBreak) {
     this._useNewChannel = false;
     this._getIsReadonlyTarget = getIsReadonlyTarget;
+    this._shouldFilterBreak = shouldFilterBreak;
   }
 
   isNewChannel() {
@@ -125,7 +129,7 @@ class CommandDispatcher {
       _this._useNewChannel = yield (0, (_NewProtocolChannelChecker || _load_NewProtocolChannelChecker()).isNewProtocolChannelEnabled)(debuggerInstance.getProviderName());
       if (_this._useNewChannel) {
         const dispatchers = yield (_NuclideProtocolParser || _load_NuclideProtocolParser()).default.bootstrap(debuggerInstance);
-        _this._bridgeAdapter = new (_BridgeAdapter || _load_BridgeAdapter()).default(dispatchers, _this._getIsReadonlyTarget);
+        _this._bridgeAdapter = new (_BridgeAdapter || _load_BridgeAdapter()).default(dispatchers, _this._getIsReadonlyTarget, _this._shouldFilterBreak);
 
         if (!(_this._sessionSubscriptions != null)) {
           throw new Error('Invariant violation: "this._sessionSubscriptions != null"');
@@ -232,6 +236,9 @@ class CommandDispatcher {
       case 'runtimeEvaluate':
         this._bridgeAdapter.evaluateExpression(args[1], args[2], 'console');
         break;
+      case 'setVariable':
+        this._bridgeAdapter.setVariable(args[1], args[2], args[3], args[4]);
+        break;
       case 'getProperties':
         this._bridgeAdapter.getProperties(args[1], args[2]);
         break;
@@ -246,6 +253,9 @@ class CommandDispatcher {
         break;
       case 'setSingleThreadStepping':
         this._bridgeAdapter.setSingleThreadStepping(args[1]);
+        break;
+      case 'setShowDisassembly':
+        this._bridgeAdapter.setShowDisassembly(args[1]);
         break;
       default:
         (0, (_EventReporter || _load_EventReporter()).reportError)(`Command ${args[0]} is not implemented yet.`);

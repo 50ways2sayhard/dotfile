@@ -64,27 +64,29 @@ const FILE_SYSTEM_SERVICE = 'FileSystemService';
 // Nuclide behaves badly when remote directories are opened which are parent/child of each other.
 // And there needn't be a 1:1 relationship between RemoteConnections and hg repos.
 class RemoteConnection {
-  // Path to remote directory user should start in upon connection.
+
   static findOrCreate(config) {
     return (0, _asyncToGenerator.default)(function* () {
       const serverConnection = yield (_ServerConnection || _load_ServerConnection()).ServerConnection.getOrCreate(config);
-      return RemoteConnection.findOrCreateFromConnection(serverConnection, config.cwd, config.displayTitle);
+      return RemoteConnection.findOrCreateFromConnection(serverConnection, config.cwd, config.displayTitle, config.promptReconnectOnFailure);
     })();
-  }
+  } // Path to remote directory user should start in upon connection.
 
-  static findOrCreateFromConnection(serverConnection, cwd, displayTitle) {
-    const connection = new RemoteConnection(serverConnection, cwd, displayTitle);
+
+  static findOrCreateFromConnection(serverConnection, cwd, displayTitle, promptReconnectOnFailure = true) {
+    const connection = new RemoteConnection(serverConnection, cwd, displayTitle, promptReconnectOnFailure);
     return connection._initialize();
   }
 
   // Do NOT call this directly. Use findOrCreate instead.
-  constructor(connection, cwd, displayTitle) {
+  constructor(connection, cwd, displayTitle, promptReconnectOnFailure) {
     this._cwd = cwd;
     this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._hgRepositoryDescription = null;
     this._connection = connection;
     this._displayTitle = displayTitle;
     this._alwaysShutdownIfLast = false;
+    this._promptReconnectOnFailure = promptReconnectOnFailure;
   }
 
   static _createInsecureConnectionForTesting(cwd, port) {
@@ -103,14 +105,18 @@ class RemoteConnection {
    * connection, null (resolved by promise) is returned.
    * Configurations may also be retrieved by IP address.
    */
-  static createConnectionBySavedConfig(hostOrIp, cwd, displayTitle) {
+  static createConnectionBySavedConfig(hostOrIp, cwd, displayTitle, promptReconnectOnFailure = true) {
     return (0, _asyncToGenerator.default)(function* () {
       const connectionConfig = (0, (_RemoteConnectionConfigurationManager || _load_RemoteConnectionConfigurationManager()).getConnectionConfig)(hostOrIp);
       if (!connectionConfig) {
         return null;
       }
       try {
-        const config = Object.assign({}, connectionConfig, { cwd, displayTitle });
+        const config = Object.assign({}, connectionConfig, {
+          cwd,
+          displayTitle,
+          promptReconnectOnFailure
+        });
         return yield RemoteConnection.findOrCreate(config);
       } catch (e) {
         const log = e.name === 'VersionMismatchError' ? logger.warn.bind(logger) : logger.error.bind(logger);
@@ -292,7 +298,8 @@ class RemoteConnection {
   getConfig() {
     return Object.assign({}, this._connection.getConfig(), {
       cwd: this._cwd,
-      displayTitle: this._displayTitle
+      displayTitle: this._displayTitle,
+      promptReconnectOnFailure: this._promptReconnectOnFailure
     });
   }
 

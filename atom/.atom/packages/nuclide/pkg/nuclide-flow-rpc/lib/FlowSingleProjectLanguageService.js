@@ -193,21 +193,32 @@ class FlowSingleProjectLanguageService {
       if (!isSupported) {
         return null;
       }
+      const result = yield _this2._findRefs(filePath, buffer, position, false);
+      if (result == null || result.type === 'error') {
+        return null;
+      }
+      return result.references.map(function (ref) {
+        return ref.range;
+      });
+    })();
+  }
 
+  _findRefs(filePath, buffer, position, global_) {
+    var _this3 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
       const options = { input: buffer.getText() };
       const args = ['find-refs', '--json', '--path', filePath, position.row + 1, position.column + 1];
+      if (global_) {
+        args.push('--global');
+      }
       try {
-        const result = yield _this2._process.execFlow(args, options);
+        const result = yield _this3._process.execFlow(args, options);
         if (result == null) {
           return null;
         }
         const json = parseJSON(args, result.stdout);
-        if (!Array.isArray(json)) {
-          return null;
-        }
-        return json.map(function (loc) {
-          return new (_simpleTextBuffer || _load_simpleTextBuffer()).Range(new (_simpleTextBuffer || _load_simpleTextBuffer()).Point(loc.start.line - 1, loc.start.column - 1), new (_simpleTextBuffer || _load_simpleTextBuffer()).Point(loc.end.line - 1, loc.end.column));
-        });
+        return convertFindRefsOutput(json, _this3._root);
       } catch (e) {
         logger.error(`flowFindRefs error: ${String(e)}`);
         return null;
@@ -221,10 +232,10 @@ class FlowSingleProjectLanguageService {
    * process.
    */
   getDiagnostics(filePath, buffer) {
-    var _this3 = this;
+    var _this4 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      yield _this3._forceRecheck(filePath);
+      yield _this4._forceRecheck(filePath);
 
       const options = {};
 
@@ -235,7 +246,7 @@ class FlowSingleProjectLanguageService {
       try {
         // Don't log errors if the command returns a nonzero exit code, because status returns nonzero
         // if it is reporting any issues, even when it succeeds.
-        result = yield _this3._process.execFlow(args, options,
+        result = yield _this4._process.execFlow(args, options,
         /* waitForServer */true);
         if (!result) {
           return null;
@@ -273,9 +284,7 @@ class FlowSingleProjectLanguageService {
         diagnosticArray.push(diagnostic);
       }
 
-      return {
-        filePathToMessages
-      };
+      return filePathToMessages;
     })();
   }
 
@@ -296,7 +305,7 @@ class FlowSingleProjectLanguageService {
   }
 
   getAutocompleteSuggestions(filePath, buffer, position, activatedManually, prefix) {
-    var _this4 = this;
+    var _this5 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const replacementPrefix = (0, (_nuclideFlowCommon || _load_nuclideFlowCommon()).getReplacementPrefix)(prefix);
@@ -325,14 +334,14 @@ class FlowSingleProjectLanguageService {
       const contents = buffer.getText();
       try {
         let json;
-        const ideConnection = _this4._process.getCurrentIDEConnection();
-        if (ideConnection != null && (yield _this4._version.satisfies('>=0.48.0'))) {
+        const ideConnection = _this5._process.getCurrentIDEConnection();
+        if (ideConnection != null && (yield _this5._version.satisfies('>=0.48.0'))) {
           json = yield ideConnection.getAutocompleteSuggestions(filePath, line, column, contents);
         } else {
           const args = ['autocomplete', '--json', filePath, line, column];
           const options = { input: contents };
 
-          const result = yield _this4._process.execFlow(args, options);
+          const result = yield _this5._process.execFlow(args, options);
           if (!result) {
             return { isIncomplete: false, items: [] };
           }
@@ -353,7 +362,7 @@ class FlowSingleProjectLanguageService {
   }
 
   typeHint(filePath, buffer, position) {
-    var _this5 = this;
+    var _this6 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       // Do not show typehints for whitespace.
@@ -375,7 +384,7 @@ class FlowSingleProjectLanguageService {
 
       let result;
       try {
-        result = yield _this5._process.execFlow(args, options);
+        result = yield _this6._process.execFlow(args, options);
       } catch (e) {
         result = null;
       }
@@ -410,13 +419,13 @@ class FlowSingleProjectLanguageService {
   }
 
   getCoverage(filePath) {
-    var _this6 = this;
+    var _this7 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const args = ['coverage', '--json', filePath];
       let result;
       try {
-        result = yield _this6._process.execFlow(args, {});
+        result = yield _this7._process.execFlow(args, {});
       } catch (e) {
         return null;
       }
@@ -449,11 +458,11 @@ class FlowSingleProjectLanguageService {
   }
 
   _forceRecheck(file) {
-    var _this7 = this;
+    var _this8 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       try {
-        yield _this7._process.execFlow(['force-recheck', file],
+        yield _this8._process.execFlow(['force-recheck', file],
         /* options */{},
         // Make an attempt to force a recheck, but if the server is busy don't insist.
         /* waitsForServer */false,
@@ -519,6 +528,12 @@ class FlowSingleProjectLanguageService {
     throw new Error('Not implemeneted');
   }
 
+  getAdditionalLogFiles(expire) {
+    return (0, _asyncToGenerator.default)(function* () {
+      return [];
+    })();
+  }
+
   formatSource(filePath, buffer, range) {
     throw new Error('Not Yet Implemented');
   }
@@ -532,7 +547,8 @@ class FlowSingleProjectLanguageService {
   }
 
   findReferences(filePath, buffer, position) {
-    throw new Error('Not Yet Implemented');
+    // TODO check flow version
+    return this._findRefs(filePath, buffer, position, true);
   }
 
   getEvaluationExpression(filePath, buffer, position) {
@@ -540,6 +556,14 @@ class FlowSingleProjectLanguageService {
   }
 
   isFileInProject(fileUri) {
+    throw new Error('Not Yet Implemented');
+  }
+
+  getExpandedSelectionRange(filePath, buffer, currentSelection) {
+    throw new Error('Not Yet Implemented');
+  }
+
+  getCollapsedSelectionRange(filePath, buffer, currentSelection, originalCursorPosition) {
     throw new Error('Not Yet Implemented');
   }
 }
@@ -733,10 +757,10 @@ msg) {
 
 // Exported only for testing
 function getDiagnosticUpdates(state) {
-  const updates = [];
+  const updates = new Map();
   for (const file of state.filesToUpdate) {
     const messages = [...(0, (_collection || _load_collection()).mapGetWithDefault)(state.staleMessages, file, []), ...(0, (_collection || _load_collection()).mapGetWithDefault)(state.currentMessages, file, [])];
-    updates.push({ filePath: file, messages });
+    updates.set(file, messages);
   }
   return _rxjsBundlesRxMinJs.Observable.of(updates);
 }
@@ -755,4 +779,36 @@ function collateDiagnostics(output) {
     diagnosticArray.push(diagnostic);
   }
   return filePathToMessages;
+}
+
+function locsToReferences(locs) {
+  return locs.map(loc => {
+    return {
+      name: null,
+      range: new (_simpleTextBuffer || _load_simpleTextBuffer()).Range(new (_simpleTextBuffer || _load_simpleTextBuffer()).Point(loc.start.line - 1, loc.start.column - 1), new (_simpleTextBuffer || _load_simpleTextBuffer()).Point(loc.end.line - 1, loc.end.column)),
+      uri: loc.source
+    };
+  });
+}
+
+function convertFindRefsOutput(output, root) {
+  if (Array.isArray(output)) {
+    return {
+      type: 'data',
+      baseUri: root,
+      referencedSymbolName: '',
+      references: locsToReferences(output)
+    };
+  } else {
+    if (output.kind === 'no-symbol-found') {
+      return null;
+    } else {
+      return {
+        type: 'data',
+        baseUri: root,
+        referencedSymbolName: output.name,
+        references: locsToReferences(output.locs)
+      };
+    }
+  }
 }

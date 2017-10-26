@@ -106,13 +106,7 @@ class Combobox extends _react.Component {
     };
 
     this._handleInputBlur = event => {
-      const { relatedTarget } = event;
-      if (relatedTarget == null ||
-      // TODO(hansonw): Move this check inside AtomInput.
-      // See https://github.com/atom/atom/blob/master/src/text-editor-element.coffee#L145
-      relatedTarget.tagName === 'INPUT' && relatedTarget.classList.contains('hidden-input') ||
-      // Selecting a menu item registers on the portal container.
-      relatedTarget === this._getOptionsElement().parentNode) {
+      if (!this._shouldBlur) {
         return;
       }
       this._handleCancel();
@@ -123,6 +117,7 @@ class Combobox extends _react.Component {
     };
 
     this._handleInputClick = () => {
+      this._shouldBlur = true;
       this.setState({ optionsVisible: true });
     };
 
@@ -165,6 +160,7 @@ class Combobox extends _react.Component {
     };
 
     this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
+    this._shouldBlur = true;
     this.state = {
       error: null,
       filteredOptions: [],
@@ -183,11 +179,7 @@ class Combobox extends _react.Component {
     // $FlowFixMe
     atom.commands.add(node, 'core:move-up', this._handleMoveUp),
     // $FlowFixMe
-    atom.commands.add(node, 'core:move-down', this._handleMoveDown),
-    // $FlowFixMe
-    atom.commands.add(node, 'core:cancel', this._handleCancel),
-    // $FlowFixMe
-    atom.commands.add(node, 'core:confirm', this._handleConfirm), this.refs.freeformInput.onDidChange(this._handleTextInputChange));
+    atom.commands.add(node, 'core:move-down', this._handleMoveDown));
   }
 
   componentWillUnmount() {
@@ -237,6 +229,7 @@ class Combobox extends _react.Component {
   }
 
   focus(showOptions) {
+    this._shouldBlur = true;
     this.refs.freeformInput.focus();
     this.setState({ optionsVisible: showOptions });
   }
@@ -294,6 +287,7 @@ class Combobox extends _react.Component {
   }
 
   _handleItemClick(selectedValue, event) {
+    this._shouldBlur = false;
     this.selectValue(selectedValue, () => {
       // Focus the input again because the click will cause the input to blur. This mimics native
       // <select> behavior by keeping focus in the form being edited.
@@ -414,6 +408,9 @@ class Combobox extends _react.Component {
         onBlur: this._handleInputBlur,
         onClick: this._handleInputClick,
         onFocus: this._handleInputFocus,
+        onConfirm: this._handleConfirm,
+        onCancel: this._handleCancel,
+        onDidChange: this._handleTextInputChange,
         placeholderText: placeholderText,
         ref: 'freeformInput',
         size: size,

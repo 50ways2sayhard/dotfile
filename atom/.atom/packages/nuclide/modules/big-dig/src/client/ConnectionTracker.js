@@ -63,7 +63,7 @@ class ConnectionTracker {
       host: this._config.host,
       sshPort: this._config.sshPort.toString(),
       username: this._config.username,
-      remoteServerCommand: this._config.remoteServerCommand,
+      remoteServer: this._config.remoteServer,
       authMethod: this._config.authMethod
     });
 

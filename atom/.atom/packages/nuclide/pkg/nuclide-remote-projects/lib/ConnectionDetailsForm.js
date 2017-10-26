@@ -24,7 +24,11 @@ function _load_AtomInput() {
   return _AtomInput = require('nuclide-commons-ui/AtomInput');
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _lookupPreferIpV;
 
@@ -35,7 +39,7 @@ function _load_lookupPreferIpV() {
 var _RadioGroup;
 
 function _load_RadioGroup() {
-  return _RadioGroup = _interopRequireDefault(require('../../nuclide-ui/RadioGroup'));
+  return _RadioGroup = _interopRequireDefault(require('nuclide-commons-ui/RadioGroup'));
 }
 
 var _react = _interopRequireWildcard(require('react'));
@@ -349,7 +353,7 @@ class ConnectionDetailsForm extends _react.Component {
   }
 
   componentDidMount() {
-    const disposables = new _atom.CompositeDisposable();
+    const disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._disposables = disposables;
     const root = _reactDom.default.findDOMNode(this);
 

@@ -5,7 +5,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.DebuggerControlsView = undefined;
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _react = _interopRequireWildcard(require('react'));
 
@@ -39,9 +43,9 @@ function _load_goToLocation() {
   return _goToLocation = require('nuclide-commons-atom/go-to-location');
 }
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
@@ -71,7 +75,7 @@ class DebuggerControlsView extends _react.PureComponent {
       model.getActions().stopDebugging();
     };
 
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     const debuggerStore = props.model.getStore();
     this.state = {
       mode: debuggerStore.getDebuggerMode()

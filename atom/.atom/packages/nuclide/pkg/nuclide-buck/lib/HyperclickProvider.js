@@ -132,7 +132,7 @@ let getSuggestion = exports.getSuggestion = (() => {
       return {
         range: match.range,
         callback() {
-          (0, (_goToLocation || _load_goToLocation()).goToLocation)(match.path, match.line, match.column);
+          (0, (_goToLocation || _load_goToLocation()).goToLocation)(match.path, { line: match.line, column: match.column });
         }
       };
     } else {

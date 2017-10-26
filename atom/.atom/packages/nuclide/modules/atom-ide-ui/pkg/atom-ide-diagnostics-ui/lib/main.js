@@ -12,6 +12,24 @@ function _load_idx() {
   return _idx = _interopRequireDefault(require('idx'));
 }
 
+var _collection;
+
+function _load_collection() {
+  return _collection = require('nuclide-commons/collection');
+}
+
+var _nuclideUri;
+
+function _load_nuclideUri() {
+  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
+}
+
+var _observable;
+
+function _load_observable() {
+  return _observable = require('nuclide-commons/observable');
+}
+
 var _KeyboardShortcuts;
 
 function _load_KeyboardShortcuts() {
@@ -112,18 +130,19 @@ function _load_showAtomLinterWarning() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const MAX_OPEN_ALL_FILES = 20; /**
-                                * Copyright (c) 2017-present, Facebook, Inc.
-                                * All rights reserved.
-                                *
-                                * This source code is licensed under the BSD-style license found in the
-                                * LICENSE file in the root directory of this source tree. An additional grant
-                                * of patent rights can be found in the PATENTS file in the same directory.
-                                *
-                                * 
-                                * @format
-                                */
+/**
+ * Copyright (c) 2017-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * 
+ * @format
+ */
 
+const MAX_OPEN_ALL_FILES = 20;
 const SHOW_TRACES_SETTING = 'atom-ide-diagnostics-ui.showDiagnosticTraces';
 
 class Activation {
@@ -230,8 +249,9 @@ class Activation {
   _getGlobalViewStates() {
     if (this._globalViewStates == null) {
       const packageStates = this._model.toObservable();
+      const updaters = packageStates.map(state => state.diagnosticUpdater).distinctUntilChanged();
 
-      const diagnosticsStream = packageStates.map(state => state.diagnosticUpdater).distinctUntilChanged().switchMap(updater => updater == null ? _rxjsBundlesRxMinJs.Observable.of([]) : (0, (_event || _load_event()).observableFromSubscribeFunction)(updater.observeMessages)).debounceTime(100)
+      const diagnosticsStream = updaters.switchMap(updater => updater == null ? _rxjsBundlesRxMinJs.Observable.of([]) : (0, (_event || _load_event()).observableFromSubscribeFunction)(updater.observeMessages)).let((0, (_observable || _load_observable()).fastDebounce)(100))
       // FIXME: It's not good for UX or perf that we're providing a default sort here (that users
       // can't return to). We should remove this and have the table sorting be more intelligent.
       // For example, sorting by type means sorting by [type, filename, description].
@@ -242,6 +262,10 @@ class Activation {
         (_featureConfig || _load_featureConfig()).default.set(SHOW_TRACES_SETTING, showTraces);
       };
 
+      const showDirectoryColumnStream = (_featureConfig || _load_featureConfig()).default.observeAsStream('atom-ide-diagnostics-ui.showDirectoryColumn');
+
+      const autoVisibilityStream = (_featureConfig || _load_featureConfig()).default.observeAsStream('atom-ide-diagnostics-ui.autoVisibility');
+
       const pathToActiveTextEditorStream = getActiveEditorPaths();
 
       const filterByActiveTextEditorStream = packageStates.map(state => state.filterByActiveTextEditor).distinctUntilChanged();
@@ -249,13 +273,22 @@ class Activation {
         this._model.setState({ filterByActiveTextEditor });
       };
 
-      this._globalViewStates = _rxjsBundlesRxMinJs.Observable.combineLatest(diagnosticsStream, filterByActiveTextEditorStream, pathToActiveTextEditorStream, showTracesStream, (diagnostics, filterByActiveTextEditor, pathToActiveTextEditor, showTraces) => ({
+      const supportedMessageKindsStream = updaters.switchMap(updater => updater == null ? _rxjsBundlesRxMinJs.Observable.of(new Set(['lint'])) : (0, (_event || _load_event()).observableFromSubscribeFunction)(updater.observeSupportedMessageKinds.bind(updater))).distinctUntilChanged((_collection || _load_collection()).areSetsEqual);
+
+      const uiConfigStream = updaters.switchMap(updater => updater == null ? _rxjsBundlesRxMinJs.Observable.of([]) : (0, (_event || _load_event()).observableFromSubscribeFunction)(updater.observeUiConfig.bind(updater)));
+
+      // $FlowFixMe: exceeds number of args defined in flow-typed definition
+      this._globalViewStates = _rxjsBundlesRxMinJs.Observable.combineLatest(diagnosticsStream, filterByActiveTextEditorStream, pathToActiveTextEditorStream, showTracesStream, showDirectoryColumnStream, autoVisibilityStream, supportedMessageKindsStream, uiConfigStream, (diagnostics, filterByActiveTextEditor, pathToActiveTextEditor, showTraces, showDirectoryColumn, autoVisibility, supportedMessageKinds, uiConfig) => ({
         diagnostics,
         filterByActiveTextEditor,
         pathToActiveTextEditor,
         showTraces,
+        showDirectoryColumn,
+        autoVisibility,
         onShowTracesChange: setShowTraces,
-        onFilterByActiveTextEditorChange: setFilterByActiveTextEditor
+        onFilterByActiveTextEditorChange: setFilterByActiveTextEditor,
+        supportedMessageKinds,
+        uiConfig
       }));
     }
     return this._globalViewStates;
@@ -349,7 +382,7 @@ function addAtomCommands(diagnosticUpdater) {
       }
 
       const column = 0;
-      errorsToOpen.forEach((line, uri) => (0, (_goToLocation || _load_goToLocation()).goToLocation)(uri, line, column));
+      errorsToOpen.forEach((line, uri) => (0, (_goToLocation || _load_goToLocation()).goToLocation)(uri, { line, column }));
     });
   };
 
@@ -360,10 +393,11 @@ function getTopMostErrorLocationsByFilePath(messages) {
   const errorLocations = new Map();
 
   messages.forEach(message => {
-    if (message.scope !== 'file' || message.filePath == null) {
+    const filePath = message.filePath;
+    if ((_nuclideUri || _load_nuclideUri()).default.endsWithSeparator(filePath)) {
       return;
     }
-    const filePath = message.filePath;
+
     // If initialLine is N, Atom will navigate to line N+1.
     // Flow sometimes reports a row of -1, so this ensures the line is at least one.
     let line = Math.max(message.range ? message.range.start.row : 0, 0);

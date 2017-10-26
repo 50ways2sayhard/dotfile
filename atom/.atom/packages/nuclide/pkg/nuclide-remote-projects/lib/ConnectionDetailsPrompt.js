@@ -33,7 +33,7 @@ function _load_connectionProfileUtils() {
 var _HR;
 
 function _load_HR() {
-  return _HR = require('../../nuclide-ui/HR');
+  return _HR = require('nuclide-commons-ui/HR');
 }
 
 var _MutableListSelector;
@@ -256,6 +256,7 @@ class ConnectionDetailsPrompt extends _react.Component {
     // The default profile is sliced from the Array to render it separately, which means
     // decrementing the effective index into the Array passed to the `MutableListSelector`.
     let idOfSelectedItem = this.props.selectedProfileIndex == null ? null : this.props.selectedProfileIndex - 1;
+    // eslint-disable-next-line eqeqeq
     if (idOfSelectedItem === null || idOfSelectedItem < 0) {
       idOfSelectedItem = null;
     } else {

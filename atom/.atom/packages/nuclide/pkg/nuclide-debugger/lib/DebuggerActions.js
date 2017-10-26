@@ -24,7 +24,11 @@ function _load_constants() {
   return _constants = require('./constants');
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _AnalyticsHelper;
 
@@ -81,7 +85,7 @@ const CONSOLE_VIEW_URI = 'atom://nuclide/console';
 class DebuggerActions {
 
   constructor(dispatcher, store) {
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._dispatcher = dispatcher;
     this._store = store;
   }

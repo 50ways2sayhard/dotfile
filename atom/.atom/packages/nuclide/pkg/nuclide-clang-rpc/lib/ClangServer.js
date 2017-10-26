@@ -156,7 +156,8 @@ class ClangServer {
       return _rxjsBundlesRxMinJs.Observable.empty();
     }).subscribe(x => {
       this._flagsChanged = true;
-    }, () => {});
+    }, () => {} // ignore errors
+    );
     this._rpcProcess = new (_nuclideRpc || _load_nuclideRpc()).RpcProcess(`ClangServer-${src}`, getServiceRegistry(), spawnClangProcess(src, serverArgsPromise, flagsPromise));
     // Kick off an initial compilation to provide an accurate server state.
     // This will automatically reject if any kind of disposals/errors happen.

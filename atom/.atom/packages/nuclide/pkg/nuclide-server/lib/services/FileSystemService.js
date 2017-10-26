@@ -218,7 +218,8 @@ let copyFilePermissions = (() => {
       // For new files, use the default process file creation mask.
       yield (_nuclideFs || _load_nuclideFs()).ROOT_FS.chmod(destinationPath,
       // $FlowIssue: umask argument is optional
-      0o666 & ~process.umask());
+      0o666 & ~process.umask() // eslint-disable-line no-bitwise
+      );
     }
   });
 
@@ -263,7 +264,7 @@ let _writeFile = (() => {
 
       // TODO(mikeo): put renames into a queue so we don't write older save over new save.
       // Use mv as fs.rename doesn't work across partitions.
-      yield mvPromise(tempFilePath, realPath);
+      yield (_fsPromise || _load_fsPromise()).default.mv(tempFilePath, realPath);
       complete = true;
     } finally {
       if (!complete) {
@@ -316,14 +317,9 @@ exports.stat = stat;
 exports.unlink = unlink;
 exports.createReadStream = createReadStream;
 exports.isNfs = isNfs;
+exports.isFuse = isFuse;
 exports.writeFile = writeFile;
 exports.writeFileBuffer = writeFileBuffer;
-
-var _mv;
-
-function _load_mv() {
-  return _mv = _interopRequireDefault(require('mv'));
-}
 
 var _fs = _interopRequireDefault(require('fs'));
 
@@ -368,18 +364,16 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 /**
  * Checks a certain path for existence and returns 'true'/'false' accordingly
  */
-function exists(path) {
-  return (_nuclideFs || _load_nuclideFs()).ROOT_FS.exists(path);
-} /**
-   * Copyright (c) 2015-present, Facebook, Inc.
-   * All rights reserved.
-   *
-   * This source code is licensed under the license found in the LICENSE file in
-   * the root directory of this source tree.
-   *
-   * 
-   * @format
-   */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 /**
  * This code implements the NuclideFs service.  It exports the FS on http via
@@ -387,7 +381,9 @@ function exists(path) {
  * readFile, writeFile, etc.
  */
 
-function findFilesInDirectories(searchPaths, fileName) {
+function exists(path) {
+  return (_nuclideFs || _load_nuclideFs()).ROOT_FS.exists(path);
+}function findFilesInDirectories(searchPaths, fileName) {
   if (searchPaths.length === 0) {
     return _rxjsBundlesRxMinJs.Observable.throw(new Error('No directories to search in!')).publish();
   }
@@ -473,17 +469,11 @@ function isNfs(path) {
   return (_nuclideFs || _load_nuclideFs()).ROOT_FS.isNfs(path);
 }
 
-// TODO: Move to nuclide-commons
-function mvPromise(sourcePath, destinationPath) {
-  return new Promise((resolve, reject) => {
-    (0, (_mv || _load_mv()).default)(sourcePath, destinationPath, { mkdirp: false }, error => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
-    });
-  });
+/**
+ * Returns true if the path being checked exists in a `Fuse` mounted directory device.
+ */
+function isFuse(path) {
+  return (_nuclideFs || _load_nuclideFs()).ROOT_FS.isFuse(path);
 }
 
 function writeFile(path, data, options) {

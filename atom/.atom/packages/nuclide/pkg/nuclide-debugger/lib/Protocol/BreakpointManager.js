@@ -34,7 +34,8 @@ class BreakpointManager {
     this._initBreakpoints = [];
     this._breakpointList = [];
     this._pauseExceptionRequest = {
-      state: 'uncaught' };
+      state: 'uncaught' // Debugger should catch unhandled exception by default.
+    };
     this._breakpointEvent$ = new _rxjsBundlesRxMinJs.Subject();
     this._debuggerDispatcher = debuggerDispatcher;
   }
@@ -185,7 +186,7 @@ class BreakpointManager {
 
   _findBreakpointIndexOnFileLine(sourceUrl, line) {
     for (const [index, breakpoint] of this._breakpointList.entries()) {
-      if (breakpoint.request.sourceURL === sourceUrl && breakpoint.request.lineNumber === line) {
+      if (breakpoint.request.sourceURL === sourceUrl && (breakpoint.request.lineNumber === line || breakpoint.request.lineNumber < 0)) {
         return index;
       }
     }
@@ -195,8 +196,18 @@ class BreakpointManager {
   _sendBreakpointResolved(breakpointId, location) {
     const breakpoint = this._getBreakpointFromId(breakpointId);
     if (breakpoint != null) {
+      const resolvedBp = this._createResolvedBreakpointFromLocation(location, breakpoint.request.condition);
+
       this._raiseIPCEvent('BreakpointRemoved', breakpoint.request);
-      this._raiseIPCEvent('BreakpointAdded', this._createResolvedBreakpointFromLocation(location, breakpoint.request.condition));
+      this._raiseIPCEvent('BreakpointAdded', resolvedBp);
+
+      if (breakpoint.request.lineNumber < 0) {
+        // For address breakpoints, the location is determined by the backend
+        // and may no longer match the request. Update the request source so
+        // that operations like Remove on the resolved bp will find the bp correctly.
+        breakpoint.request.sourceURL = resolvedBp.sourceURL;
+      }
+
       // Update original request's location to the new bound one.
       breakpoint.request.lineNumber = location.lineNumber;
     } else {
@@ -234,6 +245,7 @@ class BreakpointManager {
 
   handleBreakpointResolved(params) {
     const { breakpointId, location } = params;
+    // eslint-disable-next-line eqeqeq
     if (this._getBreakpointFromId(breakpointId) !== null && location != null) {
       this._sendBreakpointResolved(breakpointId, location);
     } else {
@@ -244,6 +256,7 @@ class BreakpointManager {
 
   handleBreakpointHitCountChanged(params) {
     const { breakpointId, hitCount } = params;
+    // eslint-disable-next-line eqeqeq
     if (this._getBreakpointFromId(breakpointId) !== null) {
       this._sendBreakpointHitCountChanged(breakpointId, hitCount);
     } else {

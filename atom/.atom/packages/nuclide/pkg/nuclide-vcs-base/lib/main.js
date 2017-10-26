@@ -373,7 +373,7 @@ function getHgRepositoriesStream() {
 }
 
 function getHgRepositoryStream() {
-  return (0, (_observable || _load_observable()).diffSets)(getHgRepositoriesStream()).flatMap(repoDiff => _rxjsBundlesRxMinJs.Observable.from(repoDiff.added));
+  return getHgRepositoriesStream().let((0, (_observable || _load_observable()).diffSets)()).flatMap(repoDiff => _rxjsBundlesRxMinJs.Observable.from(repoDiff.added));
 }
 
 /**

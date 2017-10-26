@@ -160,7 +160,7 @@ class QuickOpenHelpers {
             callback() {
               return (0, _asyncToGenerator.default)(function* () {
                 const line = yield (0, (_utils || _load_utils()).getLineNumberForTag)(tag);
-                (0, (_goToLocation || _load_goToLocation()).goToLocation)(tag.file, line);
+                (0, (_goToLocation || _load_goToLocation()).goToLocation)(tag.file, { line });
               })();
             }
           });

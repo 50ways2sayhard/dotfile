@@ -37,6 +37,12 @@ function _load_FileTreeNode() {
   return _FileTreeNode = require('./FileTreeNode');
 }
 
+var _FileTreeSelectionManager;
+
+function _load_FileTreeSelectionManager() {
+  return _FileTreeSelectionManager = require('./FileTreeSelectionManager');
+}
+
 var _immutable;
 
 function _load_immutable() {
@@ -114,28 +120,28 @@ function _load_nuclideRemoteConnection() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Used to ensure the version we serialized is the same version we are deserializing.
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
 
-const VERSION = 1;
 // $FlowFixMe(>=0.53.0) Flow suppress
+const VERSION = 1; /**
+                    * Copyright (c) 2015-present, Facebook, Inc.
+                    * All rights reserved.
+                    *
+                    * This source code is licensed under the license found in the LICENSE file in
+                    * the root directory of this source tree.
+                    *
+                    * 
+                    * @format
+                    */
+
 const DEFAULT_CONF = exports.DEFAULT_CONF = {
   vcsStatuses: new (_immutable || _load_immutable()).default.Map(),
   workingSet: new (_nuclideWorkingSetsCommon || _load_nuclideWorkingSetsCommon()).WorkingSet(),
   editedWorkingSet: new (_nuclideWorkingSetsCommon || _load_nuclideWorkingSetsCommon()).WorkingSet(),
   hideIgnoredNames: true,
-  isCalculatingChanges: false,
   excludeVcsIgnoredPaths: true,
   ignoredPatterns: new (_immutable || _load_immutable()).default.Set(),
   usePreviewTabs: false,
+  focusEditorOnFileSelection: true,
   isEditingWorkingSet: false,
   openFilesWorkingSet: new (_nuclideWorkingSetsCommon || _load_nuclideWorkingSetsCommon()).WorkingSet(),
   reposByRoot: {},
@@ -143,6 +149,8 @@ const DEFAULT_CONF = exports.DEFAULT_CONF = {
 };
 
 let instance;
+
+const actionTrackers = new Map();
 
 /**
  * Implements the Flux pattern for our file tree. All state for the file tree will be kept in
@@ -180,8 +188,9 @@ class FileTreeStore {
     this._autoExpandSingleChild = true;
     this._isLoadingMap = new (_immutable || _load_immutable()).default.Map();
     this._repositories = new (_immutable || _load_immutable()).default.Set();
+    this.selectionManager = new (_FileTreeSelectionManager || _load_FileTreeSelectionManager()).FileTreeSelectionManager(this._emitChange.bind(this));
 
-    this._conf = DEFAULT_CONF;
+    this._conf = Object.assign({}, DEFAULT_CONF, { selectionManager: this.selectionManager });
     this._filter = '';
     this._extraProjectSelectionContent = new (_immutable || _load_immutable()).default.List();
     this.foldersExpanded = true;
@@ -189,6 +198,7 @@ class FileTreeStore {
     this.uncommittedChangesExpanded = true;
     this._selectionRange = null;
     this._targetNodeKeys = null;
+    this._isCalculatingChanges = false;
   }
 
   /**
@@ -208,7 +218,7 @@ class FileTreeStore {
 
       // Grab the data of only the expanded portion of the tree.
       root.traverse(node => {
-        if (node.isSelected) {
+        if (node.isSelected()) {
           selectedKeys.push(node.uri);
         }
 
@@ -272,7 +282,6 @@ class FileTreeStore {
         isExpanded,
         isSelected: rootSelectedKeys.indexOf(uri) >= 0,
         isLoading,
-        isTracked: false,
         children,
         isCwd: false,
         connectionTitle: (_FileTreeHelpers || _load_FileTreeHelpers()).default.getDisplayTitle(rootUri) || ''
@@ -312,9 +321,8 @@ class FileTreeStore {
   }
 
   _setIsCalculatingChanges(isCalculatingChanges) {
-    this._updateConf(conf => {
-      conf.isCalculatingChanges = isCalculatingChanges;
-    });
+    this._isCalculatingChanges = isCalculatingChanges;
+    this._emitChange();
   }
 
   /**
@@ -339,6 +347,9 @@ class FileTreeStore {
   }
 
   _onDispatch(payload) {
+    const { performance } = global;
+    const start = performance.now();
+
     switch (payload.actionType) {
       case (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.DELETE_SELECTED_NODES:
         this._deleteSelectedNodes();
@@ -387,6 +398,9 @@ class FileTreeStore {
         break;
       case (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.SET_USE_PREVIEW_TABS:
         this._setUsePreviewTabs(payload.usePreviewTabs);
+        break;
+      case (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.SET_FOCUS_EDITOR_ON_FILE_SELECTION:
+        this._setFocusEditorOnFileSelection(payload.focusEditorOnFileSelection);
         break;
       case (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.SET_USE_PREFIX_NAV:
         this._setUsePrefixNav(payload.usePrefixNav);
@@ -499,7 +513,18 @@ class FileTreeStore {
         break;
       case (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.SET_TARGET_NODE:
         this._setTargetNode(payload.rootKey, payload.nodeKey);
+        break;
     }
+
+    const end = performance.now();
+
+    let tracker = actionTrackers.get(payload.actionType);
+    if (tracker == null) {
+      tracker = new (_nuclideAnalytics || _load_nuclideAnalytics()).HistogramTracker(`file-tree-action:${payload.actionType}`, 1000, 10);
+      actionTrackers.set(payload.actionType, tracker);
+    }
+
+    tracker.track(end - start);
   }
 
   /**
@@ -603,7 +628,7 @@ class FileTreeStore {
 
   _emitChange() {
     if (this._animationFrameRequestSubscription != null) {
-      this._animationFrameRequestSubscription.unsubscribe();
+      return;
     }
 
     this._animationFrameRequestSubscription = (_observable || _load_observable()).nextAnimationFrame.subscribe(() => {
@@ -631,36 +656,23 @@ class FileTreeStore {
     this._updateRoots(root => {
       return root.updateConf().setRecursive(
       // Remove selection from hidden nodes under this root
-      node => node.containsSelection && node.containsHidden ? null : node, node => {
+      node => node.containsHidden ? null : node, node => {
         if (node.shouldBeShown) {
           return node;
         }
 
         // The node is hidden - unselect all nodes under it if there are any
-        return node.setRecursive(subNode => subNode.containsSelection ? null : subNode, subNode => subNode.setIsSelected(false));
+        return node.setRecursive(subNode => null, subNode => subNode.setIsSelected(false));
       });
     });
   }
 
   getTrackedNode() {
-    // Locate the root containing the tracked node efficiently by using the child-derived
-    // containsTrackedNode property
-    const trackedRoot = this.roots.find(root => root.containsTrackedNode);
-    if (trackedRoot == null) {
+    if (this._trackedRootKey == null || this._trackedNodeKey == null) {
       return null;
     }
 
-    let trackedNode;
-    // Likewise, within the root use the property to efficiently find the needed node
-    trackedRoot.traverse(node => {
-      if (node.isTracked) {
-        trackedNode = node;
-      }
-
-      return trackedNode == null && node.containsTrackedNode;
-    });
-
-    return trackedNode;
+    return this.getNode(this._trackedRootKey, this._trackedNodeKey);
   }
 
   getRepositories() {
@@ -695,7 +707,7 @@ class FileTreeStore {
   }
 
   getIsCalculatingChanges() {
-    return this._conf.isCalculatingChanges;
+    return this._isCalculatingChanges;
   }
 
   _invalidateRemovedFolder() {
@@ -798,6 +810,12 @@ class FileTreeStore {
     });
   }
 
+  _setFocusEditorOnFileSelection(focusEditorOnFileSelection) {
+    this._updateConf(conf => {
+      conf.focusEditorOnFileSelection = focusEditorOnFileSelection;
+    });
+  }
+
   _setUsePrefixNav(usePrefixNav) {
     this._usePrefixNav = usePrefixNav;
   }
@@ -842,21 +860,8 @@ class FileTreeStore {
     })();
   }
 
-  /**
-  * Uses the .containsSelection child-derived property to efficiently build the list of the
-  * currently selected nodes
-  */
   getSelectedNodes() {
-    const selectedNodes = [];
-    this.roots.forEach(root => {
-      root.traverse(node => {
-        if (node.isSelected) {
-          selectedNodes.push(node);
-        }
-        return node.containsSelection;
-      });
-    });
-    return new (_immutable || _load_immutable()).default.List(selectedNodes);
+    return new (_immutable || _load_immutable()).default.List(this.selectionManager.selectedNodes().values());
   }
 
   // Retrieves target node in an immutable list if it's set, or all selected
@@ -1095,15 +1100,23 @@ class FileTreeStore {
     var _this2 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const generatedFileService = (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).getGeneratedFileServiceByNuclideUri)(nodeKey);
+      let generatedFileService;
+      try {
+        generatedFileService = yield (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).awaitGeneratedFileServiceByNuclideUri)(nodeKey);
+      } catch (e) {
+        _this2._logger.warn(`ServerConnection cancelled while getting GeneratedFileService for ${nodeKey}`, e);
+        return;
+      }
       const generatedFileTypes = yield generatedFileService.getGeneratedFileTypes(nodeKey);
       _this2._updateNodeAtAllRoots(nodeKey, function (node) {
         const children = node.children.map(function (childNode) {
           const generatedType = generatedFileTypes.get(childNode.uri);
           if (generatedType != null) {
             return childNode.setGeneratedStatus(generatedType);
+          } else {
+            // if in the directory but not specified in the map, assume manual.
+            return childNode.setGeneratedStatus('manual');
           }
-          return childNode;
         });
         return node.set({ children });
       });
@@ -1173,6 +1186,41 @@ class FileTreeStore {
 
   getFilterFound() {
     return this.roots.some(root => root.containsFilterMatches);
+  }
+
+  collectDebugState() {
+    return {
+      openFilesExpanded: this.openFilesExpanded,
+      uncommittedChangesExpanded: this.uncommittedChangesExpanded,
+      foldersExpanded: this.foldersExpanded,
+      reorderPreviewStatus: this.reorderPreviewStatus,
+      _filter: this._filter,
+      _selectionRange: this._selectionRange,
+      _targetNodeKeys: this._targetNodeKeys,
+      _trackedRootKey: this._trackedRootKey,
+      _trackedNodeKey: this._trackedNodeKey,
+      _isCalculatingChanges: this._isCalculatingChanges,
+
+      roots: Array.from(this.roots.values()).map(root => root.collectDebugState()),
+      _conf: this._confCollectDebugState(),
+      selectionManager: this.selectionManager.collectDebugState()
+    };
+  }
+
+  _confCollectDebugState() {
+    return {
+      hideIgnoredNames: this._conf.hideIgnoredNames,
+      excludeVcsIgnoredPaths: this._conf.excludeVcsIgnoredPaths,
+      usePreviewTabs: this._conf.usePreviewTabs,
+      focusEditorOnFileSelection: this._conf.focusEditorOnFileSelection,
+      isEditingWorkingSet: this._conf.isEditingWorkingSet,
+
+      vcsStatuses: this._conf.vcsStatuses.toObject(),
+      workingSet: this._conf.workingSet.getUris(),
+      ignoredPatterns: this._conf.ignoredPatterns.toArray().map(ignored => ignored.pattern),
+      openFilesWorkingSet: this._conf.openFilesWorkingSet.getUris(),
+      editedWorkingSet: this._conf.editedWorkingSet.getUris()
+    };
   }
 
   /*
@@ -1418,7 +1466,7 @@ class FileTreeStore {
   * Selects a single node and tracks it.
   */
   _setSelectedNode(rootKey, nodeKey) {
-    this._clearSelection(rootKey, nodeKey);
+    this._clearSelection();
     this._updateNodeAtRoot(rootKey, nodeKey, node => node.setIsSelected(true));
     this._setTrackedNode(rootKey, nodeKey);
     this._setSelectionRange((_FileTreeSelectionRange || _load_FileTreeSelectionRange()).SelectionRange.ofSingleItem(new (_FileTreeSelectionRange || _load_FileTreeSelectionRange()).RangeKey(rootKey, nodeKey)));
@@ -1435,7 +1483,7 @@ class FileTreeStore {
    * Selects and focuses a node in one pass.
    */
   _setSelectedAndFocusedNode(rootKey, nodeKey) {
-    this._clearSelection(rootKey, nodeKey);
+    this._clearSelection();
     this._updateNodeAtRoot(rootKey, nodeKey, node => node.set({ isSelected: true, isFocused: true }));
     this._setTrackedNode(rootKey, nodeKey);
     this._setSelectionRange((_FileTreeSelectionRange || _load_FileTreeSelectionRange()).SelectionRange.ofSingleItem(new (_FileTreeSelectionRange || _load_FileTreeSelectionRange()).RangeKey(rootKey, nodeKey)));
@@ -1571,7 +1619,7 @@ class FileTreeStore {
     // expand the range to merge existing selected nodes.
     const getNextNode = cur => nextRangeIndex < rangeIndex ? cur.findPrevious() : cur.findNext();
     let probe = getNextNode(nextRangeNode);
-    while (probe != null && probe.isSelected) {
+    while (probe != null && probe.isSelected()) {
       nextRangeNode = probe;
       probe = getNextNode(nextRangeNode);
     }
@@ -1593,7 +1641,7 @@ class FileTreeStore {
 
     if (isExpanding) {
       let nextNode = getNextNode(rangeNode);
-      while (nextNode != null && nextNode.isSelected) {
+      while (nextNode != null && nextNode.isSelected()) {
         nextNode = getNextNode(nextNode);
       }
       if (nextNode == null) {
@@ -1601,7 +1649,7 @@ class FileTreeStore {
       }
       nextNode = this._updateNode(nextNode, n => n.set({ isSelected: true, isFocused: true }));
       let probe = getNextNode(nextNode);
-      while (probe != null && probe.isSelected) {
+      while (probe != null && probe.isSelected()) {
         nextNode = probe;
         probe = getNextNode(nextNode);
       }
@@ -1609,7 +1657,7 @@ class FileTreeStore {
       this._setTrackedNode(nextNode.rootUri, nextNode.uri);
     } else {
       let nextNode = rangeNode;
-      while (nextNode != null && nextNode !== anchorNode && nextNode.isSelected === false) {
+      while (nextNode != null && nextNode !== anchorNode && nextNode.isSelected() === false) {
         nextNode = getNextNode(nextNode);
       }
       if (nextNode == null) {
@@ -1737,12 +1785,9 @@ class FileTreeStore {
 
   // Clear selections and focuses on all nodes except an optionally specified
   // current node.
-  _clearSelection(currRootKey, currNodeKey) {
-    this._updateRoots(root => {
-      return root.setRecursive(node => node.containsSelection ? null : node, node => {
-        return node.rootUri === currRootKey && node.uri === currNodeKey ? node : node.set({ isSelected: false, isFocused: false });
-      });
-    });
+  _clearSelection() {
+    this.selectionManager.clearSelected();
+    this.selectionManager.clearFocused();
     this._clearSelectionRange();
   }
 
@@ -1814,11 +1859,18 @@ class FileTreeStore {
       }
 
       const parents = [];
+      let prevUri = nodeKey;
       let currentParentUri = (_FileTreeHelpers || _load_FileTreeHelpers()).default.getParentKey(nodeKey);
       const rootUri = root.uri;
-      while (currentParentUri !== deepest.uri) {
+      while (currentParentUri !== deepest.uri && currentParentUri !== prevUri) {
         parents.push(currentParentUri);
+        prevUri = currentParentUri;
         currentParentUri = (_FileTreeHelpers || _load_FileTreeHelpers()).default.getParentKey(currentParentUri);
+      }
+
+      if (currentParentUri !== deepest.uri) {
+        // Something went wrong - we didn't find the match
+        return root;
       }
 
       let currentChild = new (_FileTreeNode || _load_FileTreeNode()).FileTreeNode({ uri: nodeKey, rootUri }, this._conf);
@@ -1851,18 +1903,19 @@ class FileTreeStore {
   }
 
   _clearTrackedNode() {
-    this._updateRoots(root => {
-      if (!root.containsTrackedNode) {
-        return root;
-      }
-
-      return root.setRecursive(node => node.containsTrackedNode ? null : node, node => node.setIsTracked(false));
-    });
+    if (this._trackedRootKey != null || this._trackedNodeKey != null) {
+      this._trackedRootKey = null;
+      this._trackedNodeKey = null;
+      this._emitChange();
+    }
   }
 
   _setTrackedNode(rootKey, nodeKey) {
-    this._clearTrackedNode();
-    this._updateNodeAtRoot(rootKey, nodeKey, node => node.setIsTracked(true));
+    if (this._trackedRootKey !== rootKey || this._trackedNodeKey !== nodeKey) {
+      this._trackedRootKey = rootKey;
+      this._trackedNodeKey = nodeKey;
+      this._emitChange();
+    }
   }
 
   _setRepositories(repositories) {
@@ -1998,8 +2051,12 @@ class FileTreeStore {
     });
 
     // Reset data store.
-    this._conf = DEFAULT_CONF;
+    this._conf = Object.assign({}, DEFAULT_CONF, { selectionManager: this.selectionManager });
     this._setRoots(new (_immutable || _load_immutable()).default.OrderedMap());
+    this.selectionManager.clearSelected();
+    this.selectionManager.clearFocused();
+    this._trackedRootKey = null;
+    this._trackedNodeKey = null;
   }
 
   subscribe(listener) {

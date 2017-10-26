@@ -111,6 +111,7 @@ let getServer = exports.getServer = (() => {
 
 let getServerInfos = (() => {
   var _ref5 = (0, _asyncToGenerator.default)(function* (configDirectory) {
+    // $FlowFixMe(>=0.55.0) Flow suppress
     const entries = yield (_fsPromise || _load_fsPromise()).default.readdir(configDirectory);
     return (0, (_collection || _load_collection()).arrayCompact)((yield Promise.all(entries.map((() => {
       var _ref6 = (0, _asyncToGenerator.default)(function* (entry) {

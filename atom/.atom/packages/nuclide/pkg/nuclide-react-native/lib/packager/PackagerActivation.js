@@ -35,11 +35,15 @@ function _load_parseMessages() {
   return _parseMessages = require('./parseMessages');
 }
 
-var _atom = require('atom');
-
 var _electron = _interopRequireDefault(require('electron'));
 
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
+
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -95,9 +99,9 @@ class PackagerActivation {
       }
     });
 
-    this._disposables = new _atom.CompositeDisposable(new _atom.Disposable(() => {
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
       this._logTailer.stop();
-    }), atom.commands.add('atom-workspace', {
+    }, atom.commands.add('atom-workspace', {
       'nuclide-react-native:start-packager': event => {
         const detail = event.detail != null && typeof event.detail === 'object' ? event.detail : undefined;
         this._logTailer.start(detail);

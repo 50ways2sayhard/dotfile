@@ -120,6 +120,15 @@ class TestRunnerController {
     this._renderPanel();
   }
 
+  // Atom expects us to return a new instance of this class every time it's shown in the
+  // workspace. For historical reasons, we always use the same one. This is bad because it means
+  // that our `destroy()` will be called multiple times, and that this instance needs to be
+  // reusable after it's destroyed. To work around this for the time being, we call this method to
+  // reinitialize the view when we should really be creating a new instance.
+  reinitialize() {
+    this._renderPanel();
+  }
+
   destroy() {
     this._stopListening();
     _reactDom.default.unmountComponentAtNode(this._root);

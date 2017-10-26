@@ -99,10 +99,10 @@ const SHOW_IN_MENU_PRIORITY = 7000;
  * import {CompositeDisposable, Disposable} from 'atom';
  * import invariant from 'assert';
  *
- * let disposables: ?CompositeDisposable = null;
+ * let disposables: ?UniversalDisposable = null;
  *
  * export function activate(state: ?Object): void {
- *   disposables = new CompositeDisposable();
+ *   disposables = new UniversalDisposable();
  * }
  *
  * export function deactivate(): void {
@@ -306,18 +306,24 @@ class FileTreeContextMenu {
     // specific order in the file tree context menu. Since `atom.contextMenu` doesn't support
     // priority, we add them twice. Ideally, these menu items wouldn't be in the file tree package
     // at all, but for historical reasons they are. Someday maybe we can pull them out.
-    const showInXItems = [{
+    const showInXItems = [
+    // $FlowFixMe (v0.54.1 <)
+    {
       label: 'Copy Full Path',
       command: 'file:copy-full-path',
       shouldDisplay: event => (0, (_getElementFilePath || _load_getElementFilePath()).default)(event.target) != null
-    }, {
+    },
+    // $FlowFixMe (v0.54.1 <)
+    {
       label: `Show in ${getFileManagerName()}`,
       command: 'file:show-in-file-manager',
       shouldDisplay: event => {
         const path = (0, (_getElementFilePath || _load_getElementFilePath()).default)(event.target);
         return path != null && !(_nuclideUri || _load_nuclideUri()).default.isRemote(path);
       }
-    }, {
+    },
+    // $FlowFixMe (v0.54.1 <)
+    {
       label: 'Search in Directory',
       command: 'nuclide-file-tree:search-in-directory',
       shouldDisplay: () => {

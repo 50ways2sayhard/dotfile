@@ -133,10 +133,14 @@ class Activation {
     });
   }
 
-  consumeLinterProvider(provider) {
-    const newAdapters = (0, (_LinterAdapterFactory || _load_LinterAdapterFactory()).createAdapters)(provider, title => this._reportBusy(title));
+  consumeLinterProvider(providers_) {
+    const providers = Array.isArray(providers_) ? providers_ : [providers_];
     const adapterDisposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
-    for (const adapter of newAdapters) {
+    for (const provider of providers) {
+      const adapter = (0, (_LinterAdapterFactory || _load_LinterAdapterFactory()).createAdapter)(provider, title => this._reportBusy(title));
+      if (adapter == null) {
+        continue;
+      }
       this._allLinterAdapters.add(adapter);
       const diagnosticDisposable = this.consumeDiagnosticsProviderV2({
         updates: adapter.getUpdates(),

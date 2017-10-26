@@ -95,12 +95,15 @@ class WorkingSetsStore {
   }
 
   updateDefinitions(definitions) {
-    const { applicable, notApplicable } = this._sortOutApplicability(definitions);
+    if ((0, (_collection || _load_collection()).arrayEqual)(this._definitions, definitions)) {
+      return;
+    }
+    const { applicable, notApplicable } = sortOutApplicability(definitions);
     this._setDefinitions(applicable, notApplicable, definitions);
   }
 
   updateApplicability() {
-    const { applicable, notApplicable } = this._sortOutApplicability(this._definitions);
+    const { applicable, notApplicable } = sortOutApplicability(this._definitions);
     this._setDefinitions(applicable, notApplicable, this._definitions);
   }
 
@@ -207,7 +210,7 @@ class WorkingSetsStore {
 
   deactivateAll() {
     const definitions = this.getDefinitions().map(d => {
-      if (!this._isApplicable(d)) {
+      if (!isApplicable(d)) {
         return d;
       }
 
@@ -232,47 +235,48 @@ class WorkingSetsStore {
   }
 
   _saveDefinitions(definitions) {
+    this.updateDefinitions(definitions);
     this._emitter.emit(SAVE_DEFINITIONS_EVENT, definitions);
   }
-
-  _sortOutApplicability(definitions) {
-    const applicable = [];
-    const notApplicable = [];
-
-    definitions.forEach(def => {
-      if (this._isApplicable(def)) {
-        applicable.push(def);
-      } else {
-        notApplicable.push(def);
-      }
-    });
-
-    return { applicable, notApplicable };
-  }
-
-  _isApplicable(definition) {
-    const workingSet = new (_nuclideWorkingSetsCommon || _load_nuclideWorkingSetsCommon()).WorkingSet(definition.uris);
-    const dirs = atom.project.getDirectories().filter(dir => {
-      // Apparently sometimes Atom supplies an invalid directory, or a directory with an
-      // invalid paths. See https://github.com/facebook/nuclide/issues/416
-      if (dir == null) {
-        const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-working-sets');
-
-        logger.warn('Received a null directory from Atom');
-        return false;
-      }
-      try {
-        (_nuclideUri || _load_nuclideUri()).default.parse(dir.getPath());
-        return true;
-      } catch (e) {
-        const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-working-sets');
-
-        logger.warn('Failed to parse path supplied by Atom', dir.getPath());
-        return false;
-      }
-    });
-
-    return dirs.some(dir => workingSet.containsDir(dir.getPath()));
-  }
 }
+
 exports.WorkingSetsStore = WorkingSetsStore;
+function sortOutApplicability(definitions) {
+  const applicable = [];
+  const notApplicable = [];
+
+  definitions.forEach(def => {
+    if (isApplicable(def)) {
+      applicable.push(def);
+    } else {
+      notApplicable.push(def);
+    }
+  });
+
+  return { applicable, notApplicable };
+}
+
+function isApplicable(definition) {
+  const workingSet = new (_nuclideWorkingSetsCommon || _load_nuclideWorkingSetsCommon()).WorkingSet(definition.uris);
+  const dirs = atom.project.getDirectories().filter(dir => {
+    // Apparently sometimes Atom supplies an invalid directory, or a directory with an
+    // invalid paths. See https://github.com/facebook/nuclide/issues/416
+    if (dir == null) {
+      const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-working-sets');
+
+      logger.warn('Received a null directory from Atom');
+      return false;
+    }
+    try {
+      (_nuclideUri || _load_nuclideUri()).default.parse(dir.getPath());
+      return true;
+    } catch (e) {
+      const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-working-sets');
+
+      logger.warn('Failed to parse path supplied by Atom', dir.getPath());
+      return false;
+    }
+  });
+
+  return dirs.some(dir => workingSet.containsDir(dir.getPath()));
+}

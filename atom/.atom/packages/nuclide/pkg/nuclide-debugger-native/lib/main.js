@@ -70,10 +70,16 @@ function _load_log4js() {
   return _log4js = require('log4js');
 }
 
+var _RemoteFile;
+
+function _load_RemoteFile() {
+  return _RemoteFile = require('../../nuclide-remote-connection/lib/RemoteFile');
+}
+
+var _fs = _interopRequireDefault(require('fs'));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// eslint-disable-next-line rulesdir/no-cross-atom-imports
-const SUPPORTED_RULE_TYPES = new Set(['cxx_binary', 'cxx_test']);
 // eslint-disable-next-line rulesdir/no-cross-atom-imports
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
@@ -85,6 +91,9 @@ const SUPPORTED_RULE_TYPES = new Set(['cxx_binary', 'cxx_test']);
  * 
  * @format
  */
+
+const SUPPORTED_RULE_TYPES = new Set(['cxx_binary', 'cxx_test']);
+// eslint-disable-next-line rulesdir/no-cross-atom-imports
 
 const LLDB_PROCESS_ID_REGEX = /lldb -p ([0-9]+)/;
 
@@ -124,7 +133,8 @@ class Activation {
   }
 
   provideLLDBPlatformGroup(buckRoot, ruleType, buildTarget) {
-    if (!SUPPORTED_RULE_TYPES.has(ruleType)) {
+    const underlyingRuleType = this._getUnderlyingRuleType(ruleType, buildTarget);
+    if (!SUPPORTED_RULE_TYPES.has(underlyingRuleType)) {
       return _rxjsBundlesRxMinJs.Observable.of(null);
     }
 
@@ -140,13 +150,21 @@ class Activation {
         runTask: (builder, taskType, target, settings, device) => {
           const subcommand = taskType === 'debug' ? 'build' : taskType;
           if (taskType === 'debug') {
-            return this._runDebugTask(builder, taskType, target, settings, device, buckRoot, ruleType);
+            return this._runDebugTask(builder, taskType, target, settings, device, buckRoot, underlyingRuleType);
           } else {
             return builder.runSubcommand(buckRoot, subcommand, target, settings, false, null);
           }
         }
       }]
     });
+  }
+
+  _getUnderlyingRuleType(ruleType, buildTarget) {
+    if (ruleType === 'apple_binary' && buildTarget.endsWith('AppleMac')) {
+      return 'cxx_binary';
+    } else {
+      return ruleType;
+    }
   }
 
   _waitForBuckThenDebugNativeTarget(buckRoot, processStream) {
@@ -170,52 +188,82 @@ class Activation {
     });
   }
 
-  _runDebugTask(builder, taskType, buildTarget, settings, device, buckRoot, ruleType) {
+  _runDebugTask(builder, taskType, buildTarget, taskSettings, device, buckRoot, ruleType) {
     if (!(taskType === 'debug')) {
       throw new Error('Invariant violation: "taskType === \'debug\'"');
     }
 
-    switch (ruleType) {
-      case 'cxx_binary':
-      case 'cxx_test':
-        return builder.runSubcommand(buckRoot, 'build', buildTarget, settings, false, null, processStream => {
-          const buckService = (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).getBuckServiceByNuclideUri)(buckRoot);
+    // Copy task settings so that changes only apply to this current run.
 
-          if (!(buckService != null)) {
-            throw new Error('Invariant violation: "buckService != null"');
+
+    const settings = JSON.parse(JSON.stringify(taskSettings));
+    const checkMode = settings.buildArguments == null || settings.buildArguments.find(arg => arg.includes('@mode')) == null;
+
+    // If debugging and no build mode is specified, add @mode/dbg if
+    // it has a corresponding configuration in this buck root.
+    const modeObsvervable = checkMode ? _rxjsBundlesRxMinJs.Observable.fromPromise((0, _asyncToGenerator.default)(function* () {
+      let exists = false;
+      const uri = (_nuclideUri || _load_nuclideUri()).default.join(buckRoot, 'mode', 'dbg');
+      if ((_nuclideUri || _load_nuclideUri()).default.isRemote(uri)) {
+        // Remote file URI, see if buckRoot/mode/dbg exists.
+        const connection = (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).ServerConnection.getForUri(uri);
+        if (connection != null) {
+          const file = new (_RemoteFile || _load_RemoteFile()).RemoteFile(connection, uri, false);
+          exists = yield file.exists();
+        }
+      } else {
+        // Local file URI.
+        exists = yield _fs.default.exists(uri);
+      }
+
+      if (exists) {
+        settings.buildArguments = ['@mode/dbg'].concat(settings.buildArguments != null ? settings.buildArguments : []);
+      }
+    })()) : _rxjsBundlesRxMinJs.Observable.empty();
+
+    return modeObsvervable.ignoreElements().concat(_rxjsBundlesRxMinJs.Observable.defer(() => {
+      switch (ruleType) {
+        case 'cxx_binary':
+        case 'cxx_test':
+          return builder.runSubcommand(buckRoot, 'build', buildTarget, settings, false, null, processStream => {
+            const buckService = (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).getBuckServiceByNuclideUri)(buckRoot);
+
+            if (!(buckService != null)) {
+              throw new Error('Invariant violation: "buckService != null"');
+            }
+
+            const { qualifiedName, flavors } = buildTarget;
+            const separator = flavors.length > 0 ? '#' : '';
+            const targetString = `${qualifiedName}${separator}${flavors.join(',')}`;
+            const runArguments = settings.runArguments || [];
+            const argString = runArguments.length === 0 ? '' : ` with arguments "${runArguments.join(' ')}"`;
+            return _rxjsBundlesRxMinJs.Observable.concat(processStream.ignoreElements(), _rxjsBundlesRxMinJs.Observable.defer(() => this._debugBuckTarget(buckService, buckRoot, targetString, runArguments)).ignoreElements().map(path => ({
+              type: 'log',
+              message: `Launched debugger with ${path}`,
+              level: 'info'
+            })).catch(err => {
+              (0, (_log4js || _load_log4js()).getLogger)('nuclide-buck').error(`Failed to launch debugger for ${targetString}`, err);
+              return _rxjsBundlesRxMinJs.Observable.of({
+                type: 'log',
+                message: `Failed to launch debugger: ${err.message}`,
+                level: 'error'
+              });
+            }).startWith({
+              type: 'log',
+              message: `Launching debugger for ${targetString}${argString}...`,
+              level: 'log'
+            }, {
+              type: 'progress',
+              progress: null
+            }));
+          });
+        default:
+          if (!false) {
+            throw new Error('Invariant violation: "false"');
           }
 
-          const { qualifiedName, flavors } = buildTarget;
-          const separator = flavors.length > 0 ? '#' : '';
-          const targetString = `${qualifiedName}${separator}${flavors.join(',')}`;
-          const runArguments = settings.runArguments || [];
-          const argString = runArguments.length === 0 ? '' : ` with arguments "${runArguments.join(' ')}"`;
-          return _rxjsBundlesRxMinJs.Observable.concat(processStream.ignoreElements(), _rxjsBundlesRxMinJs.Observable.defer(() => this._debugBuckTarget(buckService, buckRoot, targetString, runArguments)).ignoreElements().map(path => ({
-            type: 'log',
-            message: `Launched debugger with ${path}`,
-            level: 'info'
-          })).catch(err => {
-            (0, (_log4js || _load_log4js()).getLogger)('nuclide-buck').error(`Failed to launch debugger for ${targetString}`, err);
-            return _rxjsBundlesRxMinJs.Observable.of({
-              type: 'log',
-              message: `Failed to launch debugger: ${err.message}`,
-              level: 'error'
-            });
-          }).startWith({
-            type: 'log',
-            message: `Launching debugger for ${targetString}${argString}...`,
-            level: 'log'
-          }, {
-            type: 'progress',
-            progress: null
-          }));
-        });
-      default:
-        if (!false) {
-          throw new Error('Invariant violation: "false"');
-        }
-
-    }
+      }
+    }));
   }
 
   _getDebuggerService() {

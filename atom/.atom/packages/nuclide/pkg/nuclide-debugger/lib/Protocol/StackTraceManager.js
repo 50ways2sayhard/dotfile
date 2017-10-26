@@ -72,14 +72,15 @@ class StackTraceManager {
   }
 
   _selectFirstFrameWithSource() {
-    const frameWithSourceIndex = this._currentThreadFrames.findIndex(frame => frame.hasSource !== false);
+    const frameWithSourceIndex = this._currentThreadFrames.findIndex(frame => frame.hasSource !== false // undefined or true.
+    );
     // Default to first frame if can't find any frame with source.
     this.setSelectedCallFrameIndex(frameWithSourceIndex !== -1 ? frameWithSourceIndex : 0);
   }
 
   _parseCallstack() {
     return this._currentThreadFrames.map(frame => {
-      return {
+      const result = {
         name: frame.functionName, // TODO: format
         location: {
           path: this._debuggerDispatcher.getFileUriFromScriptId(frame.location.scriptId),
@@ -88,6 +89,13 @@ class StackTraceManager {
           hasSource: frame.hasSource
         }
       };
+      if (frame.disassembly != null) {
+        result.disassembly = frame.disassembly;
+      }
+      if (frame.registers != null) {
+        result.registers = frame.registers;
+      }
+      return result;
     });
   }
 

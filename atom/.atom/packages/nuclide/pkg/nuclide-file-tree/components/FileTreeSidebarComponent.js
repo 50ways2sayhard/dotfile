@@ -108,6 +108,12 @@ function _load_PanelComponentScroller() {
   return _PanelComponentScroller = require('nuclide-commons-ui/PanelComponentScroller');
 }
 
+var _observableDom;
+
+function _load_observableDom() {
+  return _observableDom = require('nuclide-commons-ui/observable-dom');
+}
+
 var _observable;
 
 function _load_observable() {
@@ -168,10 +174,33 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+/* global HTMLElement */
+
 class FileTreeSidebarComponent extends _react.Component {
 
   constructor() {
     super();
+
+    this._subscribeToResizeEvent = resizableElement => {
+      const remeasureEvents = _rxjsBundlesRxMinJs.Observable.merge(new (_observableDom || _load_observableDom()).ResizeObservable(resizableElement), (0, (_event || _load_event()).observableFromSubscribeFunction)(atom.commands.onDidDispatch.bind(atom.commands)).filter(event => event.type === 'nuclide-file-tree:toggle'), this._scrollerElements.distinctUntilChanged().switchMap(scroller => {
+        if (scroller == null) {
+          return _rxjsBundlesRxMinJs.Observable.empty();
+        }
+
+        return new (_observableDom || _load_observableDom()).ResizeObservable(scroller);
+      }));
+      return remeasureEvents.let((0, (_observable || _load_observable()).throttle)(() => (_observable || _load_observable()).nextAnimationFrame)).map(() => this._getScrollerHeight()).let((_observable || _load_observable()).compact).distinctUntilChanged().subscribe(scrollerHeight => this.setState({ scrollerHeight }));
+    };
 
     this._handleFocus = event => {
       if (event.target === _reactDom.default.findDOMNode(this)) {
@@ -266,7 +295,11 @@ class FileTreeSidebarComponent extends _react.Component {
       if (el == null) {
         return null;
       }
-      // $FlowFixMe
+
+      if (!(el instanceof HTMLElement)) {
+        throw new Error('Invariant violation: "el instanceof HTMLElement"');
+      }
+
       return el.clientHeight;
     };
 
@@ -276,7 +309,14 @@ class FileTreeSidebarComponent extends _react.Component {
       }
       this._scrollWasTriggeredProgrammatically = false;
       const node = _reactDom.default.findDOMNode(this.refs.scroller);
-      // $FlowFixMe
+      if (node == null) {
+        return;
+      }
+
+      if (!(node instanceof HTMLElement)) {
+        throw new Error('Invariant violation: "node instanceof HTMLElement"');
+      }
+
       const { scrollTop } = node;
       if (scrollTop !== this.state.scrollerScrollTop) {
         this.setState({ scrollerScrollTop: scrollTop });
@@ -287,6 +327,10 @@ class FileTreeSidebarComponent extends _react.Component {
       const node = _reactDom.default.findDOMNode(this.refs.scroller);
       if (node == null) {
         return;
+      }
+
+      if (!(node instanceof HTMLElement)) {
+        throw new Error('Invariant violation: "node instanceof HTMLElement"');
       }
 
       if (!approximate) {
@@ -303,7 +347,6 @@ class FileTreeSidebarComponent extends _react.Component {
         try {
           // For the rather unlikely chance that the node is already gone from the DOM
           this._scrollWasTriggeredProgrammatically = true;
-          // $FlowFixMe
           node.scrollTop = newTop;
           if (this.state.scrollerScrollTop !== newTop) {
             this.setState({ scrollerScrollTop: newTop });
@@ -339,18 +382,21 @@ class FileTreeSidebarComponent extends _react.Component {
 
     this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(this._emitter);
     this._scrollWasTriggeredProgrammatically = false;
+    this._scrollerElements = new _rxjsBundlesRxMinJs.Subject();
   }
 
   componentDidMount() {
+    const componentDOMNode = _reactDom.default.findDOMNode(this);
+
+    if (!(componentDOMNode instanceof HTMLElement)) {
+      throw new Error('Invariant violation: "componentDOMNode instanceof HTMLElement"');
+    }
+
     this._processExternalUpdate();
 
-    const remeasureEvents = _rxjsBundlesRxMinJs.Observable.merge(_rxjsBundlesRxMinJs.Observable.of(null), _rxjsBundlesRxMinJs.Observable.fromEvent(window, 'resize'), (0, (_event || _load_event()).observableFromSubscribeFunction)(atom.commands.onDidDispatch.bind(atom.commands)).filter(event => event.type === 'nuclide-file-tree:toggle'), _rxjsBundlesRxMinJs.Observable.interval(2000));
-
-    this._disposables.add(this._store.subscribe(this._processExternalUpdate), atom.project.onDidChangePaths(this._processExternalUpdate), (0, (_observable || _load_observable()).toggle)(observeAllModifiedStatusChanges(), this._showOpenConfigValues).subscribe(() => this._setModifiedUris()), this._monitorActiveUri(), _rxjsBundlesRxMinJs.Observable.fromPromise((_FileTreeHelpers || _load_FileTreeHelpers()).default.areStackChangesEnabled()).subscribe(areStackChangesEnabled => this.setState({ areStackChangesEnabled })), this._showOpenConfigValues.subscribe(showOpenFiles => this.setState({ showOpenFiles })), this._showUncommittedConfigValue.subscribe(showUncommittedChanges => this.setState({ showUncommittedChanges })), this._showUncommittedKindConfigValue.subscribe(showUncommittedChangesKind => this.setState({ showUncommittedChangesKind })), (0, (_observable || _load_observable()).compact)((0, (_observable || _load_observable()).throttle)(remeasureEvents, () => (_observable || _load_observable()).nextAnimationFrame).map(() => this._getScrollerHeight())).distinctUntilChanged().subscribe(scrollerHeight => {
-      this.setState({ scrollerHeight });
-    }),
+    this._disposables.add(this._store.subscribe(this._processExternalUpdate), atom.project.onDidChangePaths(this._processExternalUpdate), observeAllModifiedStatusChanges().let((0, (_observable || _load_observable()).toggle)(this._showOpenConfigValues)).subscribe(() => this._setModifiedUris()), this._monitorActiveUri(), _rxjsBundlesRxMinJs.Observable.fromPromise((_FileTreeHelpers || _load_FileTreeHelpers()).default.areStackChangesEnabled()).subscribe(areStackChangesEnabled => this.setState({ areStackChangesEnabled })), this._showOpenConfigValues.subscribe(showOpenFiles => this.setState({ showOpenFiles })), this._showUncommittedConfigValue.subscribe(showUncommittedChanges => this.setState({ showUncommittedChanges })), this._showUncommittedKindConfigValue.subscribe(showUncommittedChangesKind => this.setState({ showUncommittedChangesKind })), this._subscribeToResizeEvent(componentDOMNode),
     // Customize the context menu to remove items that match the 'atom-pane' selector.
-    _rxjsBundlesRxMinJs.Observable.fromEvent(_reactDom.default.findDOMNode(this), 'contextmenu').switchMap(event => {
+    _rxjsBundlesRxMinJs.Observable.fromEvent(componentDOMNode, 'contextmenu').switchMap(event => {
       if (event.button !== 2) {
         return _rxjsBundlesRxMinJs.Observable.never();
       }
@@ -375,6 +421,14 @@ class FileTreeSidebarComponent extends _react.Component {
     }).subscribe(), (0, (_observePaneItemVisibility || _load_observePaneItemVisibility()).default)(this).subscribe(visible => {
       this.didChangeVisibility(visible);
     }));
+
+    const node = _reactDom.default.findDOMNode(this.refs.scroller);
+
+    if (!(node == null || node instanceof HTMLElement)) {
+      throw new Error('Invariant violation: "node == null || node instanceof HTMLElement"');
+    }
+
+    this._scrollerElements.next(node);
   }
 
   componentWillUnmount() {
@@ -396,8 +450,13 @@ class FileTreeSidebarComponent extends _react.Component {
     }
 
     const node = _reactDom.default.findDOMNode(this.refs.scroller);
+
+    if (!(node == null || node instanceof HTMLElement)) {
+      throw new Error('Invariant violation: "node == null || node instanceof HTMLElement"');
+    }
+
+    this._scrollerElements.next(node);
     if (node) {
-      // $FlowFixMe
       node.scrollTop = this.state.scrollerScrollTop;
     }
   }
@@ -600,7 +659,7 @@ All the changes across your entire stacked diff.
   _monitorActiveUri() {
     const activeEditors = (0, (_event || _load_event()).observableFromSubscribeFunction)(atom.workspace.onDidStopChangingActivePaneItem.bind(atom.workspace));
 
-    return new (_UniversalDisposable || _load_UniversalDisposable()).default((0, (_observable || _load_observable()).toggle)(activeEditors, this._showOpenConfigValues).subscribe(editor => {
+    return new (_UniversalDisposable || _load_UniversalDisposable()).default(activeEditors.let((0, (_observable || _load_observable()).toggle)(this._showOpenConfigValues)).subscribe(editor => {
       if (editor == null || typeof editor.getPath !== 'function' || editor.getPath() == null) {
         this.setState({ activeUri: null });
         return;
@@ -623,7 +682,11 @@ All the changes across your entire stacked diff.
     if (el == null) {
       return;
     }
-    // $FlowFixMe
+
+    if (!(el instanceof HTMLElement)) {
+      throw new Error('Invariant violation: "el instanceof HTMLElement"');
+    }
+
     el.focus();
   }
 
@@ -702,17 +765,7 @@ All the changes across your entire stacked diff.
   }
 }
 
-exports.default = FileTreeSidebarComponent; /**
-                                             * Copyright (c) 2015-present, Facebook, Inc.
-                                             * All rights reserved.
-                                             *
-                                             * This source code is licensed under the license found in the LICENSE file in
-                                             * the root directory of this source tree.
-                                             *
-                                             * 
-                                             * @format
-                                             */
-
+exports.default = FileTreeSidebarComponent;
 function observeAllModifiedStatusChanges() {
   const paneItemChangeEvents = _rxjsBundlesRxMinJs.Observable.merge((0, (_event || _load_event()).observableFromSubscribeFunction)(atom.workspace.onDidAddPaneItem.bind(atom.workspace)), (0, (_event || _load_event()).observableFromSubscribeFunction)(atom.workspace.onDidDestroyPaneItem.bind(atom.workspace))).startWith(undefined);
 

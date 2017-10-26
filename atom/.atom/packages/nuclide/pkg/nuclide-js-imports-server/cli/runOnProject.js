@@ -22,6 +22,12 @@ function _load_process() {
   return _process = require('nuclide-commons/process');
 }
 
+var _getConfig;
+
+function _load_getConfig() {
+  return _getConfig = require('../src/getConfig');
+}
+
 var _AutoImportsManager;
 
 function _load_AutoImportsManager() {
@@ -36,32 +42,30 @@ function _load_AutoImportsWorker() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const DEFAULT_PROJECT_PATH = (_nuclideUri || _load_nuclideUri()).default.join(__dirname, '..', '..', '..'); /**
+                                                                                                             * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                                             * All rights reserved.
+                                                                                                             *
+                                                                                                             * This source code is licensed under the license found in the LICENSE file in
+                                                                                                             * the root directory of this source tree.
+                                                                                                             *
+                                                                                                             * 
+                                                                                                             * @format
+                                                                                                             */
 
 /* eslint-disable no-console */
-
-const DEFAULT_PROJECT_PATH = (_nuclideUri || _load_nuclideUri()).default.join(__dirname, '..', '..', '..');
-const ENVS = ['builtin', 'node', 'jasmine', 'browser', 'atomtest', 'es6'];
-const shouldIndexNodeModules = true;
 
 let numErrors = 0;
 let numFiles = 0;
 
 function main() {
-  const autoImportsManager = new (_AutoImportsManager || _load_AutoImportsManager()).AutoImportsManager(ENVS);
-
   const root = process.argv.length === 3 ? toPath(process.argv[2]) : DEFAULT_PROJECT_PATH;
 
-  const indexDirStream = (0, (_AutoImportsWorker || _load_AutoImportsWorker()).indexDirectory)(root, false, _os.default.cpus().length).do({
+  const envs = (0, (_getConfig || _load_getConfig()).getEslintEnvs)(root);
+  const autoImportsManager = new (_AutoImportsManager || _load_AutoImportsManager()).AutoImportsManager(envs);
+  const { hasteSettings } = (0, (_getConfig || _load_getConfig()).getConfigFromFlow)(root);
+
+  const indexDirStream = (0, (_AutoImportsWorker || _load_AutoImportsWorker()).indexDirectory)(root, hasteSettings, _os.default.cpus().length).do({
     next: exportForFiles => {
       exportForFiles.forEach(exportForFile => autoImportsManager.handleUpdateForFile(exportForFile));
     },
@@ -73,7 +77,7 @@ function main() {
     }
   });
 
-  const indexModulesStream = shouldIndexNodeModules ? (0, (_AutoImportsWorker || _load_AutoImportsWorker()).indexNodeModules)(root).do({
+  const indexModulesStream = (0, (_AutoImportsWorker || _load_AutoImportsWorker()).indexNodeModules)(root).do({
     next: exportForFile => {
       if (exportForFile) {
         autoImportsManager.handleUpdateForFile(exportForFile);
@@ -85,14 +89,14 @@ function main() {
     complete: () => {
       console.log(`Finished indexing node modules ${root}`);
     }
-  }) : _rxjsBundlesRxMinJs.Observable.empty();
+  });
 
   console.log('Began indexing all files');
 
   // Check all files for missing imports
   _rxjsBundlesRxMinJs.Observable.merge(indexModulesStream, indexDirStream).concat(
   // Don't bother checking non-Flow files.
-  (0, (_process || _load_process()).observeProcess)('flow', ['ls', root, '--ignore', '.*/\\(node_modules\\|VendorLib\\)/.*']).filter(event => event.kind === 'stdout').mergeMap(event => {
+  (0, (_process || _load_process()).observeProcess)('flow', ['ls', root, '--ignore', '.*/\\(node_modules\\|VendorLib\\|3rdParty\\)/.*']).filter(event => event.kind === 'stdout').mergeMap(event => {
     if (!(event.kind === 'stdout')) {
       throw new Error('Invariant violation: "event.kind === \'stdout\'"');
     }

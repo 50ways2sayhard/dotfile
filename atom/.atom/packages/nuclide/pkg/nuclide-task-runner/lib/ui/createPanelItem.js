@@ -84,7 +84,7 @@ function createPanelItem(store) {
     runningTaskIsCancelable: state.runningTask ? state.runningTask.metadata.cancelable !== false : undefined
   }));
 
-  const props = (0, (_observable || _load_observable()).throttle)(_rxjsBundlesRxMinJs.Observable.combineLatest(stickyProps, alwaysUpToDateProps, (a, b) => Object.assign({}, a, b)), () => (_observable || _load_observable()).nextAnimationFrame);
+  const props = _rxjsBundlesRxMinJs.Observable.combineLatest(stickyProps, alwaysUpToDateProps, (a, b) => Object.assign({}, a, b)).let((0, (_observable || _load_observable()).throttle)(() => (_observable || _load_observable()).nextAnimationFrame));
 
   const StatefulToolbar = (0, (_bindObservableAsProps || _load_bindObservableAsProps()).bindObservableAsProps)(props, (_Toolbar || _load_Toolbar()).Toolbar);
   return (0, (_viewableFromReactElement || _load_viewableFromReactElement()).viewableFromReactElement)(_react.createElement(StatefulToolbar, null));

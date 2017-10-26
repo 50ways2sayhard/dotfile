@@ -62,7 +62,7 @@ function compareClassification(a, b) {
   return compareClassificationKind(a.data.classification.kind, b.data.classification.kind) || compareClassificationSeverity(a.data.classification.severity, b.data.classification.severity);
 }
 
-const KIND_ORDER = ['feedback', 'lint'];
+const KIND_ORDER = ['review', 'lint'];
 
 function compareClassificationKind(a, b) {
   const aKind = a || 'lint';

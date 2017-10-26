@@ -51,7 +51,10 @@ function launchServer(options) {
     // TODO(mbolin): If we want the new WebSocketServer to get the 'connection' event,
     // then we need to get it wired up before the webServer is connected.
     webServer.on('listening', () => {
-      const webSocketServer = new (_ws || _load_ws()).default.Server({ server: webServer });
+      const webSocketServer = new (_ws || _load_ws()).default.Server({
+        server: webServer,
+        perMessageDeflate: true
+      });
       webSocketServer.on('error', onError);
 
       const launcher = require(options.absolutePathToServerMain);

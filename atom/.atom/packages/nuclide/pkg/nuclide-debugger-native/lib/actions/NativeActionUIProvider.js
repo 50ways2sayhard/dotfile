@@ -37,15 +37,18 @@ function _load_DebuggerActionUIProvider() {
   return _DebuggerActionUIProvider = require('./DebuggerActionUIProvider');
 }
 
-var _nuclideUri;
-
-function _load_nuclideUri() {
-  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
-}
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 class NativeActionUIProvider extends (_DebuggerActionUIProvider || _load_DebuggerActionUIProvider()).DebuggerActionUIProvider {
   constructor(targetUri) {
@@ -74,23 +77,5 @@ class NativeActionUIProvider extends (_DebuggerActionUIProvider || _load_Debugge
       });
     }
   }
-
-  isEnabled(action) {
-    if ((_nuclideUri || _load_nuclideUri()).default.isRemote(this._targetUri)) {
-      return Promise.resolve(true);
-    } else {
-      // Local native debugger is not supported on Windows.
-      return Promise.resolve(process.platform !== 'win32');
-    }
-  }
 }
-exports.NativeActionUIProvider = NativeActionUIProvider; /**
-                                                          * Copyright (c) 2015-present, Facebook, Inc.
-                                                          * All rights reserved.
-                                                          *
-                                                          * This source code is licensed under the license found in the LICENSE file in
-                                                          * the root directory of this source tree.
-                                                          *
-                                                          * 
-                                                          * @format
-                                                          */
+exports.NativeActionUIProvider = NativeActionUIProvider;

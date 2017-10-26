@@ -23,11 +23,18 @@ class DebuggerSettingsManager {
 
   constructor(debuggerDispatcher) {
     this._debuggerDispatcher = debuggerDispatcher;
-    this._settings = { singleThreadStepping: false };
+    this._settings = {
+      singleThreadStepping: false,
+      showDisassembly: false
+    };
   }
 
   setSingleThreadStepping(enable) {
     this._settings.singleThreadStepping = enable;
+  }
+
+  setShowDisassembly(enable) {
+    this._settings.showDisassembly = enable;
   }
 
   syncToEngine() {

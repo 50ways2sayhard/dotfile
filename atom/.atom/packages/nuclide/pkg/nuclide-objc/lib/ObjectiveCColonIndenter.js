@@ -6,6 +6,12 @@ Object.defineProperty(exports, "__esModule", {
 
 var _atom = require('atom');
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _nuclideAnalytics;
 
 function _load_nuclideAnalytics() {
@@ -20,10 +26,6 @@ function _load_observeLanguageTextEditors() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const GRAMMARS = ['source.objc', 'source.objcpp'];
-
-// The indentation amount depends on previous lines. If the user types a colon outside of a method
-// call, it searches the entire buffer. This hard cutoff should work for sane code.
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -35,6 +37,10 @@ const GRAMMARS = ['source.objc', 'source.objcpp'];
  * @format
  */
 
+const GRAMMARS = ['source.objc', 'source.objcpp'];
+
+// The indentation amount depends on previous lines. If the user types a colon outside of a method
+// call, it searches the entire buffer. This hard cutoff should work for sane code.
 const NUMBER_OF_PREVIOUS_LINES_TO_SEARCH_FOR_COLONS = 25;
 
 /**
@@ -49,7 +55,7 @@ class ObjectiveCColonIndenter {
     }
     this._insertTextSubscriptionsMap = new Map();
 
-    const subscriptions = this._subscriptions = new _atom.CompositeDisposable();
+    const subscriptions = this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     subscriptions.add({
       dispose: () => {
         this._insertTextSubscriptionsMap.forEach(subscription => subscription.dispose());

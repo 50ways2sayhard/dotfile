@@ -5,13 +5,19 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = installErrorReporter;
 
-var _atom = require('atom');
-
 var _log4js;
 
 function _load_log4js() {
   return _log4js = require('log4js');
 }
+
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
@@ -31,10 +37,10 @@ function installErrorReporter() {
     throw new Error('installErrorReporter was called multiple times.');
   }
   window.addEventListener('unhandledrejection', onUnhandledRejection);
-  disposable = new _atom.CompositeDisposable(atom.onWillThrowError(onUnhandledException), new _atom.Disposable(() => {
+  disposable = new (_UniversalDisposable || _load_UniversalDisposable()).default(atom.onWillThrowError(onUnhandledException), () => {
     window.removeEventListener('unhandledrejection', onUnhandledRejection);
     disposable = null;
-  }));
+  });
   return disposable;
 }
 

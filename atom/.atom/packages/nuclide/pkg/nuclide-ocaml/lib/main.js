@@ -31,7 +31,7 @@ let activate = exports.activate = (() => {
 let deactivate = exports.deactivate = (() => {
   var _ref2 = (0, _asyncToGenerator.default)(function* () {
     disposables.dispose();
-    disposables = new _atom.CompositeDisposable();
+    disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
   });
 
   return function deactivate() {
@@ -100,7 +100,11 @@ function _load_CodeFormatHelpers() {
   return _CodeFormatHelpers = require('./CodeFormatHelpers');
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _OCamlLanguage;
 
@@ -177,4 +181,4 @@ function createCodeFormatProvider() {
   };
 }
 
-let disposables = new _atom.CompositeDisposable();
+let disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();

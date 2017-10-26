@@ -52,6 +52,22 @@ module.exports = _client => {
       });
     }
 
+    getTotalBufferSize() {
+      return Promise.all([_client.marshalArguments(Array.from(arguments), []), _client.marshal(this, {
+        kind: "named",
+        location: {
+          type: "source",
+          fileName: "rpc-types.js",
+          line: 60
+        },
+        name: "FileNotifier"
+      })]).then(([args, id]) => _client.callRemoteMethod(id, "getTotalBufferSize", "promise", args)).then(value => {
+        return _client.unmarshal(value, {
+          kind: "number"
+        });
+      });
+    }
+
     dispose() {
       return _client.disposeRemoteObject(this);
     }
@@ -264,7 +280,7 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "rpc-types.js",
-        line: 66
+        line: 67
       },
       name: "FileVersion",
       definition: {
@@ -658,11 +674,26 @@ Object.defineProperty(module.exports, "defs", {
             }
           }
         },
-        dispose: {
+        getTotalBufferSize: {
           location: {
             type: "source",
             fileName: "rpc-types.js",
             line: 63
+          },
+          kind: "function",
+          argumentTypes: [],
+          returnType: {
+            kind: "promise",
+            type: {
+              kind: "number"
+            }
+          }
+        },
+        dispose: {
+          location: {
+            type: "source",
+            fileName: "rpc-types.js",
+            line: 64
           },
           kind: "function",
           argumentTypes: [],

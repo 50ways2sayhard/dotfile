@@ -4,11 +4,18 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.HunkDiff = undefined;
+exports.createCustomLineNumberGutter = createCustomLineNumberGutter;
 
 var _AtomTextEditor;
 
 function _load_AtomTextEditor() {
   return _AtomTextEditor = require('nuclide-commons-ui/AtomTextEditor');
+}
+
+var _goToLocation;
+
+function _load_goToLocation() {
+  return _goToLocation = require('nuclide-commons-atom/go-to-location');
 }
 
 var _nullthrows;
@@ -29,6 +36,12 @@ var _react = _interopRequireWildcard(require('react'));
 
 var _reactDom = _interopRequireDefault(require('react-dom'));
 
+var _renderReactRoot;
+
+function _load_renderReactRoot() {
+  return _renderReactRoot = require('nuclide-commons-ui/renderReactRoot');
+}
+
 var _Section;
 
 function _load_Section() {
@@ -41,26 +54,20 @@ function _load_UniversalDisposable() {
   return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
 }
 
-var _goToLocation;
-
-function _load_goToLocation() {
-  return _goToLocation = require('nuclide-commons-atom/go-to-location');
-}
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const MAX_GUTTER_WIDTH = 5; /**
+                             * Copyright (c) 2015-present, Facebook, Inc.
+                             * All rights reserved.
+                             *
+                             * This source code is licensed under the license found in the LICENSE file in
+                             * the root directory of this source tree.
+                             *
+                             * 
+                             * @format
+                             */
 
 function getHighlightClass(type) {
   if (type === 'add') {
@@ -72,21 +79,50 @@ function getHighlightClass(type) {
   return null;
 }
 
+// add a gutter to a text editor with line numbers defined by an iterable, as
+// opposed to being forced to start at 1 and counting up
+function createCustomLineNumberGutter(editor, lineNumbers, gutterWidth) {
+  // 'nuclide-ui-file-changes-line-number-gutter-wX' makes a gutter Xem wide.
+  // 'nuclide-ui-file-changes-line-number-gutter' makes a gutter 5em wide
+  const suffix = gutterWidth > 0 && gutterWidth < MAX_GUTTER_WIDTH ? `-w${gutterWidth}` : '';
+  const gutter = editor.addGutter({
+    name: `nuclide-ui-file-changes-line-number-gutter${suffix}`
+  });
+
+  let index = 0;
+  for (const lineNumber of lineNumbers) {
+    const marker = editor.markBufferPosition([index, 0], {
+      invalidate: 'touch'
+    });
+    const item = createGutterItem(lineNumber, gutterWidth);
+    gutter.decorateMarker(marker, {
+      type: 'gutter',
+      item
+    });
+    gutter.onDidDestroy(() => {
+      marker.destroy();
+      _reactDom.default.unmountComponentAtNode(item);
+    });
+    index++;
+  }
+
+  return gutter;
+}
+
 const NBSP = '\xa0';
-const GutterElement = props => {
-  const { lineNumber, gutterWidth } = props;
+function createGutterItem(lineNumber, gutterWidth) {
   const fillWidth = gutterWidth - String(lineNumber).length;
   // Paralleling the original line-number implementation,
   // pad the line number with leading spaces.
   const filler = fillWidth > 0 ? new Array(fillWidth).fill(NBSP).join('') : '';
   // Attempt to reuse the existing line-number styles.
-  return _react.createElement(
+  return (0, (_renderReactRoot || _load_renderReactRoot()).renderReactRoot)(_react.createElement(
     'div',
     { className: 'line-number' },
     filler,
     lineNumber
-  );
-};
+  ));
+}
 
 class HunkDiff extends _react.Component {
 
@@ -138,50 +174,32 @@ class HunkDiff extends _react.Component {
   // Line numbers are contiguous, but have a random starting point, so we can't use the
   // default line-number gutter.
   _createLineNumbers(editor) {
-    const changeCount = this.props.hunk.changes.length;
-    const initialOffset = this.props.hunk.newStart;
+    const { changes, newStart: initialOffset } = this.props.hunk;
+    const changeCount = changes.length;
     const maxDisplayLineNumber = initialOffset + changeCount - 1;
     // The maximum required gutter width for this hunk, in characters:
     const gutterWidth = String(maxDisplayLineNumber).length;
-    const suffix = gutterWidth > 0 && gutterWidth < 5 ? `-w${gutterWidth}` : '';
-    const gutter = editor.addGutter({
-      name: `nuclide-ui-file-changes-line-number-gutter${suffix}`
-    });
+
     let deletedLinesInSection = 0;
     let deletedLines = 0;
-    for (let line = 0; line < changeCount; line++) {
-      if (this.props.hunk.changes[line].type === 'del') {
-        deletedLinesInSection++;
-      } else {
-        deletedLines += deletedLinesInSection;
-        deletedLinesInSection = 0;
+    // use a generator to avoid having to precalculate and store an array of
+    // line numbers
+    function* lineNumberGenerator() {
+      for (let line = 0; line < changeCount; line++) {
+        if (changes[line].type === 'del') {
+          deletedLinesInSection++;
+        } else {
+          deletedLines += deletedLinesInSection;
+          deletedLinesInSection = 0;
+        }
+        yield line + initialOffset - deletedLines;
       }
-      const displayLine = line + initialOffset - deletedLines;
-      const item = this._createGutterItem(displayLine, gutterWidth);
-      const marker = editor.markBufferPosition([line, 0], {
-        invalidate: 'touch'
-      });
-      gutter.decorateMarker(marker, {
-        type: 'gutter',
-        item
-      });
-      this._disposables.add(() => {
-        _reactDom.default.unmountComponentAtNode(item);
-        marker.destroy();
-      });
     }
+
+    const gutter = createCustomLineNumberGutter(editor, lineNumberGenerator(), gutterWidth);
     this._disposables.add(() => {
       gutter.destroy();
     });
-  }
-
-  _createGutterItem(lineNumber, gutterWidthInCharacters) {
-    const item = document.createElement('div');
-    _reactDom.default.render(_react.createElement(GutterElement, {
-      lineNumber: lineNumber,
-      gutterWidth: gutterWidthInCharacters
-    }), item);
-    return item;
   }
 
   /**
@@ -253,7 +271,15 @@ class FileChanges extends _react.Component {
 
   render() {
     const { diff, fullPath, collapsable, collapsedByDefault } = this.props;
-    const { additions, annotation, chunks, deletions, to: fileName } = diff;
+    const {
+      additions,
+      annotation,
+      chunks,
+      deletions,
+      from: fromFileName,
+      to: toFileName
+    } = diff;
+    const fileName = toFileName !== '/dev/null' ? toFileName : fromFileName;
     const grammar = atom.grammars.selectGrammar(fileName, '');
     const hunks = [];
     let i = 0;
@@ -285,11 +311,18 @@ class FileChanges extends _react.Component {
       );
     }
 
+    let addedOrDeletedString = '';
+    if (toFileName === '/dev/null') {
+      addedOrDeletedString = 'file deleted - ';
+    } else if (fromFileName === '/dev/null') {
+      addedOrDeletedString = 'file added - ';
+    }
     const diffDetails = _react.createElement(
       'span',
       null,
       annotationComponent,
       ' (',
+      addedOrDeletedString,
       additions + deletions,
       ' ',
       (0, (_string || _load_string()).pluralize)('line', additions + deletions),

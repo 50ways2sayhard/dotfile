@@ -177,7 +177,7 @@ class ConnectionMultiplexer {
     this._debuggerStartupDisposable.dispose();
     this._sendOutput('Connecting and pre-loading all of your PHP types and symbols. This may take a moment, ' + 'please wait...', 'warning');
 
-    const { launchScriptPath } = (0, (_config || _load_config()).getConfig)();
+    const { launchScriptPath, deferLaunch } = (0, (_config || _load_config()).getConfig)();
     if (launchScriptPath != null) {
       this._launchModeListen();
     } else {
@@ -187,7 +187,7 @@ class ConnectionMultiplexer {
     this._status = ConnectionMultiplexerStatus.Running;
     this._dummyRequestProcess = (0, (_ConnectionUtils || _load_ConnectionUtils()).sendDummyRequest)();
 
-    if (launchScriptPath != null) {
+    if (launchScriptPath != null && !deferLaunch) {
       const expandedScript = (_nuclideUri || _load_nuclideUri()).default.expandHomeDir(launchScriptPath);
       this._launchedScriptProcessPromise = new Promise(resolve => {
         this._launchedScriptProcess = (0, (_helpers || _load_helpers()).launchPhpScriptWithXDebugEnabled)(expandedScript, (text, level) => {
@@ -404,7 +404,9 @@ class ConnectionMultiplexer {
     // Only enable connection paused by async_break if user has explicitly issued an async_break.
     connection.getStopReason() !== (_Connection || _load_Connection()).ASYNC_BREAK || this._status === ConnectionMultiplexerStatus.UserAsyncBreakSent) && (
     // Don't switch threads unnecessarily in single thread stepping mode.
-    !(0, (_settings || _load_settings()).getSettings)().singleThreadStepping || this._lastEnabledConnection === null || connection === this._lastEnabledConnection) && (
+    !(0, (_settings || _load_settings()).getSettings)().singleThreadStepping ||
+    // eslint-disable-next-line eqeqeq
+    this._lastEnabledConnection === null || connection === this._lastEnabledConnection) && (
     // Respect the visibility of the dummy connection.
     !connection.isDummyConnection() || connection.isViewable());
   }
@@ -421,13 +423,17 @@ class ConnectionMultiplexer {
     this._lastEnabledConnection = connection;
     this._setBreakStatus();
     this._sendRequestInfo(connection);
-    this._pauseConnectionsIfNeeded();
+    return this._pauseConnectionsIfNeeded();
   }
 
   _pauseConnectionsIfNeeded() {
-    if ((0, (_config || _load_config()).getConfig)().stopOneStopAll && this._status !== ConnectionMultiplexerStatus.UserAsyncBreakSent) {
-      this._asyncBreak();
-    }
+    var _this3 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      if ((0, (_config || _load_config()).getConfig)().stopOneStopAll && _this3._status !== ConnectionMultiplexerStatus.UserAsyncBreakSent) {
+        return _this3._asyncBreak();
+      }
+    })();
   }
 
   _setBreakStatus() {
@@ -483,33 +489,33 @@ class ConnectionMultiplexer {
   }
 
   runtimeEvaluate(expression) {
-    var _this3 = this;
+    var _this4 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       (_utils || _load_utils()).default.debug(`runtimeEvaluate() on dummy connection for: ${expression}`);
-      if (_this3._dummyConnection != null) {
+      if (_this4._dummyConnection != null) {
         // Global runtime evaluation on dummy connection does not care about
         // which frame it is being evaluated on so choose top frame here.
-        const result = yield _this3._dummyConnection.runtimeEvaluate(0, expression);
-        _this3._reportEvaluationFailureIfNeeded(expression, result);
+        const result = yield _this4._dummyConnection.runtimeEvaluate(0, expression);
+        _this4._reportEvaluationFailureIfNeeded(expression, result);
         return result;
       } else {
-        _this3._sendOutput('Error evaluating expression: the console is not ready yet. Please wait...', 'error');
-        throw _this3._noConnectionError();
+        _this4._sendOutput('Error evaluating expression: the console is not ready yet. Please wait...', 'error');
+        throw _this4._noConnectionError();
       }
     })();
   }
 
   evaluateOnCallFrame(frameIndex, expression) {
-    var _this4 = this;
+    var _this5 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      if (_this4._enabledConnection) {
-        const result = yield _this4._enabledConnection.evaluateOnCallFrame(frameIndex, expression);
-        _this4._reportEvaluationFailureIfNeeded(expression, result);
+      if (_this5._enabledConnection) {
+        const result = yield _this5._enabledConnection.evaluateOnCallFrame(frameIndex, expression);
+        _this5._reportEvaluationFailureIfNeeded(expression, result);
         return result;
       } else {
-        throw _this4._noConnectionError();
+        throw _this5._noConnectionError();
       }
     })();
   }
@@ -529,14 +535,14 @@ class ConnectionMultiplexer {
   }
 
   getStackFrames() {
-    var _this5 = this;
+    var _this6 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      if (_this5._enabledConnection == null) {
+      if (_this6._enabledConnection == null) {
         // This occurs on startup with the loader breakpoint.
         return { stack: [] };
       }
-      const frames = yield _this5._enabledConnection.getStackFrames();
+      const frames = yield _this6._enabledConnection.getStackFrames();
       if (frames.stack == null) {
         // This occurs when the enabled connection is in starting mode.
         return { stack: [] };
@@ -569,7 +575,7 @@ class ConnectionMultiplexer {
     if (this._enabledConnection) {
       return this._enabledConnection.getScopesForFrame(frameIndex);
     } else {
-      throw this._noConnectionError();
+      return Promise.reject(this._noConnectionError());
     }
   }
 
@@ -578,12 +584,16 @@ class ConnectionMultiplexer {
   }
 
   sendContinuationCommand(command) {
-    this._resumeBackgroundConnections();
-    if (this._enabledConnection) {
-      this._enabledConnection.sendContinuationCommand(command);
-    } else {
-      throw this._noConnectionError();
-    }
+    var _this7 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      yield _this7._resumeBackgroundConnections();
+      if (_this7._enabledConnection) {
+        yield _this7._enabledConnection.sendContinuationCommand(command);
+      } else {
+        throw _this7._noConnectionError();
+      }
+    })();
   }
 
   _connectionBreakpointExits(connection) {
@@ -612,48 +622,62 @@ class ConnectionMultiplexer {
   }
 
   _resumeBackgroundConnections() {
-    for (const connection of this._connections.values()) {
-      if (connection !== this._enabledConnection && (connection.getStopReason() === (_Connection || _load_Connection()).ASYNC_BREAK || connection.getStopReason() === (_Connection || _load_Connection()).BREAKPOINT && connection.getStatus() === (_DbgpSocket || _load_DbgpSocket()).ConnectionStatus.Break && !this._connectionBreakpointExits(connection) || connection.getStopReason() === (_Connection || _load_Connection()).EXCEPTION && !this._breakpointStore.getPauseOnExceptions() || connection.getStatus() === (_DbgpSocket || _load_DbgpSocket()).ConnectionStatus.Starting)) {
-        try {
-          connection.sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_RUN);
-        } catch (e) {
-          // Connection could have been closed (or resumed by the frontend) before we resumed it.
+    var _this8 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      yield Promise.all(Array.from(_this8._connections.values()).map(function (connection) {
+        if (connection !== _this8._enabledConnection && (connection.getStopReason() === (_Connection || _load_Connection()).ASYNC_BREAK || connection.getStopReason() === (_Connection || _load_Connection()).BREAKPOINT && connection.getStatus() === (_DbgpSocket || _load_DbgpSocket()).ConnectionStatus.Break && !_this8._connectionBreakpointExits(connection) || connection.getStopReason() === (_Connection || _load_Connection()).EXCEPTION && !_this8._breakpointStore.getPauseOnExceptions() || connection.getStatus() === (_DbgpSocket || _load_DbgpSocket()).ConnectionStatus.Starting)) {
+          try {
+            connection.sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_RUN);
+          } catch (e) {
+            // Connection could have been closed (or resumed by the frontend) before we resumed it.
+          }
         }
-      }
-    }
+      }));
+    })();
   }
 
   _asyncBreak() {
-    for (const connection of this._connections.values()) {
-      if (connection.getStatus() === (_DbgpSocket || _load_DbgpSocket()).ConnectionStatus.Running) {
-        connection.sendBreakCommand();
-      }
-    }
+    var _this9 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      yield Promise.all(Array.from(_this9._connections.values()).map(function (connection) {
+        if (connection.getStatus() === (_DbgpSocket || _load_DbgpSocket()).ConnectionStatus.Running) {
+          return connection.sendBreakCommand();
+        } else {
+          return Promise.resolve();
+        }
+      }));
+    })();
   }
 
   pause() {
-    if (this._onlyDummyRemains() && this._dummyConnection != null && !this._dummyConnection.isViewable()) {
-      // If only the dummy remains, and the dummy is not viewable, there are no
-      // connections to break into. Since the front-end is waiting for a response
-      // from at least one connection, send a message to the console to indicate
-      // an async-break is pending, waiting for a request.
-      this._pausePending = true;
-      this._sendOutput('There are no active requests to break in to! The debugger will break when a new request ' + 'arrives.', 'warning');
-    } else {
-      if (this._pausePending) {
-        this._sendOutput('New connection received, breaking into debugger.', 'success');
+    var _this10 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      if (_this10._onlyDummyRemains() && _this10._dummyConnection != null && !_this10._dummyConnection.isViewable()) {
+        // If only the dummy remains, and the dummy is not viewable, there are no
+        // connections to break into. Since the front-end is waiting for a response
+        // from at least one connection, send a message to the console to indicate
+        // an async-break is pending, waiting for a request.
+        _this10._pausePending = true;
+        _this10._sendOutput('There are no active requests to break in to! The debugger will break when a new request ' + 'arrives.', 'warning');
+      } else {
+        if (_this10._pausePending) {
+          _this10._sendOutput('New connection received, breaking into debugger.', 'success');
+        }
+        _this10._pausePending = false;
+        _this10._status = ConnectionMultiplexerStatus.UserAsyncBreakSent;
+        // allow a connection that hasn't hit a breakpoint to be enabled, then break all connections.
+        yield _this10._asyncBreak();
       }
-      this._pausePending = false;
-      this._status = ConnectionMultiplexerStatus.UserAsyncBreakSent;
-      // allow a connection that hasn't hit a breakpoint to be enabled, then break all connections.
-      this._asyncBreak();
-    }
+    })();
   }
 
   resume() {
     // For now we will have only single thread stepping, not single thread running.
     this._lastEnabledConnection = null;
-    this.sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_RUN);
+    return this.sendContinuationCommand((_DbgpSocket || _load_DbgpSocket()).COMMAND_RUN);
   }
 
   getProperties(remoteId) {
@@ -662,7 +686,7 @@ class ConnectionMultiplexer {
     } else if (this._dummyConnection) {
       return this._dummyConnection.getProperties(remoteId);
     } else {
-      throw this._noConnectionError();
+      return Promise.reject(this._noConnectionError());
     }
   }
 
@@ -704,16 +728,16 @@ class ConnectionMultiplexer {
   }
 
   _checkForEnd() {
-    var _this6 = this;
+    var _this11 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      if ((_this6._connections.size === 0 || _this6._onlyDummyRemains()) && (_this6._attachConnector == null || _this6._launchConnector == null || (0, (_config || _load_config()).getConfig)().endDebugWhenNoRequests)) {
-        if (_this6._launchedScriptProcessPromise != null) {
-          yield _this6._launchedScriptProcessPromise;
-          _this6._launchedScriptProcessPromise = null;
+      if ((_this11._connections.size === 0 || _this11._onlyDummyRemains()) && (_this11._attachConnector == null || _this11._launchConnector == null || (0, (_config || _load_config()).getConfig)().endDebugWhenNoRequests)) {
+        if (_this11._launchedScriptProcessPromise != null) {
+          yield _this11._launchedScriptProcessPromise;
+          _this11._launchedScriptProcessPromise = null;
         }
 
-        _this6._setStatus(ConnectionMultiplexerStatus.End);
+        _this11._setStatus(ConnectionMultiplexerStatus.End);
       }
     })();
   }
@@ -730,22 +754,22 @@ class ConnectionMultiplexer {
   }
 
   _handleSetupForConnection(connection) {
-    var _this7 = this;
+    var _this12 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      yield _this7._setupStdStreams(connection);
-      yield _this7._setupFeatures(connection);
+      yield _this12._setupStdStreams(connection);
+      yield _this12._setupFeatures(connection);
     })();
   }
 
   _setupStdStreams(connection) {
-    var _this8 = this;
+    var _this13 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const stdoutRequestSucceeded = yield connection.sendStdoutRequest();
       if (!stdoutRequestSucceeded) {
         (_utils || _load_utils()).default.error('HHVM returned failure for a stdout request');
-        _this8._sendOutput('HHVM failed to redirect stdout, so no output will be sent to the output window.', 'error');
+        _this13._sendOutput('HHVM failed to redirect stdout, so no output will be sent to the output window.', 'error');
       }
       // TODO: Stderr redirection is not implemented in HHVM so we won't check this return value.
       yield connection.sendStderrRequest();

@@ -6,6 +6,12 @@ Object.defineProperty(exports, "__esModule", {
 
 var _atom = require('atom');
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 var _DebuggerDispatcher;
 
 function _load_DebuggerDispatcher() {
@@ -52,9 +58,9 @@ class BreakpointStore {
 
   constructor(dispatcher, initialBreakpoints, debuggerStore) {
     const dispatcherToken = dispatcher.register(this._handlePayload.bind(this));
-    this._disposables = new _atom.CompositeDisposable(new _atom.Disposable(() => {
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
       dispatcher.unregister(dispatcherToken);
-    }));
+    });
     this._debuggerStore = debuggerStore;
     this._breakpointIdSeed = 0;
     this._breakpoints = new Map();
@@ -134,12 +140,6 @@ class BreakpointStore {
       this._emitter.emit(BREAKPOINT_USER_CHANGED, {
         action: ADDBREAKPOINT_ACTION,
         breakpoint
-      });
-    }
-
-    if (atom.config.get('nuclide.nuclide-debugger.showDebuggerOnBpSet')) {
-      atom.commands.dispatch(atom.views.getView(atom.workspace), 'nuclide-debugger:show', {
-        showOnlyIfHidden: true
       });
     }
   }
@@ -385,7 +385,8 @@ class BreakpointStore {
       const { line, sourceURL, disabled, condition } = breakpoint;
       this._addBreakpoint(sourceURL, line, condition || '', false, // resolved
       false, // user action
-      !disabled);
+      !disabled // enabled
+      );
     }
   }
 

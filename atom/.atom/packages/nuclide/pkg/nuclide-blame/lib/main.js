@@ -49,20 +49,25 @@ function _load_textEditor() {
   return _textEditor = require('nuclide-commons-atom/text-editor');
 }
 
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const PACKAGES_MISSING_MESSAGE = 'Could not open blame. Missing at least one blame provider.'; /**
+                                                                                                * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                                * All rights reserved.
+                                                                                                *
+                                                                                                * This source code is licensed under the license found in the LICENSE file in
+                                                                                                * the root directory of this source tree.
+                                                                                                *
+                                                                                                * 
+                                                                                                * @format
+                                                                                                */
 
-const PACKAGES_MISSING_MESSAGE = 'Could not open blame. Missing at least one blame provider.';
 const TOGGLE_BLAME_FILE_TREE_CONTEXT_MENU_PRIORITY = 2000;
 
 class Activation {
@@ -71,7 +76,7 @@ class Activation {
     this._registeredProviders = new Set();
     this._textEditorToBlameGutter = new Map();
     this._textEditorToDestroySubscription = new Map();
-    this._packageDisposables = new _atom.CompositeDisposable();
+    this._packageDisposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._packageDisposables.add(atom.contextMenu.add({
       'atom-text-editor': [{
         label: 'Source Control',

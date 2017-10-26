@@ -4,7 +4,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _textEditor;
 
@@ -26,7 +30,7 @@ class BreakpointManager {
     this._breakpointStore = store;
     this._debuggerActions = debuggerActions;
     this._displayControllers = new Map();
-    this._disposables = new _atom.CompositeDisposable((0, (_textEditor || _load_textEditor()).observeTextEditors)(this._handleTextEditor.bind(this)));
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default((0, (_textEditor || _load_textEditor()).observeTextEditors)(this._handleTextEditor.bind(this)));
   }
 
   dispose() {

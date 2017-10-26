@@ -11,7 +11,11 @@ function _load_classnames() {
   return _classnames = _interopRequireDefault(require('classnames'));
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _react = _interopRequireWildcard(require('react'));
 
@@ -35,7 +39,7 @@ class ThreadsView extends _react.PureComponent {
 
   constructor(props) {
     super(props);
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     const debuggerStore = props.model.getStore();
     this.state = {
       customThreadColumns: debuggerStore.getSettings().get('CustomThreadColumns') || [],

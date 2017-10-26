@@ -16,7 +16,7 @@ function _load_Block() {
 var _Toggle;
 
 function _load_Toggle() {
-  return _Toggle = require('./Toggle');
+  return _Toggle = require('nuclide-commons-ui/Toggle');
 }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }

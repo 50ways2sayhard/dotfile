@@ -32,20 +32,24 @@ function _load_log4js() {
   return _log4js = require('log4js');
 }
 
+var _ToolbarUtils;
+
+function _load_ToolbarUtils() {
+  return _ToolbarUtils = require('../../nuclide-ui/ToolbarUtils');
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-test-runner');
+const logger = (0, (_log4js || _load_log4js()).getLogger)('nuclide-test-runner'); /**
+                                                                                   * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                   * All rights reserved.
+                                                                                   *
+                                                                                   * This source code is licensed under the license found in the LICENSE file in
+                                                                                   * the root directory of this source tree.
+                                                                                   *
+                                                                                   * 
+                                                                                   * @format
+                                                                                   */
 
 const FILE_TREE_CONTEXT_MENU_PRIORITY = 200;
 
@@ -65,7 +69,7 @@ class Activation {
 
   constructor() {
     this._testRunners = new Set();
-    this._disposables = new _atom.CompositeDisposable();
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     // Listen for run events on files in the file tree
     this._disposables.add(atom.commands.add('.tree-view .entry.file.list-item', 'nuclide-test-runner:run-tests', event => {
       const target = event.currentTarget.querySelector('.name');
@@ -125,7 +129,7 @@ class Activation {
       shouldDisplay: separatorShouldDisplay
     };
 
-    const menuItemSubscriptions = new _atom.CompositeDisposable();
+    const menuItemSubscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     menuItemSubscriptions.add(contextMenu.addItemToTestSection(fileItem, FILE_TREE_CONTEXT_MENU_PRIORITY), contextMenu.addItemToTestSection(directoryItem, FILE_TREE_CONTEXT_MENU_PRIORITY + 1), contextMenu.addItemToTestSection(separator, FILE_TREE_CONTEXT_MENU_PRIORITY + 2));
     this._disposables.add(menuItemSubscriptions);
 
@@ -160,12 +164,13 @@ class Activation {
 
   consumeToolBar(getToolBar) {
     const toolBar = getToolBar('nuclide-test-runner');
-    toolBar.addButton({
+
+    toolBar.addButton((0, (_ToolbarUtils || _load_ToolbarUtils()).makeToolbarButtonSpec)({
       icon: 'checklist',
       callback: 'nuclide-test-runner:toggle-panel',
       tooltip: 'Toggle Test Runner',
       priority: 600
-    });
+    }));
     const disposable = new _atom.Disposable(() => {
       toolBar.removeItems();
     });
@@ -250,7 +255,9 @@ class Activation {
   _registerCommandAndOpener() {
     return new (_UniversalDisposable || _load_UniversalDisposable()).default(atom.workspace.addOpener(uri => {
       if (uri === (_TestRunnerController || _load_TestRunnerController()).WORKSPACE_VIEW_URI) {
-        return this.getController();
+        const controller = this.getController();
+        controller.reinitialize();
+        return controller;
       }
     }), () => (0, (_destroyItemWhere || _load_destroyItemWhere()).destroyItemWhere)(item => item instanceof (_TestRunnerController || _load_TestRunnerController()).TestRunnerController), atom.commands.add('atom-workspace', 'nuclide-test-runner:toggle-panel', () => {
       atom.workspace.toggle((_TestRunnerController || _load_TestRunnerController()).WORKSPACE_VIEW_URI);

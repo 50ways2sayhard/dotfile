@@ -75,12 +75,6 @@ function _load_DebuggerLaunchAttachUI() {
   return _DebuggerLaunchAttachUI = require('./DebuggerLaunchAttachUI');
 }
 
-var _DebuggerLaunchAttachConnectionChooser;
-
-function _load_DebuggerLaunchAttachConnectionChooser() {
-  return _DebuggerLaunchAttachConnectionChooser = require('./DebuggerLaunchAttachConnectionChooser');
-}
-
 var _renderReactRoot;
 
 function _load_renderReactRoot() {
@@ -147,6 +141,12 @@ var _ReactMountRootElement;
 
 function _load_ReactMountRootElement() {
   return _ReactMountRootElement = _interopRequireDefault(require('nuclide-commons-ui/ReactMountRootElement'));
+}
+
+var _ToolbarUtils;
+
+function _load_ToolbarUtils() {
+  return _ToolbarUtils = require('../../nuclide-ui/ToolbarUtils');
 }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -319,13 +319,31 @@ class Activation {
       'nuclide-debugger:add-to-watch': this._addToWatch.bind(this)
     }), atom.commands.add('atom-workspace', {
       'nuclide-debugger:run-to-location': this._runToLocation.bind(this)
-    }), atom.commands.add('.nuclide-debugger-root', {
+    }), atom.commands.add('.nuclide-debugger-expression-value-list', {
       'nuclide-debugger:copy-debugger-expression-value': this._copyDebuggerExpressionValue.bind(this)
     }), atom.commands.add('atom-workspace', {
       'nuclide-debugger:copy-debugger-callstack': this._copyDebuggerCallstack.bind(this)
+    }), atom.commands.add('.nuclide-debugger-disassembly-view', {
+      'nuclide-debugger:copy-debugger-disassembly': this._copyDebuggerDisassembly.bind(this)
+    }), atom.commands.add('.nuclide-debugger-disassembly-table', {
+      'nuclide-debugger:add-disassembly-breakpoint': this._addDisassemblyBreakpoint.bind(this)
+    }), atom.commands.add('.nuclide-debugger-registers-view', {
+      'nuclide-debugger:copy-debugger-registers': this._copyDebuggerRegisters.bind(this)
     }),
     // Context Menu Items.
     atom.contextMenu.add({
+      '.nuclide-debugger-disassembly-view': [{
+        label: 'Copy disassembly',
+        command: 'nuclide-debugger:copy-debugger-disassembly'
+      }],
+      '.nuclide-debugger-disassembly-table': [{
+        label: 'Add breakpoint at address',
+        command: 'nuclide-debugger:add-disassembly-breakpoint'
+      }],
+      '.nuclide-debugger-registers-view': [{
+        label: 'Copy registers',
+        command: 'nuclide-debugger:copy-debugger-registers'
+      }],
       '.nuclide-debugger-breakpoint-list': [{
         label: 'Enable All Breakpoints',
         command: 'nuclide-debugger:enable-all-breakpoints'
@@ -414,8 +432,10 @@ class Activation {
   }
 
   serialize() {
+    const model = this.getModel();
     const state = {
-      breakpoints: this.getModel().getBreakpointStore().getSerializedBreakpoints(),
+      breakpoints: model.getBreakpointStore().getSerializedBreakpoints(),
+      watchExpressions: model.getWatchExpressionListStore().getSerializedWatchExpressions(),
       showDebugger: this._layoutManager.isDebuggerVisible(),
       workspaceDocksVisibility: this._layoutManager.getWorkspaceDocksVisibility()
     };
@@ -609,7 +629,7 @@ class Activation {
     actions.disableAllBreakpoints();
   }
 
-  _renderConfigDialog(panel, chooseConnection, dialogMode, dialogCloser) {
+  _renderConfigDialog(panel, dialogMode, dialogCloser) {
     if (this._selectedDebugConnection == null) {
       // If no connection is selected yet, default to the local connection.
       this._selectedDebugConnection = 'local';
@@ -619,37 +639,30 @@ class Activation {
       throw new Error('Invariant violation: "this._selectedDebugConnection != null"');
     }
 
-    if (chooseConnection) {
-      const options = this._model.getDebuggerProviderStore().getConnections().map(connection => {
-        const displayName = (_nuclideUri || _load_nuclideUri()).default.isRemote(connection) ? (_nuclideUri || _load_nuclideUri()).default.getHostname(connection) : 'localhost';
-        return {
-          value: connection,
-          label: displayName
-        };
-      }).filter(item => item.value != null && item.value !== '').sort((a, b) => a.label.localeCompare(b.label));
-      _reactDom.default.render(_react.createElement((_DebuggerLaunchAttachConnectionChooser || _load_DebuggerLaunchAttachConnectionChooser()).DebuggerLaunchAttachConnectionChooser, {
-        options: options
-        // flowlint-next-line sketchy-null-string:off
-        , selectedConnection: this._selectedDebugConnection || 'local',
-        connectionChanged: newValue => {
-          this._selectedDebugConnection = newValue;
-          this._renderConfigDialog(panel, false, dialogMode, dialogCloser);
-        },
-        dialogCloser: dialogCloser
-      }), panel.getItem());
-    } else {
-      const connection = this._selectedDebugConnection || 'local';
-      const key = (_nuclideUri || _load_nuclideUri()).default.isRemote(connection) ? (_nuclideUri || _load_nuclideUri()).default.getHostname(connection) : 'local';
-      _reactDom.default.render(_react.createElement((_DebuggerLaunchAttachUI || _load_DebuggerLaunchAttachUI()).DebuggerLaunchAttachUI, {
-        dialogMode: dialogMode,
-        store: this._model.getDebuggerProviderStore(),
-        debuggerActions: this._model.getActions(),
-        connection: connection,
-        chooseConnection: () => this._renderConfigDialog(panel, true, dialogMode, dialogCloser),
-        dialogCloser: dialogCloser,
-        providers: this._connectionProviders.get(key) || []
-      }), panel.getItem());
-    }
+    const options = this._model.getDebuggerProviderStore().getConnections().map(connection => {
+      const displayName = (_nuclideUri || _load_nuclideUri()).default.isRemote(connection) ? (_nuclideUri || _load_nuclideUri()).default.getHostname(connection) : 'localhost';
+      return {
+        value: connection,
+        label: displayName
+      };
+    }).filter(item => item.value != null && item.value !== '').sort((a, b) => a.label.localeCompare(b.label));
+
+    // flowlint-next-line sketchy-null-string:off
+    const connection = this._selectedDebugConnection || 'local';
+
+    _reactDom.default.render(_react.createElement((_DebuggerLaunchAttachUI || _load_DebuggerLaunchAttachUI()).DebuggerLaunchAttachUI, {
+      dialogMode: dialogMode,
+      store: this._model.getDebuggerProviderStore(),
+      debuggerActions: this._model.getActions(),
+      connectionChanged: newValue => {
+        this._selectedDebugConnection = newValue;
+        this._renderConfigDialog(panel, dialogMode, dialogCloser);
+      },
+      connection: connection,
+      connectionOptions: options,
+      dialogCloser: dialogCloser,
+      providers: this._connectionProviders
+    }), panel.getItem());
   }
 
   _showLaunchAttachDialog(dialogMode) {
@@ -673,7 +686,7 @@ class Activation {
     parentEl.style.maxWidth = '100em';
 
     // Function callback that closes the dialog and frees all of its resources.
-    this._renderConfigDialog(pane, false, dialogMode, () => disposables.dispose());
+    this._renderConfigDialog(pane, dialogMode, () => disposables.dispose());
     this._lauchAttachDialogCloser = () => disposables.dispose();
     disposables.add(pane.onDidChangeVisible(visible => {
       if (!visible) {
@@ -717,7 +730,79 @@ class Activation {
 
   _copyDebuggerExpressionValue(event) {
     const clickedElement = event.target;
-    atom.clipboard.write(clickedElement.textContent);
+    const copyElement = clickedElement.closest('.nuclide-ui-lazy-nested-value');
+    if (copyElement != null) {
+      atom.clipboard.write(copyElement.textContent);
+    }
+  }
+
+  _copyDebuggerDisassembly() {
+    const callstackStore = this._model.getCallstackStore();
+    const callstack = callstackStore.getCallstack();
+    if (callstack != null) {
+      const selectedFrame = callstackStore.getSelectedCallFrameIndex();
+      if (selectedFrame >= 0 && selectedFrame < callstack.length) {
+        const frameInfo = callstack[selectedFrame].disassembly;
+        if (frameInfo != null) {
+          const metadata = frameInfo.metadata.map(m => {
+            return `${m.name}:\t${m.value}`;
+          }).join(_os.default.EOL);
+
+          const entries = frameInfo.instructions.map(instruction => {
+            return `${instruction.address}\t` + `${instruction.offset || ''}\t` + `${instruction.instruction}` + `${instruction.comment || ''}\t`;
+          }).join(_os.default.EOL);
+
+          atom.clipboard.write(`${frameInfo.frameTitle}${_os.default.EOL}` + metadata + _os.default.EOL + entries);
+        }
+      }
+    }
+  }
+
+  _copyDebuggerRegisters() {
+    const callstackStore = this._model.getCallstackStore();
+    const callstack = callstackStore.getCallstack();
+    if (callstack != null) {
+      const selectedFrame = callstackStore.getSelectedCallFrameIndex();
+      if (selectedFrame >= 0 && selectedFrame < callstack.length) {
+        const registerInfo = callstack[selectedFrame].registers;
+        if (registerInfo != null) {
+          const rows = [];
+          for (const group of registerInfo) {
+            rows.push(group.groupName + _os.default.EOL);
+            for (const register of group.registers) {
+              const value = register.value != null ? register.value : '';
+              let decimalValue = parseInt(value, 16);
+              if (Number.isNaN(decimalValue)) {
+                decimalValue = '';
+              }
+              rows.push(`${register.name}:\t${value}\t${decimalValue}`);
+            }
+            rows.push(_os.default.EOL);
+          }
+          atom.clipboard.write(rows.join(_os.default.EOL));
+        }
+      }
+    }
+  }
+
+  _addDisassemblyBreakpoint(event) {
+    const clickedElement = event.target;
+    const clickedRow = clickedElement.closest('.nuclide-ui-table-row');
+    if (clickedRow != null) {
+      const rowIndex = clickedRow.dataset.rowindex;
+      const callstackStore = this._model.getCallstackStore();
+      const callstack = callstackStore.getCallstack();
+      const selectedFrameIndex = callstackStore.getSelectedCallFrameIndex();
+      if (callstack != null && selectedFrameIndex >= 0 && selectedFrameIndex < callstack.length) {
+        const disassembly = callstack[selectedFrameIndex].disassembly;
+
+        if (disassembly != null) {
+          const instruction = parseInt(rowIndex, 10);
+          const address = disassembly.instructions[instruction].address;
+          this._model.getActions().addBreakpoint(address, -1);
+        }
+      }
+    }
   }
 
   _copyDebuggerCallstack(event) {
@@ -737,6 +822,16 @@ class Activation {
   consumeCurrentWorkingDirectory(cwdApi) {
     const updateSelectedConnection = directory => {
       this._selectedDebugConnection = directory != null ? directory.getPath() : null;
+      if (this._selectedDebugConnection != null) {
+        const conn = this._selectedDebugConnection;
+        if ((_nuclideUri || _load_nuclideUri()).default.isRemote(conn)) {
+          // Use root instead of current directory as launch point for debugger.
+          this._selectedDebugConnection = (_nuclideUri || _load_nuclideUri()).default.createRemoteUri((_nuclideUri || _load_nuclideUri()).default.getHostname(conn), '/');
+        } else {
+          // Use null instead of local path to use local debugger downstream.
+          this._selectedDebugConnection = null;
+        }
+      }
     };
     const boundUpdateSelectedColumn = updateSelectedConnection.bind(this);
     const disposable = cwdApi.observeCwd(directory => boundUpdateSelectedColumn(directory));
@@ -781,6 +876,7 @@ function serialize() {
   } else {
     return {
       breakpoints: null,
+      watchExpressions: null,
       showDebugger: false,
       workspaceDocksVisibility: [false, false, false, false]
     };
@@ -860,13 +956,13 @@ function consumeEvaluationExpressionProvider(provider) {
 
 function consumeToolBar(getToolBar) {
   const toolBar = getToolBar('nuclide-debugger');
-  toolBar.addButton({
+  toolBar.addButton((0, (_ToolbarUtils || _load_ToolbarUtils()).makeToolbarButtonSpec)({
     iconset: 'icon-nuclicon',
     icon: 'debugger',
     callback: 'nuclide-debugger:show-attach-dialog',
     tooltip: 'Attach Debugger',
     priority: 500
-  }).element;
+  })).element;
   const disposable = new _atom.Disposable(() => {
     toolBar.removeItems();
   });

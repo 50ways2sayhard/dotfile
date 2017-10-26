@@ -6,7 +6,11 @@ Object.defineProperty(exports, "__esModule", {
 exports.activate = activate;
 exports.deactivate = deactivate;
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _textEditor;
 
@@ -36,7 +40,7 @@ let subscriptions = null; /**
 let watchers = null;
 
 function activate(state) {
-  const _subscriptions = new _atom.CompositeDisposable();
+  const _subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
   const _watchers = new Map();
 
   _subscriptions.add((0, (_textEditor || _load_textEditor()).observeTextEditors)(editor => {

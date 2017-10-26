@@ -77,6 +77,7 @@ const ActionTypes = exports.ActionTypes = Object.freeze({
 });
 
 // Flow hack: Every DebuggerAction actionType must be in ActionTypes.
+// $FlowFixMe(>=0.55.0) Flow suppress
 '';
 
 class DebuggerDispatcher extends (_Dispatcher || _load_Dispatcher()).default {}

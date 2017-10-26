@@ -5,7 +5,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.MultiSelectList = undefined;
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _classnames;
 
@@ -56,7 +60,7 @@ class MultiSelectList extends _react.Component {
       this._commandsDisposables.dispose();
     }
     const el = this.props.commandScope || _reactDom.default.findDOMNode(this);
-    this._commandsDisposables = new _atom.CompositeDisposable(atom.commands.add(
+    this._commandsDisposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(atom.commands.add(
     // $FlowFixMe
     el, {
       'core:move-up': () => {

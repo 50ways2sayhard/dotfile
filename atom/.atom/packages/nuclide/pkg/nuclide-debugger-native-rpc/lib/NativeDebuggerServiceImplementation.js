@@ -137,6 +137,8 @@ function _load_nuclideAnalytics() {
   return _nuclideAnalytics = require('../../nuclide-analytics');
 }
 
+var _net = _interopRequireDefault(require('net'));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class NativeDebuggerService extends (_nuclideDebuggerCommon || _load_nuclideDebuggerCommon()).DebuggerRpcWebSocketService {
@@ -147,30 +149,34 @@ class NativeDebuggerService extends (_nuclideDebuggerCommon || _load_nuclideDebu
     this.getLogger().setLevel(config.logLevel);
   }
 
+  _expandPath(path, cwd) {
+    // Expand a path to interpret ~/ as home and ./ as relative
+    // to the current working directory.
+    return path.startsWith('./') ? (_nuclideUri || _load_nuclideUri()).default.resolve(cwd != null ? (_nuclideUri || _load_nuclideUri()).default.expandHomeDir(cwd) : '', path.substring(2)) : (_nuclideUri || _load_nuclideUri()).default.expandHomeDir(path);
+  }
+
   attach(attachInfo) {
     this.getLogger().debug(`attach process: ${JSON.stringify(attachInfo)}`);
     const inferiorArguments = {
       pid: String(attachInfo.pid),
-      // flowlint-next-line sketchy-null-string:off
-      basepath: attachInfo.basepath ? attachInfo.basepath : this._config.buckConfigRootFile,
-      lldb_python_path: this._config.lldbPythonPath
+      basepath: this._expandPath(attachInfo.basepath != null ? attachInfo.basepath : this._config.buckConfigRootFile, null),
+      lldb_python_path: this._expandPath(this._config.lldbPythonPath || '', null)
     };
     return _rxjsBundlesRxMinJs.Observable.fromPromise(this._startDebugging(inferiorArguments)).publish();
   }
 
   launch(launchInfo) {
     this.getLogger().debug(`launch process: ${JSON.stringify(launchInfo)}`);
+    const exePath = launchInfo.executablePath.trim();
     const inferiorArguments = {
-      executable_path: launchInfo.executablePath,
+      executable_path: this._expandPath(exePath, launchInfo.workingDirectory),
       launch_arguments: launchInfo.arguments,
       launch_environment_variables: launchInfo.environmentVariables,
       working_directory: launchInfo.workingDirectory,
-      // flowlint-next-line sketchy-null-string:off
-      stdin_filepath: launchInfo.stdinFilePath ? launchInfo.stdinFilePath : '',
-      // flowlint-next-line sketchy-null-string:off
-      basepath: launchInfo.basepath ? launchInfo.basepath : this._config.buckConfigRootFile,
-      lldb_python_path: this._config.lldbPythonPath,
-      core_dump_path: launchInfo.coreDump || ''
+      stdin_filepath: this._expandPath(launchInfo.stdinFilePath != null ? launchInfo.stdinFilePath : '', launchInfo.workingDirectory),
+      basepath: this._expandPath(launchInfo.basepath != null ? launchInfo.basepath : this._config.buckConfigRootFile, launchInfo.workingDirectory),
+      lldb_python_path: this._expandPath(this._config.lldbPythonPath || '', launchInfo.workingDirectory),
+      core_dump_path: this._expandPath(launchInfo.coreDump || '', launchInfo.workingDirectory)
     };
 
     if (launchInfo.coreDump != null && launchInfo.coreDump !== '') {
@@ -318,6 +324,105 @@ class NativeDebuggerService extends (_nuclideDebuggerCommon || _load_nuclideDebu
   _handleLLDBExit() {
     // Fire and forget.
     this.dispose();
+  }
+
+  // Spawns a TCP socket server to be used to communicate with the python
+  // launch wrapper when launching a process in the terminal. The wrapper
+  // will use this socket to communicate its pid, and wait for us to attach
+  // a debugger before calling execv to load the target image into the process.
+  _spawnIpcServer(onConnectCallback) {
+    return (0, _asyncToGenerator.default)(function* () {
+      return new Promise(function (resolve, reject) {
+        const server = _net.default.createServer();
+        server.on('error', reject);
+        server.on('connection', function (socket) {
+          socket.on('error', function () {
+            return server.close;
+          });
+          socket.on('end', function () {
+            return server.close;
+          });
+          onConnectCallback(socket);
+          server.close();
+        });
+
+        try {
+          server.listen({ host: '127.0.0.1', port: 0 }, function () {
+            return resolve(server.address().port);
+          });
+        } catch (e) {
+          reject(e);
+        }
+      });
+    })();
+  }
+
+  // This callback is invoked when the wrapper process starts up and connects
+  // to our TCP socket. It will send its own pid into the socket and then block
+  // on a read of the socket. We will then attach the debugger to the specified
+  // pid, and issue a write to the socket to indicate to the wrapper that the
+  // attach is complete, and it's now OK to resume execution of the target.
+  _launchWrapperConnected(socket, data, launchInfo) {
+    var _this2 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      // Expect the python wrapper to send us a pid.
+      const pid = parseInt(data.trim(), 10);
+      if (Number.isNaN(pid)) {
+        throw new Error('Failed to start debugger: Received invalid process ID from target wrapper');
+      }
+
+      try {
+        // Attach the debugger to the wrapper script process.
+        yield _this2.attach({
+          pid,
+          name: launchInfo.executablePath,
+          commandName: launchInfo.executablePath,
+          basepath: launchInfo.basepath
+        }).refCount().toPromise();
+
+        // Send any data into the socket to unblock the target wrapper
+        // and let it know it's safe to proceed with launching now.
+        socket.end('continue');
+      } catch (e) {
+        _this2._handleLLDBExit();
+      }
+    })();
+  }
+
+  prepareForTerminalLaunch(launchInfo) {
+    var _this3 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      // Expand home directory if the launch executable starts with ~/
+      launchInfo.executablePath = (_nuclideUri || _load_nuclideUri()).default.expandHomeDir(launchInfo.executablePath);
+
+      const pythonBinaryPath =
+      // flowlint-next-line sketchy-null-string:off
+      _this3._config.pythonBinaryPath || (yield _getDefaultLLDBConfig()).pythonPath;
+
+      // Find the launch wrapper.
+      const wrapperScriptPath = (_nuclideUri || _load_nuclideUri()).default.join(__dirname, '../scripts/launch.py');
+
+      const ipcPort = yield _this3._spawnIpcServer(function (socket) {
+        socket.once('data', (() => {
+          var _ref3 = (0, _asyncToGenerator.default)(function* (data) {
+            _this3._launchWrapperConnected(socket, data.toString(), launchInfo);
+          });
+
+          return function (_x2) {
+            return _ref3.apply(this, arguments);
+          };
+        })());
+      });
+
+      return {
+        launchCommand: pythonBinaryPath,
+        targetExecutable: launchInfo.executablePath,
+        launchCwd: (_nuclideUri || _load_nuclideUri()).default.expandHomeDir(launchInfo.workingDirectory !== '' ? launchInfo.workingDirectory : '~'),
+        launchArgs: [wrapperScriptPath, String(ipcPort), launchInfo.executablePath, ...launchInfo.arguments]
+      };
+    })();
   }
 }
 exports.NativeDebuggerService = NativeDebuggerService;

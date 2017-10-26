@@ -14,12 +14,15 @@ function _load_UniversalDisposable() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class BusyMessageInstance {
+  // These things might be modified afterwards:
 
+  // These things are set at construction-time:
   constructor(publishCallback, creationOrder, waitingFor, onDidClick, disposables) {
     this._titleElement = document.createElement('span');
     this._currentTitle = null;
     this._isVisibleForDebounce = true;
     this._isVisibleForFile = true;
+    this._revealTooltip = false;
 
     this._publishCallback = publishCallback;
     this._creationOrder = creationOrder;
@@ -27,10 +30,6 @@ class BusyMessageInstance {
     this._onDidClick = onDidClick;
     this._disposables = disposables;
   }
-  // These things might be modified afterwards:
-
-  // These things are set at construction-time:
-
 
   get waitingFor() {
     return this._waitingFor;
@@ -89,6 +88,14 @@ class BusyMessageInstance {
     }
 
     return this._isVisibleForFile && this._isVisibleForDebounce && this._currentTitle != null;
+  }
+
+  setRevealTooltip(val) {
+    this._revealTooltip = val;
+  }
+
+  shouldRevealTooltip() {
+    return this._revealTooltip;
   }
 
   compare(that) {

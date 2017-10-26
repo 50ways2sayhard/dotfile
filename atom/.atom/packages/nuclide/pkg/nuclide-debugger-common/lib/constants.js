@@ -4,8 +4,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 const VsAdapterTypes = exports.VsAdapterTypes = Object.freeze({
+  HHVM: 'hhvm',
   PYTHON: 'python',
-  HHVM: 'hhvm'
+  NODE: 'node'
 });
 
 // This is to work around flow's missing support of enums.

@@ -5,7 +5,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.WatchExpressionListStore = undefined;
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
 
@@ -21,6 +25,8 @@ function _load_DebuggerStore() {
   return _DebuggerStore = require('./DebuggerStore');
 }
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -34,18 +40,25 @@ function _load_DebuggerStore() {
 
 class WatchExpressionListStore {
 
-  constructor(watchExpressionStore, dispatcher) {
+  constructor(watchExpressionStore, dispatcher, initialWatchExpressions) {
     this._watchExpressionStore = watchExpressionStore;
     const dispatcherToken = dispatcher.register(this._handlePayload.bind(this));
-    this._disposables = new _atom.CompositeDisposable(new _atom.Disposable(() => {
+    this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
       dispatcher.unregister(dispatcherToken);
-    }));
+    });
     this._watchExpressions = new _rxjsBundlesRxMinJs.BehaviorSubject([]);
+    if (initialWatchExpressions) {
+      this._deserializeWatchExpressions(initialWatchExpressions);
+    }
   }
   /**
    * Treat the underlying EvaluatedExpressionList as immutable.
    */
 
+
+  _deserializeWatchExpressions(watchExpressions) {
+    this._watchExpressions.next(watchExpressions.map(expression => this._getExpressionEvaluationFor(expression)));
+  }
 
   _handlePayload(payload) {
     switch (payload.actionType) {
@@ -77,6 +90,10 @@ class WatchExpressionListStore {
 
   getWatchExpressions() {
     return this._watchExpressions.asObservable();
+  }
+
+  getSerializedWatchExpressions() {
+    return this._watchExpressions.getValue().map(evaluatedExpression => evaluatedExpression.expression);
   }
 
   _addWatchExpression(expression) {

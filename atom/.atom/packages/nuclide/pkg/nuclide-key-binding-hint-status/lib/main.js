@@ -48,6 +48,10 @@ class Activation {
     this._statusNode = document.createElement('div');
     this._statusNode.classList.add('inline-block', 'text');
 
+    if (!this._statusNode) {
+      throw new Error('Invariant violation: "this._statusNode"');
+    }
+
     _reactDom.default.render(_react.createElement((_KeyBindingHint || _load_KeyBindingHint()).default, null), this._statusNode);
 
     this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {

@@ -334,6 +334,7 @@ function objectToLiteral(obj) {
     return (_babelTypes || _load_babelTypes()).numericLiteral(obj);
   } else if (typeof obj === 'boolean') {
     return (_babelTypes || _load_babelTypes()).booleanLiteral(obj);
+    // eslint-disable-next-line eqeqeq
   } else if (obj === null) {
     return (_babelTypes || _load_babelTypes()).nullLiteral();
   } else if (obj === undefined) {

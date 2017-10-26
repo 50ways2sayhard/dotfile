@@ -10,7 +10,6 @@ var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 let registerAdbPath = exports.registerAdbPath = (() => {
   var _ref = (0, _asyncToGenerator.default)(function* (id, path, priority = -1) {
     (0, (_Store || _load_Store()).getStore)(ADB).registerPath(id, { path, priority });
-    (0, (_Store || _load_Store()).getStore)(ADB).addPort((_DebugBridge || _load_DebugBridge()).DEFAULT_ADB_PORT);
   });
 
   return function registerAdbPath(_x, _x2) {
@@ -169,12 +168,6 @@ exports.removeAdbPort = removeAdbPort;
 exports.getAdbPorts = getAdbPorts;
 exports.getApkManifest = getApkManifest;
 
-var _DebugBridge;
-
-function _load_DebugBridge() {
-  return _DebugBridge = require('./common/DebugBridge');
-}
-
 var _Store;
 
 function _load_Store() {
@@ -209,25 +202,23 @@ function _load_process() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const ADB = 'adb';
+const ADB = 'adb'; /**
+                    * Copyright (c) 2015-present, Facebook, Inc.
+                    * All rights reserved.
+                    *
+                    * This source code is licensed under the license found in the LICENSE file in
+                    * the root directory of this source tree.
+                    *
+                    * 
+                    * @format
+                    */
 
 function getDeviceInfo(device) {
   return new (_Adb || _load_Adb()).Adb(device).getDeviceInfo().publish();
 }
 
-function getProcesses(device) {
-  return new (_Processes || _load_Processes()).Processes(new (_Adb || _load_Adb()).Adb(device)).fetch().publish();
+function getProcesses(device, timeout) {
+  return new (_Processes || _load_Processes()).Processes(new (_Adb || _load_Adb()).Adb(device)).fetch(timeout).publish();
 }
 
 function getDeviceList() {

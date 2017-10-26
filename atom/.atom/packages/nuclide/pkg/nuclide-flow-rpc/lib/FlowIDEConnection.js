@@ -102,9 +102,7 @@ class FlowIDEConnection {
     () => {});
 
     this._diagnostics = _rxjsBundlesRxMinJs.Observable.using(() => {
-      const fileEventsObservable = this._fileCache.observeFileEvents()
-      // $FlowFixMe (bufferTime isn't in the libdef for rxjs)
-      .bufferTime(100 /* ms */).filter(fileEvents => fileEvents.length !== 0);
+      const fileEventsObservable = this._fileCache.observeFileEvents().bufferTime(100 /* ms */).filter(fileEvents => fileEvents.length !== 0);
 
       const fileEventsHandler = fileEvents => {
         const openPaths = [];

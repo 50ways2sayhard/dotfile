@@ -46,7 +46,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function createMessageStream(line$) {
   // Group the lines into valid plist strings.
-  const messages = (0, (_observable || _load_observable()).bufferUntil)(line$, line => line.trim() === '</plist>')
+  const messages = line$.let((0, (_observable || _load_observable()).bufferUntil)(line => line.trim() === '</plist>'))
   // Don't include empty buffers. This happens if the stream completes since we opened a new
   // buffer when the previous record ended.
   .filter(lines => lines.length > 1).map(lines => lines.join(''))

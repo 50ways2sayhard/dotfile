@@ -75,6 +75,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  *   mutations.subscribe(record => console.log(record));
  */
 
+// $FlowFixMe(>=0.55.0) Flow suppress
 class DOMObserverObservable extends _rxjsBundlesRxMinJs.Observable {
 
   constructor(DOMObserverCtor, ...observeArgs) {
@@ -190,9 +191,13 @@ const _DOMObserverObservable = exports._DOMObserverObservable = DOMObserverObser
  */
 class IntersectionObservable extends DOMObserverObservable {
   constructor(target) {
-    if (!(global.IntersectionObserver !== null)) {
+    if (!(
+    // eslint-disable-next-line eqeqeq
+    global.IntersectionObserver !== null)) {
       throw new Error('environment must contain IntersectionObserver');
     }
+    // $FlowFixMe(>=0.55.0) Flow suppress
+
 
     super(IntersectionObserver, target);
   }
@@ -204,9 +209,13 @@ exports.IntersectionObservable = IntersectionObservable; /**
 
 class MutationObservable extends DOMObserverObservable {
   constructor(target, options) {
-    if (!(global.MutationObserver !== null)) {
+    if (!(
+    // eslint-disable-next-line eqeqeq
+    global.MutationObserver !== null)) {
       throw new Error('environment must contain MutationObserver');
     }
+    // $FlowFixMe(>=0.55.0) Flow suppress
+
 
     super(MutationObserver, target);
   }
@@ -218,9 +227,13 @@ exports.MutationObservable = MutationObservable; /**
 
 class PerformanceObservable extends DOMObserverObservable {
   constructor(options) {
-    if (!(global.PerformanceObserver !== null)) {
+    if (!(
+    // eslint-disable-next-line eqeqeq
+    global.PerformanceObserver !== null)) {
       throw new Error('environment must contain PerformanceObserver');
     }
+    // $FlowFixMe(>=0.55.0) Flow suppress
+
 
     super(PerformanceObserver, options);
   }
@@ -232,9 +245,13 @@ exports.PerformanceObservable = PerformanceObservable; /**
 
 class ResizeObservable extends DOMObserverObservable {
   constructor(target) {
-    if (!(global.ResizeObserver !== null)) {
+    if (!(
+    // eslint-disable-next-line eqeqeq
+    global.ResizeObserver !== null)) {
       throw new Error('environment must contain ResizeObserver');
     }
+    // $FlowFixMe(>=0.55.0) Flow suppress
+
 
     super(ResizeObserver, target);
   }

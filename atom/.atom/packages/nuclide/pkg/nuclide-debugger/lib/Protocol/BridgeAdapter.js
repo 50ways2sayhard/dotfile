@@ -58,7 +58,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 class BridgeAdapter {
 
-  constructor(dispatchers, getIsReadonlyTarget) {
+  constructor(dispatchers, getIsReadonlyTarget, shouldFilterBreak) {
     this._handleDebugEvent = event => {
       switch (event.method) {
         case 'Debugger.loaderBreakpoint':
@@ -94,6 +94,12 @@ class BridgeAdapter {
         case 'Debugger.paused':
           {
             const params = event.params;
+            if (this._shouldFilterBreak(params)) {
+              // If the debugger front-end wants to filter out this break,
+              // auto-resume.
+              this._executionManager.resume();
+              break;
+            }
             this._handlePausedEvent(params);
             break;
           }
@@ -127,6 +133,7 @@ class BridgeAdapter {
     this._expressionEvaluationManager = new (_ExpressionEvaluationManager || _load_ExpressionEvaluationManager()).default(debuggerDispatcher, runtimeDispatcher);
     this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default(debuggerDispatcher.getEventObservable().subscribe(this._handleDebugEvent));
     this._getIsReadonlyTarget = getIsReadonlyTarget;
+    this._shouldFilterBreak = shouldFilterBreak;
   }
 
   enable() {
@@ -220,10 +227,16 @@ class BridgeAdapter {
     } else {
       this._expressionEvaluationManager.runtimeEvaluate(transactionId, expression, objectGroup);
     }
+
+    this._updateCurrentScopes();
   }
 
   getProperties(id, objectId) {
     this._expressionEvaluationManager.getProperties(id, objectId);
+  }
+
+  setVariable(scopeObjectId, expression, newValue, callback) {
+    this._debuggerDispatcher.setVariable(scopeObjectId, expression, newValue, callback);
   }
 
   selectThread(threadId) {
@@ -236,6 +249,13 @@ class BridgeAdapter {
 
   setSingleThreadStepping(enable) {
     this._debuggerSettingsManager.setSingleThreadStepping(enable);
+    if (this._engineCreated) {
+      this._debuggerSettingsManager.syncToEngine();
+    }
+  }
+
+  setShowDisassembly(enable) {
+    this._debuggerSettingsManager.setShowDisassembly(enable);
     if (this._engineCreated) {
       this._debuggerSettingsManager.syncToEngine();
     }

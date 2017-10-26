@@ -63,7 +63,6 @@ function hackMessageToDiagnosticMessage(hackMessages) {
   }
 
   const diagnosticMessage = {
-    scope: 'file',
     providerName: `Hack: ${hackMessages[0].code}`,
     type: 'Error',
     text: causeMessage.descr,

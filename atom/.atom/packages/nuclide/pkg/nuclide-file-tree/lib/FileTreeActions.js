@@ -80,6 +80,12 @@ function _load_collection() {
   return _collection = require('nuclide-commons/collection');
 }
 
+var _observable;
+
+function _load_observable() {
+  return _observable = require('nuclide-commons/observable');
+}
+
 var _UniversalDisposable;
 
 function _load_UniversalDisposable() {
@@ -89,13 +95,6 @@ function _load_UniversalDisposable() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // $FlowFixMe(>=0.53.0) Flow suppress
-let instance;
-
-/**
- * Implements the Flux pattern for our file tree. All state for the file tree will be kept in
- * FileTreeStore and the only way to update the store is through methods on FileTreeActions. The
- * dispatcher is a mechanism through which FileTreeActions interfaces with FileTreeStore.
- */
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -107,6 +106,13 @@ let instance;
  * @format
  */
 
+let instance;
+
+/**
+ * Implements the Flux pattern for our file tree. All state for the file tree will be kept in
+ * FileTreeStore and the only way to update the store is through methods on FileTreeActions. The
+ * dispatcher is a mechanism through which FileTreeActions interfaces with FileTreeStore.
+ */
 class FileTreeActions {
 
   static getInstance() {
@@ -296,6 +302,13 @@ class FileTreeActions {
     });
   }
 
+  setFocusEditorOnFileSelection(focusEditorOnFileSelection) {
+    this._dispatcher.dispatch({
+      actionType: (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.SET_FOCUS_EDITOR_ON_FILE_SELECTION,
+      focusEditorOnFileSelection
+    });
+  }
+
   setUsePrefixNav(usePrefixNav) {
     this._dispatcher.dispatch({
       actionType: (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.SET_USE_PREFIX_NAV,
@@ -334,9 +347,9 @@ class FileTreeActions {
       // goToLocation doesn't support pending panes
       // eslint-disable-next-line rulesdir/atom-apis
       atom.workspace.open((_FileTreeHelpers || _load_FileTreeHelpers()).default.keyToPath(nodeKey), {
-        activatePane: true,
+        activatePane: pending && node.conf.focusEditorOnFileSelection || !pending,
         searchAllPanes: true,
-        pending: true
+        pending
       });
     }
   }
@@ -377,7 +390,9 @@ class FileTreeActions {
       const rootKeys = rootDirectories.map(function (directory) {
         return (_FileTreeHelpers || _load_FileTreeHelpers()).default.dirPathToKey(directory.getPath());
       });
-      const rootRepos = yield Promise.all(rootDirectories.map(function (directory) {
+      const rootRepos = yield Promise.all(
+      // $FlowFixMe(>=0.55.0) Flow suppress
+      rootDirectories.map(function (directory) {
         return (0, (_nuclideVcsBase || _load_nuclideVcsBase()).repositoryForPath)(directory.getPath());
       }));
 
@@ -614,7 +629,7 @@ class FileTreeActions {
       } else if (repo.getType() === 'git' || !(yield (_FileTreeHelpers || _load_FileTreeHelpers()).default.areStackChangesEnabled())) {
         // Different repo types emit different events at individual and refresh updates.
         // Hence, the need to debounce and listen to both change types.
-        vcsChanges = _rxjsBundlesRxMinJs.Observable.merge((0, (_event || _load_event()).observableFromSubscribeFunction)(repo.onDidChangeStatus.bind(repo)), (0, (_event || _load_event()).observableFromSubscribeFunction)(repo.onDidChangeStatuses.bind(repo))).debounceTime(1000).startWith(null).map(function (_) {
+        vcsChanges = _rxjsBundlesRxMinJs.Observable.merge((0, (_event || _load_event()).observableFromSubscribeFunction)(repo.onDidChangeStatus.bind(repo)), (0, (_event || _load_event()).observableFromSubscribeFunction)(repo.onDidChangeStatuses.bind(repo))).let((0, (_observable || _load_observable()).fastDebounce)(1000)).startWith(null).map(function (_) {
           return _this2._getCachedPathStatuses(repo);
         });
       } else if (repo.getType() === 'hg') {

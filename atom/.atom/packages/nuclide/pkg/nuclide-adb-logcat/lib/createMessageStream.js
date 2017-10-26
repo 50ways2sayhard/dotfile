@@ -11,6 +11,12 @@ function _load_featureConfig() {
   return _featureConfig = _interopRequireDefault(require('nuclide-commons-atom/feature-config'));
 }
 
+var _observable;
+
+function _load_observable() {
+  return _observable = require('nuclide-commons/observable');
+}
+
 var _UniversalDisposable;
 
 function _load_UniversalDisposable() {
@@ -32,17 +38,6 @@ function _load_parseLogcatMetadata() {
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
 
 function createMessageStream(line$) {
   // Separate the lines into groups, beginning with metadata lines.
@@ -104,11 +99,20 @@ function createMessageStream(line$) {
     // We know *for certain* that we have a complete entry once we see the metadata for the next
     // one. But what if the next one takes a long time to happen? After a certain point, we need
     // to just assume we have the complete entry and move on.
-    sharedLine$.debounceTime(200).subscribe(flush));
+    sharedLine$.let((0, (_observable || _load_observable()).fastDebounce)(200)).subscribe(flush));
   }).map((_createMessage || _load_createMessage()).default);
 
   return filter(messages).share();
-}
+} /**
+   * Copyright (c) 2015-present, Facebook, Inc.
+   * All rights reserved.
+   *
+   * This source code is licensed under the license found in the LICENSE file in
+   * the root directory of this source tree.
+   *
+   * 
+   * @format
+   */
 
 function filter(messages) {
   const patterns = (_featureConfig || _load_featureConfig()).default.observeAsStream('nuclide-adb-logcat.whitelistedTags').map(source => {

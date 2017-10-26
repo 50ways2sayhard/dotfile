@@ -39,6 +39,12 @@ function _load_QueuedTransport() {
   return _QueuedTransport = require('./QueuedTransport');
 }
 
+var _QueuedAckTransport;
+
+function _load_QueuedAckTransport() {
+  return _QueuedAckTransport = require('./QueuedAckTransport');
+}
+
 var _XhrConnectionHeartbeat;
 
 function _load_XhrConnectionHeartbeat() {
@@ -105,15 +111,16 @@ const MAX_RECONNECT_TIME_MS = 5000;
 class NuclideSocket {
 
   constructor(serverUri, options) {
+    const useAck = options != null && options.useAck;
     this._emitter = new (_eventKit || _load_eventKit()).Emitter();
     this._serverUri = serverUri;
     this._options = options;
-    this.id = (_uuid || _load_uuid()).default.v4();
+    this.id = (useAck ? 'ACK' : 'NOACK') + (_uuid || _load_uuid()).default.v4();
     this._pingTimer = null;
     this._reconnectTime = INITIAL_RECONNECT_TIME_MS;
     this._reconnectTimer = null;
     this._previouslyConnected = false;
-    const transport = new (_QueuedTransport || _load_QueuedTransport()).QueuedTransport(this.id);
+    const transport = useAck ? new (_QueuedAckTransport || _load_QueuedAckTransport()).QueuedAckTransport(this.id) : new (_QueuedTransport || _load_QueuedTransport()).QueuedTransport(this.id);
     this._transport = transport;
     transport.onDisconnect(() => {
       if (this.isDisconnected()) {

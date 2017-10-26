@@ -104,7 +104,7 @@ class ServiceParser {
 
 
   parseService(fileName, source) {
-    const fileParser = getFileParser(fileName, source);
+    const fileParser = getFileParser(fileName, source, true);
     fileParser.getExports().forEach(node => fileParser.parseExport(this, node));
     const objDefs = (0, (_collection || _load_collection()).objectFromMap)(this._defs);
     (0, (_DefinitionValidator || _load_DefinitionValidator()).validateDefinitions)(objDefs);
@@ -140,12 +140,12 @@ class ServiceParser {
 
 const fileParsers = new Map();
 
-function getFileParser(fileName, source) {
+function getFileParser(fileName, source, isDefinition) {
   let parser = fileParsers.get(fileName);
   if (parser != null) {
     return parser;
   }
-  parser = new FileParser(fileName);
+  parser = new FileParser(fileName, Boolean(isDefinition));
   // flowlint-next-line sketchy-null-string:off
   parser.parse(source || _fs.default.readFileSync(fileName, 'utf8'));
   fileParsers.set(fileName, parser);
@@ -159,12 +159,15 @@ function _clearFileParsers() {
 
 class FileParser {
   // Map of exported identifiers to their nodes.
-  constructor(fileName) {
+  constructor(fileName, isDefinition) {
     this._fileName = fileName;
+    this._isDefinition = isDefinition;
     this._exports = new Map();
     this._imports = new Map();
   }
   // Map of imported identifiers to their source file/identifier.
+
+  // Whether this file defines the service (i.e. not an import)
 
 
   getExports() {
@@ -215,8 +218,17 @@ class FileParser {
       switch (node.type) {
         case 'ExportNamedDeclaration':
           // Mark exports for easy lookup later.
-          if (node.declaration != null && node.declaration.id != null) {
-            this._exports.set(node.declaration.id.name, node);
+          if (node.declaration != null) {
+            if (node.declaration.id != null) {
+              this._exports.set(node.declaration.id.name, node);
+            }
+          } else if (this._isDefinition) {
+            if (node.exportKind === 'value') {
+              // Prevent undeclared function re-exports at service definition
+              // because sans type information we cannot write the RPC method.
+              // e.g. export {someFunction} from './anotherFile';
+              throw this._error(node, 'Exports without declarations are not supported.');
+            }
           }
           // Only support export type {...} for now.
           if (node.specifiers != null && node.exportKind === 'type') {

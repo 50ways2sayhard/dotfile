@@ -11,9 +11,15 @@ function _load_observable() {
   return _observable = require('nuclide-commons/observable');
 }
 
-var _atom = require('atom');
+var _UniversalDisposable;
+
+function _load_UniversalDisposable() {
+  return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
+}
 
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * A utility that adds and removes commands to the Atom command registry based on their presence in
@@ -40,6 +46,6 @@ function syncAtomCommands(source, project, hash) {
   return (0, (_observable || _load_observable()).reconcileSets)(sets, item => {
     const commands = project(item);
     const disposables = Object.keys(commands).map(target => atom.commands.add(target, commands[target]));
-    return new _atom.CompositeDisposable(...disposables);
+    return new (_UniversalDisposable || _load_UniversalDisposable()).default(...disposables);
   }, hash);
 }
