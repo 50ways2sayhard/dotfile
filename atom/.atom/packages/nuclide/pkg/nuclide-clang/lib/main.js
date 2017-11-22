@@ -22,6 +22,12 @@ exports.deactivate = deactivate;
 
 var _atom = require('atom');
 
+var _featureConfig;
+
+function _load_featureConfig() {
+  return _featureConfig = _interopRequireDefault(require('nuclide-commons-atom/feature-config'));
+}
+
 var _UniversalDisposable;
 
 function _load_UniversalDisposable() {
@@ -90,18 +96,16 @@ function _load_libclang() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-let subscriptions = null;
+let subscriptions = null; /**
+                           * Copyright (c) 2015-present, Facebook, Inc.
+                           * All rights reserved.
+                           *
+                           * This source code is licensed under the license found in the LICENSE file in
+                           * the root directory of this source tree.
+                           *
+                           * 
+                           * @format
+                           */
 
 function activate() {
   subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default();
@@ -121,6 +125,17 @@ function activate() {
     // Save the file to trigger compilation.
     yield editor.save();
   })));
+  if ((_featureConfig || _load_featureConfig()).default.get('nuclide-clangd-lsp.useClangd')) {
+    const deactivateSelf = () => {
+      if (atom.packages.isPackageActive((_constants || _load_constants()).PACKAGE_NAME)) {
+        atom.packages.deactivatePackage((_constants || _load_constants()).PACKAGE_NAME);
+      }
+    };
+    if (subscriptions != null) {
+      subscriptions.add(atom.packages.onDidActivatePackage(deactivateSelf));
+      deactivateSelf();
+    }
+  }
 }
 
 /** Provider for autocomplete service. */

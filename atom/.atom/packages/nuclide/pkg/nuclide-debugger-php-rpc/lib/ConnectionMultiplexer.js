@@ -497,7 +497,6 @@ class ConnectionMultiplexer {
         // Global runtime evaluation on dummy connection does not care about
         // which frame it is being evaluated on so choose top frame here.
         const result = yield _this4._dummyConnection.runtimeEvaluate(0, expression);
-        _this4._reportEvaluationFailureIfNeeded(expression, result);
         return result;
       } else {
         _this4._sendOutput('Error evaluating expression: the console is not ready yet. Please wait...', 'error');
@@ -512,18 +511,11 @@ class ConnectionMultiplexer {
     return (0, _asyncToGenerator.default)(function* () {
       if (_this5._enabledConnection) {
         const result = yield _this5._enabledConnection.evaluateOnCallFrame(frameIndex, expression);
-        _this5._reportEvaluationFailureIfNeeded(expression, result);
         return result;
       } else {
         throw _this5._noConnectionError();
       }
     })();
-  }
-
-  _reportEvaluationFailureIfNeeded(expression, result) {
-    if (result.wasThrown) {
-      this._sendOutput('Failed to evaluate ' + `"${expression}": (${result.error.$.code}) ${result.error.message[0]}`, 'error');
-    }
   }
 
   getBreakpointStore() {

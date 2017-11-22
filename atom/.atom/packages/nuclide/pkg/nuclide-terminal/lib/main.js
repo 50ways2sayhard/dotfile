@@ -36,6 +36,12 @@ function _load_UniversalDisposable() {
   return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
 }
 
+var _TerminalOmni2Provider;
+
+function _load_TerminalOmni2Provider() {
+  return _TerminalOmni2Provider = _interopRequireDefault(require('./TerminalOmni2Provider'));
+}
+
 var _terminalView;
 
 function _load_terminalView() {
@@ -50,16 +56,19 @@ function _load_nuclideTerminalUri() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const TERMINAL_CONTEXT_MENU_PRIORITY = 100; /**
-                                             * Copyright (c) 2015-present, Facebook, Inc.
-                                             * All rights reserved.
-                                             *
-                                             * This source code is licensed under the license found in the LICENSE file in
-                                             * the root directory of this source tree.
-                                             *
-                                             * 
-                                             * @format
-                                             */
+// $FlowFB
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
+const TERMINAL_CONTEXT_MENU_PRIORITY = 100;
 
 class Activation {
 
@@ -127,10 +136,17 @@ class Activation {
     });
   }
 
+  consumeOmni2(registerProvider) {
+    return registerProvider(new (_TerminalOmni2Provider || _load_TerminalOmni2Provider()).default({
+      getCwdApi: () => this._cwd
+    }));
+  }
+
   _getPathOrCwd(event) {
     const editorPath = (0, (_getElementFilePath || _load_getElementFilePath()).default)(event.target, true);
+
     if (editorPath != null) {
-      return (_nuclideUri || _load_nuclideUri()).default.dirname(editorPath);
+      return (_nuclideUri || _load_nuclideUri()).default.endsWithSeparator(editorPath) ? editorPath : (_nuclideUri || _load_nuclideUri()).default.dirname(editorPath);
     }
 
     if (this._cwd != null) {

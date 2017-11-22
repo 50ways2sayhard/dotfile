@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.getDeploymentTargetPreference = getDeploymentTargetPreference;
 exports.selectValidDeploymentTarget = selectValidDeploymentTarget;
 exports.getPlatformProviderUiForDeploymentTarget = getPlatformProviderUiForDeploymentTarget;
+exports.formatDeploymentTarget = formatDeploymentTarget;
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -97,4 +98,14 @@ function getPlatformProviderUiForDeploymentTarget(deploymentTarget) {
     return null;
   }
   return deploymentTarget.platform.extraUiWhenSelected(deploymentTarget.device);
+}
+
+function formatDeploymentTarget(deploymentTarget) {
+  if (deploymentTarget == null) {
+    return '';
+  }
+  const { device, deviceGroup, platform, platformGroup } = deploymentTarget;
+  const deviceString = device != null ? `: ${device.name}` : '';
+  const deviceGroupString = deviceGroup != null && deviceGroup.name !== '' ? ` (${deviceGroup.name})` : '';
+  return `${platformGroup.name} ${platform.name}${deviceString}${deviceGroupString}`;
 }

@@ -2,40 +2,39 @@
   "_args": [
     [
       {
-        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11742-74270-ue6vo4.d1d3oko6r/package.tgz",
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117107-62408-1lg47nv.lv8mqb0529/package.tgz",
         "scope": null,
         "escapedName": null,
         "name": null,
-        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11742-74270-ue6vo4.d1d3oko6r/package.tgz",
-        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11742-74270-ue6vo4.d1d3oko6r/package.tgz",
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117107-62408-1lg47nv.lv8mqb0529/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117107-62408-1lg47nv.lv8mqb0529/package.tgz",
         "type": "local"
       },
-      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-11742-74270-1sltjck.4qac434n29"
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117107-62408-1ybqgnh.r84rvygb9"
     ]
   ],
-  "_from": "../d-11742-74270-ue6vo4.d1d3oko6r/package.tgz",
-  "_id": "autocomplete-clang@0.11.3",
+  "_from": "../d-117107-62408-1lg47nv.lv8mqb0529/package.tgz",
+  "_id": "autocomplete-clang@0.11.4",
   "_inCache": true,
-  "_installable": true,
   "_location": "/autocomplete-clang",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11742-74270-ue6vo4.d1d3oko6r/package.tgz",
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117107-62408-1lg47nv.lv8mqb0529/package.tgz",
     "scope": null,
     "escapedName": null,
     "name": null,
-    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11742-74270-ue6vo4.d1d3oko6r/package.tgz",
-    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11742-74270-ue6vo4.d1d3oko6r/package.tgz",
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117107-62408-1lg47nv.lv8mqb0529/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117107-62408-1lg47nv.lv8mqb0529/package.tgz",
     "type": "local"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "file:../d-11742-74270-ue6vo4.d1d3oko6r/package.tgz",
-  "_shasum": "0ae8770da215ebbd69f02a34eface38f397eeee5",
+  "_resolved": "file:../d-117107-62408-1lg47nv.lv8mqb0529/package.tgz",
+  "_shasum": "8adc077f66e402b49d0cf677a8b8455ed2a61087",
   "_shrinkwrap": null,
-  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-11742-74270-ue6vo4.d1d3oko6r/package.tgz",
-  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-11742-74270-1sltjck.4qac434n29",
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117107-62408-1lg47nv.lv8mqb0529/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117107-62408-1ybqgnh.r84rvygb9",
   "activationCommands": [],
   "bugs": {
     "url": "https://github.com/yasuyuky/autocomplete-clang/issues"
@@ -68,5 +67,5 @@
     "type": "git",
     "url": "git+https://github.com/yasuyuky/autocomplete-clang.git"
   },
-  "version": "0.11.3"
+  "version": "0.11.4"
 }

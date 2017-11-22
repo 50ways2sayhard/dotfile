@@ -26,14 +26,7 @@ let debuggerDatatip = exports.debuggerDatatip = (() => {
     }
     const watchExpressionStore = model.getWatchExpressionStore();
     const evaluation = watchExpressionStore.evaluateWatchExpression(expression);
-    // Avoid creating a datatip if the evaluation fails
-    const evaluationResult = yield evaluation.take(1).toPromise();
-    if (evaluationResult == null) {
-      return null;
-    }
-    const propStream = evaluation.filter(function (result) {
-      return result != null;
-    }).map(function (result) {
+    const propStream = evaluation.map(function (result) {
       return {
         expression,
         evaluationResult: result,
@@ -78,17 +71,6 @@ function _load_DebuggerDatatipComponent() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
 function getEvaluationExpression(model, editor, position) {
   const { scopeName } = editor.getGrammar();
   const allProviders = model.getStore().getEvaluationExpressionProviders();
@@ -102,4 +84,13 @@ function getEvaluationExpression(model, editor, position) {
   }
   // eslint-disable-next-line eqeqeq
   return matchingProvider === null ? Promise.resolve((0, (_nuclideDebuggerBase || _load_nuclideDebuggerBase()).getDefaultEvaluationExpression)(editor, position)) : matchingProvider.getEvaluationExpression(editor, position);
-}
+} /**
+   * Copyright (c) 2015-present, Facebook, Inc.
+   * All rights reserved.
+   *
+   * This source code is licensed under the license found in the LICENSE file in
+   * the root directory of this source tree.
+   *
+   * 
+   * @format
+   */

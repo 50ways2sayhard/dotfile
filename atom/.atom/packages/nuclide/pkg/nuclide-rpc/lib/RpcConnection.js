@@ -243,6 +243,7 @@ class RpcConnection {
   marshal(value, type) {
     return this._getTypeRegistry().marshal(this._objectRegistry, value, type);
   }
+
   unmarshal(value, type) {
     return this._getTypeRegistry().unmarshal(this._objectRegistry, value, type);
   }

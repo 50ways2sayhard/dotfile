@@ -2,39 +2,39 @@
   "_args": [
     [
       {
-        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39241-115e2s0.agl42f0f6r/package.tgz",
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65960-n20a6p.l6fpoav2t9/package.tgz",
         "scope": null,
         "escapedName": null,
         "name": null,
-        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39241-115e2s0.agl42f0f6r/package.tgz",
-        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39241-115e2s0.agl42f0f6r/package.tgz",
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65960-n20a6p.l6fpoav2t9/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65960-n20a6p.l6fpoav2t9/package.tgz",
         "type": "local"
       },
-      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117924-39241-p31v27.bhnonljtt9"
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-1171020-65960-13ksh89.ef967jh5mi"
     ]
   ],
-  "_from": "../d-117924-39241-115e2s0.agl42f0f6r/package.tgz",
-  "_id": "Hydrogen@2.0.1",
+  "_from": "../d-1171020-65960-n20a6p.l6fpoav2t9/package.tgz",
+  "_id": "Hydrogen@2.1.0",
   "_inCache": true,
   "_location": "/Hydrogen",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39241-115e2s0.agl42f0f6r/package.tgz",
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65960-n20a6p.l6fpoav2t9/package.tgz",
     "scope": null,
     "escapedName": null,
     "name": null,
-    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39241-115e2s0.agl42f0f6r/package.tgz",
-    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39241-115e2s0.agl42f0f6r/package.tgz",
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65960-n20a6p.l6fpoav2t9/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65960-n20a6p.l6fpoav2t9/package.tgz",
     "type": "local"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "file:../d-117924-39241-115e2s0.agl42f0f6r/package.tgz",
-  "_shasum": "35ffa68743cc0fedb2de98872e2001f9e393345c",
+  "_resolved": "file:../d-1171020-65960-n20a6p.l6fpoav2t9/package.tgz",
+  "_shasum": "61fab373a8c0e29b2f0d300362971e370f0bd7e7",
   "_shrinkwrap": null,
-  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39241-115e2s0.agl42f0f6r/package.tgz",
-  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117924-39241-p31v27.bhnonljtt9",
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65960-n20a6p.l6fpoav2t9/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-1171020-65960-13ksh89.ef967jh5mi",
   "activationCommands": {
     "atom-text-editor": [
       "hydrogen:start-local-kernel",
@@ -64,40 +64,41 @@
     }
   },
   "dependencies": {
-    "@jupyterlab/services": "^0.50.2",
+    "@jupyterlab/services": "^0.51.0",
+    "@nteract/commutable": "^2.1.2",
     "@nteract/display-area": "^3.0.0",
     "@nteract/transform-plotly": "^3.0.0",
     "@nteract/transform-vega": "^3.0.0",
     "@nteract/transforms": "^3.0.0",
-    "anser": "^1.4.3",
-    "atom-select-list": "^0.3.0",
+    "anser": "^1.4.4",
+    "atom-select-list": "^0.5.0",
     "escape-carriage": "^1.2.0",
     "escape-string-regexp": "^1.0.5",
-    "jmp": "^0.7.5",
+    "jmp": "^1.0.0",
     "kernelspecs": "^2.0.0",
     "lodash": "^4.14.0",
     "mobx": "^3.3.0",
-    "mobx-react": "^4.3.3",
+    "mobx-react": "^4.3.4",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-rangeslider": "^2.1.0",
     "spawnteract": "^4.0.0",
     "tildify": "^1.2.0",
     "uuid": "^3.0.1",
-    "ws": "^3.2.0",
+    "ws": "^3.3.1",
     "xmlhttprequest": "^1.8.0"
   },
   "description": "Run code interactively, inspect data, and plot. All the power of Jupyter kernels, inside your favorite text editor.",
   "devDependencies": {
     "atom-jasmine2-test-runner": "^1.0.0",
-    "enzyme": "^3.1.0",
-    "enzyme-adapter-react-16": "^1.0.1",
-    "flow-bin": "^0.56.0",
+    "enzyme": "^3.1.1",
+    "enzyme-adapter-react-16": "^1.0.4",
+    "flow-bin": "^0.54.0",
     "husky": "^0.14.0",
-    "lint-staged": "^4.0.0",
+    "lint-staged": "^5.0.0",
     "markdox": "^0.1.10",
     "mobx-react-devtools": "^4.2.11",
-    "prettier": "1.7.4",
+    "prettier": "^1.8.2",
     "react-test-renderer": "^16.0.0"
   },
   "engines": {
@@ -152,5 +153,5 @@
     "precommit": "lint-staged",
     "prettier": "prettier --write 'lib/**/*.js' 'spec/**/*.js'"
   },
-  "version": "2.0.1"
+  "version": "2.1.0"
 }

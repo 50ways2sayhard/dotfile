@@ -57,19 +57,7 @@ function setupErrorHandling() {
 }
 
 function setupLogging() {
-  // Initialize logging
-  (0, (_nuclideLogging || _load_nuclideLogging()).initialUpdateConfig)();
-
-  const config = {
-    appenders: [(_nuclideLogging || _load_nuclideLogging()).FileAppender]
-  };
-
-  const serverLogAppenderConfig = (0, (_nuclideLogging || _load_nuclideLogging()).getServerLogAppenderConfig)();
-  if (serverLogAppenderConfig) {
-    config.appenders.push(serverLogAppenderConfig);
-  }
-
-  (_log4js || _load_log4js()).default.configure(config);
+  (0, (_nuclideLogging || _load_nuclideLogging()).initializeLogging)();
 }
 
 function reportConnectionErrorAndExit(detailMessage) {

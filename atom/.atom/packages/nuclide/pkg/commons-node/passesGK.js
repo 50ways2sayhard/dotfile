@@ -50,15 +50,18 @@ const getGatekeeper = (0, (_once || _load_once()).default)(() => {
       isGkEnabled(name) {
         return null;
       }
+
       asyncIsGkEnabled(name, timeout) {
         return Promise.resolve();
       }
+
       onceGkInitialized(callback) {
         process.nextTick(() => {
           callback();
         });
         return new (_eventKit || _load_eventKit()).Disposable();
       }
+
       getCacheEntries() {
         return [];
       }

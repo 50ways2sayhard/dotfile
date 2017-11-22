@@ -81,7 +81,7 @@ class ChangedFile extends _react.Component {
 
   _getFileClassname() {
     const { commandPrefix, fileStatus, isHgPath, isSelected } = this.props;
-    return (0, (_classnames || _load_classnames()).default)('nuclide-changed-file', 'list-item', {
+    return (0, (_classnames || _load_classnames()).default)('nuclide-changed-file', 'list-item', 'nuclide-path-with-terminal', {
       selected: isSelected,
       [`${commandPrefix}-file-entry`]: isHgPath
     }, (_nuclideVcsBase || _load_nuclideVcsBase()).FileChangeStatusToTextColor[fileStatus]);

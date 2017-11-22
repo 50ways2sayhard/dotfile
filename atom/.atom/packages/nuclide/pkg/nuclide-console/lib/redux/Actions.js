@@ -18,6 +18,7 @@ exports.removeSource = removeSource;
 exports.unregisterExecutor = unregisterExecutor;
 exports.updateStatus = updateStatus;
 exports.setCreatePasteFunction = setCreatePasteFunction;
+exports.setWatchEditor = setWatchEditor;
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -31,6 +32,7 @@ exports.setCreatePasteFunction = setCreatePasteFunction;
 
 const CLEAR_RECORDS = exports.CLEAR_RECORDS = 'CLEAR_RECORDS';
 const SET_CREATE_PASTE_FUNCTION = exports.SET_CREATE_PASTE_FUNCTION = 'SET_CREATE_PASTE_FUNCTION';
+const SET_WATCH_EDITOR_FUNCTION = exports.SET_WATCH_EDITOR_FUNCTION = 'SET_WATCH_EDITOR_FUNCTION';
 const REGISTER_EXECUTOR = exports.REGISTER_EXECUTOR = 'REGISTER_EXECUTOR';
 const EXECUTE = exports.EXECUTE = 'EXECUTE';
 const REGISTER_RECORD_PROVIDER = exports.REGISTER_RECORD_PROVIDER = 'REGISTER_RECORD_PROVIDER';
@@ -147,5 +149,12 @@ function setCreatePasteFunction(createPasteFunction) {
   return {
     type: SET_CREATE_PASTE_FUNCTION,
     payload: { createPasteFunction }
+  };
+}
+
+function setWatchEditor(watchEditor) {
+  return {
+    type: SET_WATCH_EDITOR_FUNCTION,
+    payload: { watchEditor }
   };
 }

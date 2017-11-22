@@ -85,13 +85,14 @@ function _load_ConfigCache() {
   return _ConfigCache = require('nuclide-commons/ConfigCache');
 }
 
+var _config;
+
+function _load_config() {
+  return _config = require('./config');
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const FLOW_BIN_PATH = 'node_modules/.bin/flow';
-
-// All the information needed to execute Flow in a given root. The path to the Flow binary we want
-// to use may vary per root -- for now, only if we are using the version of Flow from `flow-bin`.
-// The options also vary, right now only because they set the cwd to the current Flow root.
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -103,6 +104,11 @@ const FLOW_BIN_PATH = 'node_modules/.bin/flow';
  * @format
  */
 
+const FLOW_BIN_PATH = 'node_modules/.bin/flow';
+
+// All the information needed to execute Flow in a given root. The path to the Flow binary we want
+// to use may vary per root -- for now, only if we are using the version of Flow from `flow-bin`.
+// The options also vary, right now only because they set the cwd to the current Flow root.
 class FlowExecInfoContainer {
   // Map from file path to the closest ancestor directory containing a .flowconfig file (the file's
   // Flow root)
@@ -117,6 +123,7 @@ class FlowExecInfoContainer {
     this._disposables = new (_UniversalDisposable || _load_UniversalDisposable()).default();
     this._versionInfo = versionInfo;
 
+    this._canUseFlowBin = Boolean((0, (_config || _load_config()).getConfig)('canUseFlowBin'));
     this._observeSettings();
   }
 
@@ -134,15 +141,12 @@ class FlowExecInfoContainer {
 
   // Returns null iff Flow cannot be found.
   getFlowExecInfo(root) {
-    var _this = this;
-
-    return (0, _asyncToGenerator.default)(function* () {
-      if (!_this._flowExecInfoCache.has(root)) {
-        const info = yield _this._computeFlowExecInfo(root);
-        _this._flowExecInfoCache.set(root, info);
-      }
-      return _this._flowExecInfoCache.get(root);
-    })();
+    let info = this._flowExecInfoCache.get(root);
+    if (info == null) {
+      info = this._computeFlowExecInfo(root);
+      this._flowExecInfoCache.set(root, info);
+    }
+    return info;
   }
 
   reallyGetFlowExecInfo(root) {
@@ -151,12 +155,12 @@ class FlowExecInfoContainer {
   }
 
   _computeFlowExecInfo(root) {
-    var _this2 = this;
+    var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       let versionInfo;
-      if (_this2._versionInfo == null) {
-        const flowPath = yield _this2._getPathToFlow(root);
+      if (_this._versionInfo == null) {
+        const flowPath = yield _this._getPathToFlow(root);
         if (flowPath == null) {
           return null;
         }
@@ -165,7 +169,7 @@ class FlowExecInfoContainer {
           return null;
         }
       } else {
-        versionInfo = _this2._versionInfo;
+        versionInfo = _this._versionInfo;
       }
 
       return Object.assign({}, versionInfo, {
@@ -177,17 +181,17 @@ class FlowExecInfoContainer {
   // Return the path we should use to execute Flow for the given root, or null if Flow cannot be
   // found.
   _getPathToFlow(root) {
-    var _this3 = this;
+    var _this2 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const flowBinPath = yield _this3._getFlowBinPath(root);
+      const flowBinPath = yield _this2._getFlowBinPath(root);
       if (flowBinPath != null && (yield canFindFlow(flowBinPath))) {
         return flowBinPath;
       }
 
       // Pull this into a local on the off chance that the setting changes while we are doing the
       // check.
-      const systemFlowPath = _this3._pathToFlow;
+      const systemFlowPath = _this2._pathToFlow;
 
       // If on Windows, prefer the .cmd wrapper for flow if it's available.
       if (process.platform === 'win32') {
@@ -206,13 +210,13 @@ class FlowExecInfoContainer {
   }
 
   _getFlowBinPath(root) {
-    var _this4 = this;
+    var _this3 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       if (root == null) {
         return null;
       }
-      if (!_this4._canUseFlowBin) {
+      if (!_this3._canUseFlowBin) {
         return null;
       }
       // If we are running on Windows, we should use the .cmd version of flow.
@@ -224,25 +228,21 @@ class FlowExecInfoContainer {
   }
 
   findFlowConfigDir(localFile) {
-    var _this5 = this;
+    var _this4 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      return _this5._flowConfigDirCache.getConfigDir(localFile);
+      return _this4._flowConfigDirCache.getConfigDir(localFile);
     })();
   }
 
   _observeSettings() {
     if (global.atom == null) {
       this._pathToFlow = 'flow';
-      this._canUseFlowBin = false;
     } else {
       // $UPFixMe: This should use nuclide-features-config
       // Does not currently do so because this is an npm module that may run on the server.
       this._disposables.add(atom.config.observe('nuclide.nuclide-flow.pathToFlow', path => {
         this._pathToFlow = path;
-        this._flowExecInfoCache.reset();
-      }), atom.config.observe('nuclide.nuclide-flow.canUseFlowBin', canUseFlowBin => {
-        this._canUseFlowBin = canUseFlowBin;
         this._flowExecInfoCache.reset();
       }));
     }

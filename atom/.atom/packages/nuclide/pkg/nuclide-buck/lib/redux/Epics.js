@@ -132,7 +132,12 @@ function setBuildTargetEpic(actions, store) {
     if (buckService == null) {
       return _rxjsBundlesRxMinJs.Observable.of(null);
     }
-    return _rxjsBundlesRxMinJs.Observable.defer(() => buckService.buildRuleTypeFor(buckRoot, buildTarget)).catch(() => _rxjsBundlesRxMinJs.Observable.of(null));
+    return _rxjsBundlesRxMinJs.Observable.defer(() => {
+      return buckService.buildRuleTypeFor(buckRoot, buildTarget);
+    }).catch(error => {
+      (0, (_log4js || _load_log4js()).getLogger)().error(error);
+      return _rxjsBundlesRxMinJs.Observable.of(null);
+    });
   }).switchMap(ruleType => _rxjsBundlesRxMinJs.Observable.of(setRuleType(ruleType)));
 }
 

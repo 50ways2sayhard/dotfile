@@ -16,9 +16,6 @@ exports.createUnsubscribeMessage = createUnsubscribeMessage;
 exports.createErrorResponseMessage = createErrorResponseMessage;
 
 
-// TODO: This should be a custom marshaller registered in the TypeRegistry
-
-
 // Encodes the structure of messages that can be sent from the server to the client.
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
@@ -32,10 +29,17 @@ exports.createErrorResponseMessage = createErrorResponseMessage;
  */
 
 // Encodes the structure of messages that can be sent from the client to the server.
+const ERROR_MESSAGE_LIMIT = 1000;
+
+// TODO: This should be a custom marshaller registered in the TypeRegistry
 function decodeError(message, encodedError) {
   if (encodedError != null && typeof encodedError === 'object') {
     const resultError = new Error();
-    resultError.message = `Remote Error: ${encodedError.message} processing message ${JSON.stringify(message)}\n` + JSON.stringify(encodedError.stack);
+    let messageStr = JSON.stringify(message);
+    if (messageStr.length > ERROR_MESSAGE_LIMIT) {
+      messageStr = messageStr.substr(0, ERROR_MESSAGE_LIMIT) + `<${messageStr.length - ERROR_MESSAGE_LIMIT} bytes>`;
+    }
+    resultError.message = `Remote Error: ${encodedError.message} processing message ${messageStr}\n` + JSON.stringify(encodedError.stack);
     // $FlowIssue - some Errors (notably file operations) have a code.
     resultError.code = encodedError.code;
     resultError.stack = encodedError.stack;

@@ -112,7 +112,13 @@ function addDefaultDeclarationToExportIndex(node, fileUri, exportIndex) {
     // (ex: export default {someObject, otherObject})
     // Assume the id will be the name of the file.
     const id = idFromFileName(fileUri);
-    exportIndex.push({ id, uri: fileUri, isDefault, isTypeExport });
+    exportIndex.push({
+      id,
+      uri: fileUri,
+      line: node.loc.start.line,
+      isDefault,
+      isTypeExport
+    });
     return;
   }
 
@@ -144,6 +150,7 @@ function specifierToExport(node, fileUri, isTypeExport, isDefault) {
   return {
     id: node.exported.name,
     uri: fileUri,
+    line: node.loc.start.line,
     isTypeExport,
     isDefault
   };
@@ -155,6 +162,7 @@ function expressionToExports(expression, isTypeExport, fileUri) {
   const result = [{
     id: defaultId,
     uri: fileUri,
+    line: expression.loc.start.line,
     type: 'ObjectExpression',
     isTypeExport,
     isDefault: true
@@ -165,6 +173,7 @@ function expressionToExports(expression, isTypeExport, fileUri) {
     result.push({
       id: ident,
       uri: fileUri,
+      line: expression.loc.start.line,
       type: expression.type,
       isTypeExport,
       isDefault: true // Treated as default export
@@ -178,6 +187,7 @@ function expressionToExports(expression, isTypeExport, fileUri) {
       return {
         id: property.key.type === 'StringLiteral' ? property.key.value : property.key.name,
         uri: fileUri,
+        line: property.key.loc.start.line,
         type: expression.type,
         isTypeExport,
         isDefault: false
@@ -188,7 +198,8 @@ function expressionToExports(expression, isTypeExport, fileUri) {
     result.push({
       id: expression.left.name,
       uri: fileUri,
-      type: expression.type,
+      line: expression.left.loc.start.line,
+      type: expression.right.type,
       isTypeExport,
       isDefault: true // Treated as default export
     });
@@ -202,6 +213,7 @@ function declarationToExport(declaration, isTypeExport, fileUri, isDefault) {
     return [{
       id: declaration.name || declaration.id.name,
       uri: fileUri,
+      line: declaration.loc.start.line,
       type: declaration.type,
       isTypeExport,
       isDefault
@@ -216,6 +228,7 @@ function declarationToExport(declaration, isTypeExport, fileUri, isDefault) {
       return {
         id: decl.id.name,
         uri: fileUri,
+        line: decl.id.loc.start.line,
         type: declaration.type,
         isTypeExport,
         isDefault
@@ -227,6 +240,7 @@ function declarationToExport(declaration, isTypeExport, fileUri, isDefault) {
     return [{
       id: idFromFileName(fileUri),
       uri: fileUri,
+      line: declaration.loc.start.line,
       isTypeExport: false,
       type: declaration.type,
       isDefault
@@ -257,6 +271,7 @@ function traverseTreeAndIndexExports(ast, fileUri, exportIndex) {
               exportIndex.push({
                 id: left.property.name,
                 uri: fileUri,
+                line: left.property.loc.start.line,
                 type:
                 // Exclude easy cases from being imported as types.
                 right.type === 'ObjectExpression' || right.type === 'FunctionExpression' || right.type === 'NumericLiteral' || right.type === 'StringLiteral' ? right.type : undefined,

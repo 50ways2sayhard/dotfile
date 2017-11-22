@@ -1,0 +1,43 @@
+[01:45:18 main] Single-session mode on fds (3, 4)
+[01:45:18 main] Single-session mode on fds (3, 4)
+[01:45:19 wireprotocol] rx: {"type":"request","seq":1,"command":"initialize","arguments":{"adapterID":"lldb","linesStartAt1":true,"columnsStartAt1":true,"pathFormat":"path"}}
+[01:45:19 debugsession] ### Handling command: initialize
+[01:45:19 debugsession] LLDB version: lldb version 4.0.0
+[01:45:19 wireprotocol] tx: {"request_seq":1,"command":"initialize","body":{"supportsDelayedStackTraceLoading":true,"supportsConfigurationDoneRequest":true,"supportsFunctionBreakpoints":true,"supportTerminateDebuggee":true,"supportsHitConditionalBreakpoints":true,"supportsEvaluateForHovers":true,"supportsSetVariable":true,"supportsCompletionsRequest":true,"supportsConditionalBreakpoints":true,"supportsStepBack":false},"type":"response","success":true}
+[01:45:19 wireprotocol] rx: {"type":"request","seq":2,"command":"launch","arguments":{"program":"/home/chega/NW/vscode-lldb/out/debuggee/debuggee","args":["dasm"]}}
+[01:45:19 debugsession] ### Handling command: launch
+[01:45:19 wireprotocol] tx: {"body":{},"type":"event","event":"initialized","seq":0}
+[01:45:19 wireprotocol] rx: {"type":"request","seq":3,"command":"setFunctionBreakpoints","arguments":{"breakpoints":[{"name":"_disassembly1"}]}}
+[01:45:19 debugsession] ### Handling command: setFunctionBreakpoints
+[01:45:19 wireprotocol] rx: {"type":"request","seq":4,"command":"configurationDone"}
+[01:45:19 wireprotocol] tx: {"request_seq":3,"command":"setFunctionBreakpoints","body":{"breakpoints":[{"verified":false,"id":1}]},"type":"response","success":true}
+[01:45:19 debugsession] ### Handling command: configurationDone
+[01:45:19 debugsession] Launching...
+[01:45:19 wireprotocol] tx: {"request_seq":2,"command":"launch","body":null,"type":"response","success":true}
+[01:45:19 debugevents] $$$ Debug event: Process::ProcessEventData 0x7f2008007560 Event: broadcaster = 0x2474cb8 (lldb.process), type = 0x00000001 (state-changed), data = { process = 0x2474c80 (pid = 16670), state = running}
+[01:45:19 wireprotocol] tx: {"request_seq":4,"command":"configurationDone","body":null,"type":"response","success":true}
+[01:45:19 wireprotocol] tx: {"body":{"allThreadsContinued":true,"threadId":0},"type":"event","event":"continued","seq":0}
+[01:45:20 debugevents] $$$ Debug event: Process::ProcessEventData 0x7f2008004b20 Event: broadcaster = 0x2474cb8 (lldb.process), type = 0x00000001 (state-changed), data = { process = 0x2474c80 (pid = 16670), state = stopped}
+[01:45:20 debugevents] $$$ Debug output: disassembly1
+
+[01:45:20 debugevents] $$$ Debug event: Process::ProcessEventData 0x7f20080051d0 Event: broadcaster = 0x2474cb8 (lldb.process), type = 0x00000001 (state-changed), data = { process = 0x2474c80 (pid = 16670), state = running}
+[01:45:20 wireprotocol] tx: {"body":{"category":null,"output":"disassembly1\r\n"},"type":"event","event":"output","seq":0}
+[01:45:20 wireprotocol] tx: {"body":{"allThreadsContinued":true,"threadId":0},"type":"event","event":"continued","seq":0}
+[01:45:20 debugevents] $$$ Debug event: Process::ProcessEventData 0x7f2010002440 Event: broadcaster = 0x2474cb8 (lldb.process), type = 0x00000004 (stdout-available), data = { process = 0x2474c80 (pid = 16670), state = stopped}
+[01:45:20 debugevents] $$$ Debug event: Process::ProcessEventData 0x7f2008007660 Event: broadcaster = 0x2474cb8 (lldb.process), type = 0x00000001 (state-changed), data = { process = 0x2474c80 (pid = 16670), state = exited}
+[01:45:20 wireprotocol] tx: {"body":{"category":null,"output":"Process exited with code 0"},"type":"event","event":"output","seq":0}
+[01:45:20 wireprotocol] tx: {"body":{"exitCode":0},"type":"event","event":"exited","seq":0}
+[01:45:20 wireprotocol] tx: {"body":{},"type":"event","event":"terminated","seq":0}
+[01:45:24 wireprotocol] rx: {"type":"request","seq":5,"command":"disconnect"}
+[01:45:24 debugsession] ### Handling command: disconnect
+[01:45:24 workerthread] AsyncListener thread is shutting down
+[01:45:25 workerthread] AsyncListener thread has stopped
+[01:45:25 wireprotocol] tx: {"request_seq":5,"command":"disconnect","body":null,"type":"response","success":true}
+[01:45:25 workerthread] DebugServer thread is shutting down
+[01:45:25 wireprotocol] Disconnected
+[01:45:25 workerthread] DebugServer thread has stopped
+[01:45:25 main] Debug session has ended. Exiting.
+[01:45:25 wireprotocol] Disconnected
+[01:45:25 workerthread] DebugServer thread is shutting down
+[01:45:25 workerthread] DebugServer thread has stopped
+[01:45:25 main] Debug session has ended. Exiting.

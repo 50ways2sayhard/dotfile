@@ -556,10 +556,10 @@ module.exports = _client => {
 
     getAdditionalLogFiles(arg0) {
       return Promise.all([_client.marshalArguments(Array.from(arguments), [{
-        name: "expire",
+        name: "deadline",
         type: {
           kind: "named",
-          name: "ExpireRequest"
+          name: "DeadlineRequest"
         }
       }]), _client.marshal(this, {
         kind: "named",
@@ -1565,6 +1565,9 @@ Object.defineProperty(module.exports, "defs", {
         }, {
           kind: "string-literal",
           value: "review"
+        }, {
+          kind: "string-literal",
+          value: "action"
         }]
       }
     },
@@ -3151,14 +3154,14 @@ Object.defineProperty(module.exports, "defs", {
         }]
       }
     },
-    ExpireRequest: {
+    DeadlineRequest: {
       kind: "alias",
       location: {
         type: "source",
         fileName: "promise.js",
         line: 210
       },
-      name: "ExpireRequest",
+      name: "DeadlineRequest",
       definition: {
         kind: "number"
       }
@@ -3709,10 +3712,10 @@ Object.defineProperty(module.exports, "defs", {
           },
           kind: "function",
           argumentTypes: [{
-            name: "expire",
+            name: "deadline",
             type: {
               kind: "named",
-              name: "ExpireRequest"
+              name: "DeadlineRequest"
             }
           }],
           returnType: {

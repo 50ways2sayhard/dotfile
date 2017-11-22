@@ -56,7 +56,13 @@ class DevicePoller {
 
   observe(_host) {
     const host = (_nuclideUri || _load_nuclideUri()).default.isRemote(_host) ? _host : '';
-    return this._observables.getOrCreate(host, () => _rxjsBundlesRxMinJs.Observable.interval(2000).startWith(0).switchMap(() => this.fetch(host).map(devices => (_expected || _load_expected()).Expect.value(devices)).catch(() => _rxjsBundlesRxMinJs.Observable.of((_expected || _load_expected()).Expect.error(new Error(`Can't fetch ${this._getPlatform()} devices. Make sure that ${this._type} is in your $PATH and that it works properly.`))))).publishReplay(1).refCount());
+    let fetching = false;
+    return this._observables.getOrCreate(host, () => _rxjsBundlesRxMinJs.Observable.interval(1000).startWith(0).filter(() => !fetching).switchMap(() => {
+      fetching = true;
+      return this.fetch(host).map(devices => (_expected || _load_expected()).Expect.value(devices)).catch(() => _rxjsBundlesRxMinJs.Observable.of((_expected || _load_expected()).Expect.error(new Error(`Can't fetch ${this._getPlatform()} devices. Make sure that ${this._type} is in your $PATH and that it works properly.`)))).do(() => {
+        fetching = false;
+      });
+    }).publishReplay(1).refCount());
   }
 
   fetch(host) {

@@ -1,5 +1,80 @@
 # Nuclide Changelog
 
+## v0.269.0
+
+Hotfix release:
+
+* Prevent the git-diff package from throwing `TypeError: Cannot read property 'length' of undefined` on startup.
+* Prevent Buck build toolbar from disappearing.
+
+## v0.268.0
+
+### Highlights
+
+* Nuclide's SSH tunnel now works in both directions!
+
+### General
+
+* Upgrade to [Atom 1.22](http://blog.atom.io/2017/11/07/atom-1-22.html). Along with other improvements, this resolves an issue with copying the current file's relative path from the status bar.
+* The JavaScript imports services now uses an on-disk cache to reduce CPU usage during subsequent runs.
+* Fixed server crashes from misbehaving LSP servers.
+
+## v0.267.0
+
+Another hotfix:
+* Fix remote text buffer reload on Windows.
+* Fix broken React Native packager launch.
+
+## v0.266.0
+
+Hotfix release to fix task runner issues with remote directories.
+
+## v0.265.0
+
+### Highlights
+
+* Revamped the remote file reload experience.
+  * Restarting Nuclide with remote files open now preserves unsaved changes.
+  * Instead of displaying a blank file, remote files are now viewable in read-only mode during reconnection, and are no longer closed if the connection fails to reload.
+
+### General
+
+* Improved performance of diagnostics table rendering.
+* Fixed spurious Flow highlights for older Flow versions (< 0.55).
+* Reduce flakiness of Hyperclick underlines and loading indicators.
+* Outline view is now less aggressive about auto-focusing the search input.
+* Added new terminal option to the context menu of breadcrumbs
+
+### Debugger
+
+* Add autocomplete support for currently in scope variables (in all debuggers).
+* Fix debugger hover evaluation race with language services' type hints.
+* Add loading indicator while evaluating expressions on hovers & inline failure message.
+
+## v0.264.0
+
+### General
+
+* Added a `JS Symbols` provider inside of Quick Open (`Cmd-T`).
+* Improved scrolling performance on file tree (now using `react-virtualized`).
+* Fixed incorrect JS import suggestions for mocks and node_modules.
+* Datatips now appear at the cursor position rather than at the start of the highlighted range.
+* Datatip highlights no longer obscure 'Go to definition' underlines.
+* Type Coverage diagnostics are now blue (info-level).
+* Reduced performance overhead of logging and error analytics.
+
+### Debugger
+
+* Fixed regression in console where multiple debugger messages could be collapsed into a single message if their text was the same.
+* Add autocomplete support for nuclide debuggers (starting with Node).
+* Add debugger commands (repl) history autocomplete support.
+
+### Diagnostics Table
+
+* Improved logic around resizing and column widths.
+* Icons are now color-coded (matching gutter icons).
+* Line number column is now displayed when messages are limited to current file only.
+
 ## v0.263.0
 
 ### Misc

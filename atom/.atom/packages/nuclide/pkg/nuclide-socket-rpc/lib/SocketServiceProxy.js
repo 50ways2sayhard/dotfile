@@ -4,106 +4,142 @@ let Observable;
 
 module.exports = _client => {
   const remoteModule = {};
+  remoteModule.IRemoteSocket = class {
+    write(arg0) {
+      return Promise.all([_client.marshalArguments(Array.from(arguments), [{
+        name: "msg",
+        type: {
+          kind: "named",
+          name: "Buffer"
+        }
+      }]), _client.marshal(this, {
+        kind: "named",
+        location: {
+          type: "source",
+          fileName: "types.js",
+          line: 32
+        },
+        name: "IRemoteSocket"
+      })]).then(([args, id]) => _client.callRemoteMethod(id, "write", "void", args));
+    }
 
-  remoteModule.startListening = function (arg0, arg1) {
+    dispose() {
+      return _client.disposeRemoteObject(this);
+    }
+
+  };
+  remoteModule.Connection = class {
+    constructor(arg0, arg1) {
+      _client.createRemoteObject("Connection", this, [arg0, arg1], [{
+        name: "tunnelHost",
+        type: {
+          kind: "named",
+          name: "TunnelHost"
+        }
+      }, {
+        name: "remoteSocket",
+        type: {
+          kind: "named",
+          name: "IRemoteSocket"
+        }
+      }]);
+    }
+
+    write(arg0) {
+      return Promise.all([_client.marshalArguments(Array.from(arguments), [{
+        name: "msg",
+        type: {
+          kind: "named",
+          name: "Buffer"
+        }
+      }]), _client.marshal(this, {
+        kind: "named",
+        location: {
+          type: "source",
+          fileName: "Connection.js",
+          line: 17
+        },
+        name: "Connection"
+      })]).then(([args, id]) => _client.callRemoteMethod(id, "write", "void", args));
+    }
+
+    dispose() {
+      return _client.disposeRemoteObject(this);
+    }
+
+  };
+  remoteModule.ConnectionFactory = class {
+    constructor() {
+      _client.createRemoteObject("ConnectionFactory", this, [], []);
+    }
+
+    createConnection(arg0, arg1) {
+      return Promise.all([_client.marshalArguments(Array.from(arguments), [{
+        name: "tunnelHost",
+        type: {
+          kind: "named",
+          name: "TunnelHost"
+        }
+      }, {
+        name: "socket",
+        type: {
+          kind: "named",
+          name: "IRemoteSocket"
+        }
+      }]), _client.marshal(this, {
+        kind: "named",
+        location: {
+          type: "source",
+          fileName: "Connection.js",
+          line: 64
+        },
+        name: "ConnectionFactory"
+      })]).then(([args, id]) => _client.callRemoteMethod(id, "createConnection", "promise", args)).then(value => {
+        return _client.unmarshal(value, {
+          kind: "named",
+          name: "Connection"
+        });
+      });
+    }
+
+    dispose() {
+      return _client.disposeRemoteObject(this);
+    }
+
+  };
+
+  remoteModule.getConnectionFactory = function () {
+    return _client.marshalArguments(Array.from(arguments), []).then(args => {
+      return _client.callRemoteFunction("SocketService/getConnectionFactory", "promise", args);
+    }).then(value => {
+      return _client.unmarshal(value, {
+        kind: "named",
+        name: "ConnectionFactory"
+      });
+    });
+  };
+
+  remoteModule.createTunnel = function (arg0, arg1) {
     return Observable.fromPromise(_client.marshalArguments(Array.from(arguments), [{
-      name: "serverPort",
+      name: "td",
       type: {
-        kind: "number"
+        kind: "named",
+        name: "TunnelDescriptor"
       }
     }, {
-      name: "family",
+      name: "cf",
       type: {
-        kind: "nullable",
-        type: {
-          kind: "union",
-          types: [{
-            kind: "number-literal",
-            value: 4
-          }, {
-            kind: "number-literal",
-            value: 6
-          }]
-        }
+        kind: "named",
+        name: "ConnectionFactory"
       }
     }])).switchMap(args => {
-      return _client.callRemoteFunction("SocketService/startListening", "observable", args);
+      return _client.callRemoteFunction("SocketService/createTunnel", "observable", args);
     }).concatMap(value => {
       return _client.unmarshal(value, {
         kind: "named",
         name: "SocketEvent"
       });
     }).publish();
-  };
-
-  remoteModule.stopListening = function (arg0) {
-    return _client.marshalArguments(Array.from(arguments), [{
-      name: "serverPort",
-      type: {
-        kind: "number"
-      }
-    }]).then(args => {
-      return _client.callRemoteFunction("SocketService/stopListening", "void", args);
-    });
-  };
-
-  remoteModule.writeToClient = function (arg0, arg1, arg2) {
-    return _client.marshalArguments(Array.from(arguments), [{
-      name: "serverPort",
-      type: {
-        kind: "number"
-      }
-    }, {
-      name: "clientPort",
-      type: {
-        kind: "number"
-      }
-    }, {
-      name: "data",
-      type: {
-        kind: "named",
-        name: "Buffer"
-      }
-    }]).then(args => {
-      return _client.callRemoteFunction("SocketService/writeToClient", "void", args);
-    });
-  };
-
-  remoteModule.clientError = function (arg0, arg1, arg2) {
-    return _client.marshalArguments(Array.from(arguments), [{
-      name: "serverPort",
-      type: {
-        kind: "number"
-      }
-    }, {
-      name: "clientPort",
-      type: {
-        kind: "number"
-      }
-    }, {
-      name: "error",
-      type: {
-        kind: "string"
-      }
-    }]).then(args => {
-      return _client.callRemoteFunction("SocketService/clientError", "void", args);
-    });
-  };
-
-  remoteModule.closeClient = function (arg0, arg1) {
-    return _client.marshalArguments(Array.from(arguments), [{
-      name: "serverPort",
-      type: {
-        kind: "number"
-      }
-    }, {
-      name: "clientPort",
-      type: {
-        kind: "number"
-      }
-    }]).then(args => {
-      return _client.callRemoteFunction("SocketService/closeClient", "void", args);
-    });
   };
 
   remoteModule.getAvailableServerPort = function () {
@@ -182,12 +218,226 @@ Object.defineProperty(module.exports, "defs", {
         type: "builtin"
       }
     },
+    TunnelHost: {
+      kind: "alias",
+      location: {
+        type: "source",
+        fileName: "types.js",
+        line: 12
+      },
+      name: "TunnelHost",
+      definition: {
+        kind: "object",
+        fields: [{
+          name: "host",
+          type: {
+            kind: "string"
+          },
+          optional: false
+        }, {
+          name: "port",
+          type: {
+            kind: "number"
+          },
+          optional: false
+        }, {
+          name: "family",
+          type: {
+            kind: "union",
+            types: [{
+              kind: "number-literal",
+              value: 4
+            }, {
+              kind: "number-literal",
+              value: 6
+            }]
+          },
+          optional: false
+        }]
+      }
+    },
+    IRemoteSocket: {
+      kind: "interface",
+      name: "IRemoteSocket",
+      location: {
+        type: "source",
+        fileName: "types.js",
+        line: 32
+      },
+      constructorArgs: null,
+      staticMethods: {},
+      instanceMethods: {
+        write: {
+          location: {
+            type: "source",
+            fileName: "types.js",
+            line: 33
+          },
+          kind: "function",
+          argumentTypes: [{
+            name: "msg",
+            type: {
+              kind: "named",
+              name: "Buffer"
+            }
+          }],
+          returnType: {
+            kind: "void"
+          }
+        },
+        dispose: {
+          location: {
+            type: "source",
+            fileName: "types.js",
+            line: 34
+          },
+          kind: "function",
+          argumentTypes: [],
+          returnType: {
+            kind: "void"
+          }
+        }
+      }
+    },
+    Connection: {
+      kind: "interface",
+      name: "Connection",
+      location: {
+        type: "source",
+        fileName: "Connection.js",
+        line: 17
+      },
+      constructorArgs: [{
+        name: "tunnelHost",
+        type: {
+          kind: "named",
+          name: "TunnelHost"
+        }
+      }, {
+        name: "remoteSocket",
+        type: {
+          kind: "named",
+          name: "IRemoteSocket"
+        }
+      }],
+      staticMethods: {},
+      instanceMethods: {
+        write: {
+          location: {
+            type: "source",
+            fileName: "Connection.js",
+            line: 54
+          },
+          kind: "function",
+          argumentTypes: [{
+            name: "msg",
+            type: {
+              kind: "named",
+              name: "Buffer"
+            }
+          }],
+          returnType: {
+            kind: "void"
+          }
+        },
+        dispose: {
+          location: {
+            type: "source",
+            fileName: "Connection.js",
+            line: 58
+          },
+          kind: "function",
+          argumentTypes: [],
+          returnType: {
+            kind: "void"
+          }
+        }
+      }
+    },
+    ConnectionFactory: {
+      kind: "interface",
+      name: "ConnectionFactory",
+      location: {
+        type: "source",
+        fileName: "Connection.js",
+        line: 64
+      },
+      constructorArgs: [],
+      staticMethods: {},
+      instanceMethods: {
+        createConnection: {
+          location: {
+            type: "source",
+            fileName: "Connection.js",
+            line: 67
+          },
+          kind: "function",
+          argumentTypes: [{
+            name: "tunnelHost",
+            type: {
+              kind: "named",
+              name: "TunnelHost"
+            }
+          }, {
+            name: "socket",
+            type: {
+              kind: "named",
+              name: "IRemoteSocket"
+            }
+          }],
+          returnType: {
+            kind: "promise",
+            type: {
+              kind: "named",
+              name: "Connection"
+            }
+          }
+        },
+        dispose: {
+          location: {
+            type: "source",
+            fileName: "Connection.js",
+            line: 74
+          },
+          kind: "function",
+          argumentTypes: [],
+          returnType: {
+            kind: "void"
+          }
+        }
+      }
+    },
+    getConnectionFactory: {
+      kind: "function",
+      name: "getConnectionFactory",
+      location: {
+        type: "source",
+        fileName: "SocketService.js",
+        line: 24
+      },
+      type: {
+        location: {
+          type: "source",
+          fileName: "SocketService.js",
+          line: 24
+        },
+        kind: "function",
+        argumentTypes: [],
+        returnType: {
+          kind: "promise",
+          type: {
+            kind: "named",
+            name: "ConnectionFactory"
+          }
+        }
+      }
+    },
     SocketEvent: {
       kind: "alias",
       location: {
         type: "source",
-        fileName: "SocketService.js",
-        line: 19
+        fileName: "types.js",
+        line: 23
       },
       name: "SocketEvent",
       definition: {
@@ -199,16 +449,6 @@ Object.defineProperty(module.exports, "defs", {
             type: {
               kind: "string-literal",
               value: "server_started"
-            },
-            optional: false
-          }]
-        }, {
-          kind: "object",
-          fields: [{
-            name: "type",
-            type: {
-              kind: "string-literal",
-              value: "server_stopping"
             },
             optional: false
           }]
@@ -259,52 +499,64 @@ Object.defineProperty(module.exports, "defs", {
               kind: "number"
             },
             optional: false
-          }, {
-            name: "data",
-            type: {
-              kind: "named",
-              name: "Buffer"
-            },
-            optional: false
           }]
         }],
         discriminantField: "type"
       }
     },
-    startListening: {
+    TunnelDescriptor: {
+      kind: "alias",
+      location: {
+        type: "source",
+        fileName: "types.js",
+        line: 18
+      },
+      name: "TunnelDescriptor",
+      definition: {
+        kind: "object",
+        fields: [{
+          name: "from",
+          type: {
+            kind: "named",
+            name: "TunnelHost"
+          },
+          optional: false
+        }, {
+          name: "to",
+          type: {
+            kind: "named",
+            name: "TunnelHost"
+          },
+          optional: false
+        }]
+      }
+    },
+    createTunnel: {
       kind: "function",
-      name: "startListening",
+      name: "createTunnel",
       location: {
         type: "source",
         fileName: "SocketService.js",
-        line: 37
+        line: 28
       },
       type: {
         location: {
           type: "source",
           fileName: "SocketService.js",
-          line: 37
+          line: 28
         },
         kind: "function",
         argumentTypes: [{
-          name: "serverPort",
+          name: "td",
           type: {
-            kind: "number"
+            kind: "named",
+            name: "TunnelDescriptor"
           }
         }, {
-          name: "family",
+          name: "cf",
           type: {
-            kind: "nullable",
-            type: {
-              kind: "union",
-              types: [{
-                kind: "number-literal",
-                value: 4
-              }, {
-                kind: "number-literal",
-                value: 6
-              }]
-            }
+            kind: "named",
+            name: "ConnectionFactory"
           }
         }],
         returnType: {
@@ -316,149 +568,19 @@ Object.defineProperty(module.exports, "defs", {
         }
       }
     },
-    stopListening: {
-      kind: "function",
-      name: "stopListening",
-      location: {
-        type: "source",
-        fileName: "SocketService.js",
-        line: 88
-      },
-      type: {
-        location: {
-          type: "source",
-          fileName: "SocketService.js",
-          line: 88
-        },
-        kind: "function",
-        argumentTypes: [{
-          name: "serverPort",
-          type: {
-            kind: "number"
-          }
-        }],
-        returnType: {
-          kind: "void"
-        }
-      }
-    },
-    writeToClient: {
-      kind: "function",
-      name: "writeToClient",
-      location: {
-        type: "source",
-        fileName: "SocketService.js",
-        line: 104
-      },
-      type: {
-        location: {
-          type: "source",
-          fileName: "SocketService.js",
-          line: 104
-        },
-        kind: "function",
-        argumentTypes: [{
-          name: "serverPort",
-          type: {
-            kind: "number"
-          }
-        }, {
-          name: "clientPort",
-          type: {
-            kind: "number"
-          }
-        }, {
-          name: "data",
-          type: {
-            kind: "named",
-            name: "Buffer"
-          }
-        }],
-        returnType: {
-          kind: "void"
-        }
-      }
-    },
-    clientError: {
-      kind: "function",
-      name: "clientError",
-      location: {
-        type: "source",
-        fileName: "SocketService.js",
-        line: 116
-      },
-      type: {
-        location: {
-          type: "source",
-          fileName: "SocketService.js",
-          line: 116
-        },
-        kind: "function",
-        argumentTypes: [{
-          name: "serverPort",
-          type: {
-            kind: "number"
-          }
-        }, {
-          name: "clientPort",
-          type: {
-            kind: "number"
-          }
-        }, {
-          name: "error",
-          type: {
-            kind: "string"
-          }
-        }],
-        returnType: {
-          kind: "void"
-        }
-      }
-    },
-    closeClient: {
-      kind: "function",
-      name: "closeClient",
-      location: {
-        type: "source",
-        fileName: "SocketService.js",
-        line: 131
-      },
-      type: {
-        location: {
-          type: "source",
-          fileName: "SocketService.js",
-          line: 131
-        },
-        kind: "function",
-        argumentTypes: [{
-          name: "serverPort",
-          type: {
-            kind: "number"
-          }
-        }, {
-          name: "clientPort",
-          type: {
-            kind: "number"
-          }
-        }],
-        returnType: {
-          kind: "void"
-        }
-      }
-    },
     getAvailableServerPort: {
       kind: "function",
       name: "getAvailableServerPort",
       location: {
         type: "source",
         fileName: "SocketService.js",
-        line: 152
+        line: 35
       },
       type: {
         location: {
           type: "source",
           fileName: "SocketService.js",
-          line: 152
+          line: 35
         },
         kind: "function",
         argumentTypes: [],

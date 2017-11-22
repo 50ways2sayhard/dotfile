@@ -81,16 +81,23 @@ null;
 null;
 
 class HostServicesAggregator {
+
   constructor() {
     this._childRelays = new Map();
     this._counter = 0;
+    this._isDisposed = false;
+
+    // HostServiceAggregator objects are only ever constructed from forkHostServices:
+    // 1. it calls the constructor (here)
+    // 2. it calls parent.childRegister(child)
+    // 3. it calls child.initialize(parent)
+    const relay = new HostServicesRelay(this, 0, null);
+    this._childRelays.set(0, relay);
   }
 
   initialize(parent, logger) {
     this._parent = parent;
     this._logger = logger;
-    const relay = new HostServicesRelay(this, 0, null);
-    this._childRelays.set(0, relay);
   }
 
   _selfRelay() {
@@ -130,6 +137,9 @@ class HostServicesAggregator {
   }
 
   aggregateSyncProgress() {
+    if (this.isDisposed()) {
+      return;
+    }
     const currentProgress = new Set();
     for (const [, relay] of this._childRelays) {
       for (const [, parentProgress] of relay._progressWrappers) {
@@ -143,10 +153,14 @@ class HostServicesAggregator {
     return this._selfRelay().showActionRequired(title, options);
   }
 
+  isDisposed() {
+    return this._isDisposed;
+  }
+
   // Call 'dispose' to dispose of the aggregate and all its children
   dispose() {
     // Guard against double-disposal (see below).
-    if (this._childRelays == null) {
+    if (this._isDisposed) {
       return;
     }
 
@@ -164,20 +178,31 @@ class HostServicesAggregator {
       }
     }
 
-    // We'll throw a runtime exception upon any operations after dispose.
-    this._childRelays = null;
+    this._isDisposed = true;
 
     // Finally, relay to our parent that we've been disposed.
-    this._parent.dispose();
+    if (this._parent != null) {
+      // If our parent were already disposed at the time forkHostServices was
+      // called, then its childRegister method would have disposed us even before
+      // our _parent was hooked up.
+      this._parent.dispose();
+    }
   }
 
   childRegister(child) {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
+      // The code which has a HostServices object doesn't necessarily know that
+      // its parent might have been disposed. And if it tries to fork, that
+      // should still succeed and produce a disposed child HostServices object.
       _this._counter++;
       const relay = new HostServicesRelay(_this, _this._counter, child);
-      _this._childRelays.set(_this._counter, relay);
+      if (_this.isDisposed()) {
+        child.dispose();
+      } else {
+        _this._childRelays.set(_this._counter, relay);
+      }
       return relay;
     })();
   }
@@ -209,10 +234,16 @@ class HostServicesRelay {
 
 
   consoleNotification(source, level, text) {
+    if (this._aggregator.isDisposed()) {
+      return;
+    }
     this._aggregator._parent.consoleNotification(source, level, text);
   }
 
   dialogNotification(level, text) {
+    if (this._aggregator.isDisposed()) {
+      return _rxjsBundlesRxMinJs.Observable.empty().publish();
+    }
     return this._aggregator._parent.dialogNotification(level, text).refCount().takeUntil(this._childIsDisposed).publish();
     // If the host is disposed, then the ConnectedObservable we return will
     // complete without ever having emitted a value. If you .toPromise on it
@@ -220,10 +251,16 @@ class HostServicesRelay {
   }
 
   dialogRequest(level, text, buttonLabels, closeLabel) {
+    if (this._aggregator.isDisposed()) {
+      return _rxjsBundlesRxMinJs.Observable.empty().publish();
+    }
     return this._aggregator._parent.dialogRequest(level, text, buttonLabels, closeLabel).refCount().takeUntil(this._childIsDisposed).publish();
   }
 
   applyTextEditsForMultipleFiles(changes) {
+    if (this._aggregator.isDisposed()) {
+      return Promise.resolve(false);
+    }
     return this._aggregator._parent.applyTextEditsForMultipleFiles(changes);
   }
 
@@ -240,8 +277,8 @@ class HostServicesRelay {
         dispose: function () {}
       };
 
-      // If we're already resolved, then return a no-op wrapper.
-      if (_this2._disposables.disposed) {
+      // If we're already disposed, then return a no-op wrapper.
+      if (_this2._aggregator.isDisposed()) {
         return no_op;
       }
 
@@ -255,7 +292,7 @@ class HostServicesRelay {
       // the one from our parent will eventually be disposed.
       // The "or" check below is in case both parentPromise and cancel were
       // both signalled, and parentPromise happened to win the race.
-      if (progress == null || _this2._disposables.disposed) {
+      if (progress == null || _this2._aggregator.isDisposed()) {
         parentPromise.then(function (progress2) {
           return progress2.dispose();
         });
@@ -305,6 +342,9 @@ class HostServicesRelay {
   }
 
   showActionRequired(title, options) {
+    if (this._aggregator.isDisposed()) {
+      return _rxjsBundlesRxMinJs.Observable.empty().publish();
+    }
     return this._aggregator._parent.showActionRequired(title, options).refCount().takeUntil(this._childIsDisposed).publish();
   }
 

@@ -21,6 +21,10 @@ var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 let initializeLsp = exports.initializeLsp = (() => {
   var _ref = (0, _asyncToGenerator.default)(function* (command, args, projectFileNames, fileExtensions, logLevel, fileNotifier, host) {
     const cmd = command === '' ? yield (0, (_hackConfig || _load_hackConfig()).getHackCommand)() : command;
+    if (cmd === '') {
+      return null;
+    }
+
     return (0, (_nuclideVscodeLanguageServiceRpc || _load_nuclideVscodeLanguageServiceRpc()).createMultiLspLanguageService)('hack', cmd, args, {
       logCategory: (_hackConfig || _load_hackConfig()).HACK_LOGGER_CATEGORY,
       logLevel,

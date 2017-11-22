@@ -67,6 +67,7 @@ class ParameterInput extends _react.Component {
       backgroundColor: '#312426'
     } : null;
   }
+
   render() {
     const style = this._getErrorStyle();
     return _react.createElement(

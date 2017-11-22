@@ -68,7 +68,7 @@ function linterMessageToDiagnosticMessage(msg, providerName, currentPath) {
   // does not need a filePath property, but a LinterTrace does. Trace is a subtype of LinterTrace,
   // so copying works but aliasing does not. For a detailed explanation see
   // https://github.com/facebook/flow/issues/908
-  const trace = msg.trace ? msg.trace.map(component => Object.assign({}, component)) : undefined;
+  const trace = msg.trace ? msg.trace.map(convertLinterTrace) : undefined;
   const type = convertLinterType(msg.type);
   const { fix } = msg;
   return {
@@ -84,6 +84,17 @@ function linterMessageToDiagnosticMessage(msg, providerName, currentPath) {
       oldText: fix.oldText,
       newText: fix.newText
     }
+  };
+}
+
+// They're almost the same.. except that we always want a real range.
+function convertLinterTrace(trace) {
+  return {
+    type: trace.type,
+    text: trace.text,
+    html: trace.html,
+    filePath: trace.filePath,
+    range: trace.range != null ? _atom.Range.fromObject(trace.range) : undefined
   };
 }
 
@@ -123,7 +134,7 @@ function convertLinterType(type) {
 function linterMessageV2ToDiagnosticMessage(msg, providerName) {
   let trace;
   if (msg.trace != null) {
-    trace = msg.trace.map(component => Object.assign({}, component));
+    trace = msg.trace.map(convertLinterTrace);
   } else if (msg.reference != null) {
     const point = msg.reference.position != null ? _atom.Point.fromObject(msg.reference.position) : null;
     trace = [{
@@ -168,6 +179,7 @@ function linterMessageV2ToDiagnosticMessage(msg, providerName) {
     type: convertLinterType(msg.severity),
     filePath: msg.location.file,
     text,
+    kind: msg.kind,
     range: _atom.Range.fromObject(msg.location.position),
     trace,
     fix,

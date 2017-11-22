@@ -49,6 +49,12 @@ function _load_observable() {
   return _observable = require('nuclide-commons/observable');
 }
 
+var _SafeStreamMessageReader;
+
+function _load_SafeStreamMessageReader() {
+  return _SafeStreamMessageReader = _interopRequireDefault(require('../../commons-node/SafeStreamMessageReader'));
+}
+
 var _nuclideAnalytics;
 
 function _load_nuclideAnalytics() {
@@ -129,6 +135,17 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // Marshals messages from Nuclide's LanguageService
 // to VS Code's Language Server Protocol
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 class LspLanguageService {
   // is really "?LspConnection"
   // Fields which become live after we receive an initializeResponse:
@@ -339,7 +356,7 @@ class LspLanguageService {
           return accumulate('stderr', data);
         }));
 
-        const jsonRpcConnection = (_vscodeJsonrpc || _load_vscodeJsonrpc()).createMessageConnection(new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageReader(childProcess.stdout), new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageWriter(childProcess.stdin), new JsonRpcLogger(_this._logger));
+        const jsonRpcConnection = (_vscodeJsonrpc || _load_vscodeJsonrpc()).createMessageConnection(new (_SafeStreamMessageReader || _load_SafeStreamMessageReader()).default(childProcess.stdout), new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageWriter(childProcess.stdin), new JsonRpcLogger(_this._logger));
         jsonRpcConnection.trace((_jsonrpc || _load_jsonrpc()).JsonRpcTrace.Verbose, new JsonRpcTraceLogger(_this._logger));
 
         // We assign _lspConnection and wire up the handlers before calling
@@ -1562,7 +1579,7 @@ class LspLanguageService {
     })();
   }
 
-  getAdditionalLogFiles(expire) {
+  getAdditionalLogFiles(deadline) {
     var _this13 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
@@ -1577,7 +1594,7 @@ class LspLanguageService {
       if (_this13._state === 'Running' && Boolean(_this13._serverCapabilities.rageProvider)) {
         let response = null;
         try {
-          response = yield (0, (_promise || _load_promise()).expirePromise)(expire, _this13._lspConnection.rage());
+          response = yield (0, (_promise || _load_promise()).timeoutAfterDeadline)(deadline, _this13._lspConnection.rage());
 
           if (!(response != null)) {
             throw new Error('null telemetry/rage');
@@ -1871,17 +1888,7 @@ class LspLanguageService {
   }
 }
 
-exports.LspLanguageService = LspLanguageService; /**
-                                                  * Copyright (c) 2015-present, Facebook, Inc.
-                                                  * All rights reserved.
-                                                  *
-                                                  * This source code is licensed under the license found in the LICENSE file in
-                                                  * the root directory of this source tree.
-                                                  *
-                                                  * 
-                                                  * @format
-                                                  */
-
+exports.LspLanguageService = LspLanguageService;
 class DerivedServerCapabilities {
 
   constructor(capabilities, logger) {

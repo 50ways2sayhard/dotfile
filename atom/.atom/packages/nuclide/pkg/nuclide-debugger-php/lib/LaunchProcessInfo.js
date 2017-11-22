@@ -75,6 +75,7 @@ class LaunchProcessInfo extends (_nuclideDebuggerBase || _load_nuclideDebuggerBa
     return Object.assign({}, super.getDebuggerCapabilities(), {
       conditionalBreakpoints: true,
       continueToLocation: true,
+      setVariable: true,
       threads: true
     });
   }

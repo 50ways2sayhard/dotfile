@@ -272,7 +272,7 @@ class MultiProjectLanguageService {
     })();
   }
 
-  getAdditionalLogFiles(expire) {
+  getAdditionalLogFiles(deadline) {
     var _this11 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
@@ -281,11 +281,11 @@ class MultiProjectLanguageService {
       const results = yield Promise.all(roots.map((() => {
         var _ref2 = (0, _asyncToGenerator.default)(function* (root) {
           try {
-            const service = yield (0, (_promise || _load_promise()).expirePromise)(expire, _this11._processes.get(root));
+            const service = yield (0, (_promise || _load_promise()).timeoutAfterDeadline)(deadline, _this11._processes.get(root));
             if (service == null) {
               return [{ title: root, data: 'no language service' }];
             } else {
-              return (0, (_promise || _load_promise()).expirePromise)(expire, service.getAdditionalLogFiles(expire - 1000));
+              return (0, (_promise || _load_promise()).timeoutAfterDeadline)(deadline, service.getAdditionalLogFiles(deadline - 1000));
             }
           } catch (e) {
             return [{ title: root, data: (0, (_string || _load_string()).stringifyError)(e) }];

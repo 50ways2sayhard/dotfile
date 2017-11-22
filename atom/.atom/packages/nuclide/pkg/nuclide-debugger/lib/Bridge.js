@@ -123,7 +123,10 @@ class Bridge {
               this._handleThreadUpdate(event.args[1]);
               break;
             case 'ReportError':
-              this._reportEngineError(event.args[1]);
+              this._reportEngineError(event.args[1], false);
+              break;
+            case 'ReportErrorFromConsole':
+              this._reportEngineError(event.args[1], true);
               break;
             case 'ReportWarning':
               this._reportEngineWarning(event.args[1]);
@@ -251,6 +254,10 @@ class Bridge {
     this._commandDispatcher.send('setVariable', scopeObjectId, expression, newValue, callback);
   }
 
+  sendCompletionsCommand(text, column, callback) {
+    this._commandDispatcher.send('completions', text, column, callback);
+  }
+
   sendEvaluationCommand(command, evalId, ...args) {
     this._commandDispatcher.send(command, evalId, ...args);
   }
@@ -278,9 +285,13 @@ class Bridge {
     }));
   }
 
-  _reportEngineError(message) {
+  _reportEngineError(message, fromConsole) {
     const outputMessage = `Debugger engine reports error: ${message}`;
     logger.error(outputMessage);
+    if (fromConsole) {
+      this._sendConsoleMessage('error', outputMessage);
+      atom.notifications.addError(outputMessage);
+    }
   }
 
   _reportEngineWarning(message) {

@@ -239,6 +239,14 @@ class BridgeAdapter {
     this._debuggerDispatcher.setVariable(scopeObjectId, expression, newValue, callback);
   }
 
+  completions(text, column, callback) {
+    const currentFrame = this._stackTraceManager.getCurrentFrame();
+    if (currentFrame != null) {
+      const frameId = Number.parseInt(currentFrame.callFrameId, 10);
+      this._debuggerDispatcher.completions(text, column, frameId, callback);
+    }
+  }
+
   selectThread(threadId) {
     this._threadManager.selectThread(threadId);
     this._threadManager.getThreadStack(threadId).then(stackFrames => {

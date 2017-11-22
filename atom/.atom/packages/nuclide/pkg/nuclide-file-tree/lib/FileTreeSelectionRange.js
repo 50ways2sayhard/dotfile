@@ -27,15 +27,19 @@ class RangeKey {
     this._rootKey = rootKey;
     this._nodeKey = nodeKey;
   }
+
   static of(node) {
     return new RangeKey(node.rootUri, node.uri);
   }
+
   rootKey() {
     return this._rootKey;
   }
+
   nodeKey() {
     return this._nodeKey;
   }
+
   equals(other) {
     return this._rootKey === other._rootKey && this._nodeKey === other._nodeKey;
   }
@@ -47,21 +51,27 @@ class SelectionRange {
     this._anchor = anchor;
     this._range = range;
   }
+
   anchor() {
     return this._anchor;
   }
+
   range() {
     return this._range;
   }
+
   static ofSingleItem(anchor) {
     return new SelectionRange(anchor, anchor);
   }
+
   withNewRange(range) {
     return new SelectionRange(this._anchor, range);
   }
+
   withNewAnchor(anchor) {
     return new SelectionRange(anchor, this._range);
   }
+
   equals(other) {
     return this._anchor.equals(other._anchor) && this._range.equals(other._range);
   }

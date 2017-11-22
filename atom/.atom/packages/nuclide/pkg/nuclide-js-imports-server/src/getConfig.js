@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.serializeHasteSettings = serializeHasteSettings;
 exports.getEslintEnvs = getEslintEnvs;
 exports.getConfigFromFlow = getConfigFromFlow;
 
@@ -42,6 +43,20 @@ const ALL_ENVS = Object.keys((_globals || _load_globals()).default);
  * @format
  */
 
+function serializeHasteSettings(settings) {
+  // RegExps aren't normally stringifyable.
+  return JSON.stringify({
+    isHaste: settings.isHaste,
+    useNameReducers: settings.useNameReducers,
+    nameReducers: settings.nameReducers.map(reducer => ({
+      regexp: reducer.regexp.toString(),
+      replacement: reducer.replacement
+    })),
+    nameReducerBlacklist: settings.nameReducerBlacklist.map(String),
+    nameReducerWhitelist: settings.nameReducerWhitelist.map(String)
+  });
+}
+
 function getEslintEnvs(root) {
   const eslintFile = (_nuclideUri || _load_nuclideUri()).default.join(root, '.eslintrc');
   const packageJsonFile = (_nuclideUri || _load_nuclideUri()).default.join(root, 'package.json');
@@ -71,7 +86,7 @@ function getConfigFromFlow(root) {
 
 function flowConfigToResolveDirnames(flowFile, flowFileContents) {
   const resolveDirs = flowFileContents.match(/module.system.node.resolve_dirname=([^\s]+)/g);
-  return resolveDirs ? resolveDirs.map(dirString => (_nuclideUri || _load_nuclideUri()).default.join((_nuclideUri || _load_nuclideUri()).default.dirname(flowFile), dirString.split('=')[1])) : [];
+  return resolveDirs ? resolveDirs.map(dirString => (_nuclideUri || _load_nuclideUri()).default.join((_nuclideUri || _load_nuclideUri()).default.dirname(flowFile), dirString.split('=')[1])) : [(_nuclideUri || _load_nuclideUri()).default.join((_nuclideUri || _load_nuclideUri()).default.dirname(flowFile), 'node_modules')];
 }
 
 function flowConfigToHasteSettings(root, flowFileContents) {
@@ -110,21 +125,21 @@ function flowConfigToHasteSettings(root, flowFileContents) {
 }
 
 function eslintToEnvs(eslintFile) {
-  if (_fs.default.existsSync(eslintFile)) {
+  try {
     const json = JSON.parse(_fs.default.readFileSync(eslintFile, 'utf8'));
     if (json.env) {
       return Object.keys(json.env).filter(env => json.env[env]);
     }
-  }
+  } catch (err) {}
   return null;
 }
 
 function packageJsonToEnvs(packageJsonFile) {
-  if (_fs.default.existsSync(packageJsonFile)) {
+  try {
     const json = JSON.parse(_fs.default.readFileSync(packageJsonFile, 'utf8'));
     if (json.eslintConfig && json.eslintConfig.env) {
       return Object.keys(json.eslintConfig.env).filter(env => json.eslintConfig.env[env]);
     }
-  }
+  } catch (err) {}
   return null;
 }

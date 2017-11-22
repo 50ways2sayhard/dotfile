@@ -556,10 +556,10 @@ module.exports = _client => {
 
     getAdditionalLogFiles(arg0) {
       return Promise.all([_client.marshalArguments(Array.from(arguments), [{
-        name: "expire",
+        name: "deadline",
         type: {
           kind: "named",
-          name: "ExpireRequest"
+          name: "DeadlineRequest"
         }
       }]), _client.marshal(this, {
         kind: "named",
@@ -1165,8 +1165,11 @@ module.exports = _client => {
       return _client.callRemoteFunction("VSCodeLanguageService/createMultiLspLanguageService", "promise", args);
     }).then(value => {
       return _client.unmarshal(value, {
-        kind: "named",
-        name: "LanguageService"
+        kind: "nullable",
+        type: {
+          kind: "named",
+          name: "LanguageService"
+        }
       });
     });
   };
@@ -1253,6 +1256,9 @@ Object.defineProperty(module.exports, "defs", {
         }, {
           kind: "string-literal",
           value: "review"
+        }, {
+          kind: "string-literal",
+          value: "action"
         }]
       }
     },
@@ -2861,14 +2867,14 @@ Object.defineProperty(module.exports, "defs", {
         }]
       }
     },
-    ExpireRequest: {
+    DeadlineRequest: {
       kind: "alias",
       location: {
         type: "source",
         fileName: "promise.js",
         line: 210
       },
-      name: "ExpireRequest",
+      name: "DeadlineRequest",
       definition: {
         kind: "number"
       }
@@ -3419,10 +3425,10 @@ Object.defineProperty(module.exports, "defs", {
           },
           kind: "function",
           argumentTypes: [{
-            name: "expire",
+            name: "deadline",
             type: {
               kind: "named",
-              name: "ExpireRequest"
+              name: "DeadlineRequest"
             }
           }],
           returnType: {
@@ -4130,8 +4136,11 @@ Object.defineProperty(module.exports, "defs", {
         returnType: {
           kind: "promise",
           type: {
-            kind: "named",
-            name: "LanguageService"
+            kind: "nullable",
+            type: {
+              kind: "named",
+              name: "LanguageService"
+            }
           }
         }
       }

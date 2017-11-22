@@ -20,7 +20,8 @@ const config = {
   functionSnippetShouldIncludeArguments: true,
   stopFlowOnExit: true,
   lazyServer: false,
-  ideLazyMode: false
+  ideLazyMode: false,
+  canUseFlowBin: false
 };
 
 function getConfig(key) {

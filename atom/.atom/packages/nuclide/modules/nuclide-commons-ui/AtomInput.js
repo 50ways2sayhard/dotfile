@@ -121,14 +121,14 @@ class AtomInput extends _react.Component {
     }
 
     disposables.add(atom.commands.add(textEditorElement, {
-      'core:confirm': () => {
+      'core:confirm': event => {
         if (this.props.onConfirm != null) {
-          this.props.onConfirm();
+          this.props.onConfirm(event);
         }
       },
-      'core:cancel': () => {
+      'core:cancel': event => {
         if (this.props.onCancel != null) {
-          this.props.onCancel();
+          this.props.onCancel(event);
         }
       }
     }));
@@ -206,7 +206,8 @@ class AtomInput extends _react.Component {
   render() {
     const className = (0, (_classnames || _load_classnames()).default)(this.props.className, {
       'atom-text-editor-unstyled': this.props.unstyled,
-      [`atom-text-editor-${(0, (_string || _load_string()).maybeToString)(this.props.size)}`]: this.props.size != null
+      [`atom-text-editor-${(0, (_string || _load_string()).maybeToString)(this.props.size)}`]: this.props.size != null,
+      'atom-text-editor-invalid': this.props.invalid
     });
 
     return (

@@ -12,6 +12,12 @@ function _load_shallowequal() {
   return _shallowequal = _interopRequireDefault(require('shallowequal'));
 }
 
+var _DeploymentTarget;
+
+function _load_DeploymentTarget() {
+  return _DeploymentTarget = require('./DeploymentTarget');
+}
+
 var _BuckToolbarSettings;
 
 function _load_BuckToolbarSettings() {
@@ -52,20 +58,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
 function hasMobilePlatform(platformGroups) {
   return platformGroups.some(platformGroup => platformGroup.platforms.some(platform => platform.isMobile));
-}
+} /**
+   * Copyright (c) 2015-present, Facebook, Inc.
+   * All rights reserved.
+   *
+   * This source code is licensed under the license found in the LICENSE file in
+   * the root directory of this source tree.
+   *
+   * 
+   * @format
+   */
 
 class BuckToolbar extends _react.Component {
   constructor(...args) {
@@ -187,10 +191,31 @@ class BuckToolbar extends _react.Component {
   _optionsFromPlatformGroups(platformGroups) {
     return platformGroups.reduce((options, platformGroup) => {
       let dropdownGroup = null;
-      if (platformGroup.platforms.length === 1 && platformGroup.platforms[0].isMobile && platformGroup.platforms[0].deviceGroups.length < 2) {
-        dropdownGroup = this._turnDevicesIntoSelectableOptions(platformGroup);
+      if (platformGroup.platforms.length === 1) {
+        const platform = platformGroup.platforms[0];
+
+        if (!platform.isMobile) {
+          throw new Error('Invariant violation: "platform.isMobile"');
+        }
+
+        if (platform.deviceGroups.length === 1) {
+          // Header = platform group name + platform name, options = device names
+          // No submenus, just a list of devices at the top level
+          dropdownGroup = this._topLevelOptionsAreDevices(platformGroup, platform, platform.deviceGroups[0]);
+        } else if (platform.deviceGroups.length > 1) {
+          // Header = platform group name + platform name, options = device group names
+          // Options are submenus containing device names
+          dropdownGroup = this._topLevelOptionsAreDeviceGroups(platformGroup, platform);
+        } else {
+          // Header = platform group name, option = platform name
+          // This one looks weird, but it's rare and we need to be able to select something
+          dropdownGroup = this._topLevelOptionsArePlatforms(platformGroup);
+        }
       } else {
-        dropdownGroup = this._putDevicesIntoSubmenus(platformGroup);
+        // Header = platform group name, options = platform names
+        // If platforms have device groups, they become submenus with device groups inside
+        // If platforms have no device groups, they are simple selectable options
+        dropdownGroup = this._topLevelOptionsArePlatforms(platformGroup);
       }
 
       options.push(dropdownGroup.header);
@@ -198,57 +223,84 @@ class BuckToolbar extends _react.Component {
     }, []);
   }
 
-  _turnDevicesIntoSelectableOptions(platformGroup) {
-    const platform = platformGroup.platforms[0];
-    let selectableOptions;
-    let header;
+  _topLevelOptionsAreDevices(platformGroup, platform, deviceGroup) {
+    const header = {
+      label: (0, (_DeploymentTarget || _load_DeploymentTarget()).formatDeploymentTarget)({
+        platformGroup,
+        platform,
+        deviceGroup,
+        device: null
+      }),
+      value: platform.name,
+      disabled: true
+    };
 
-    if (!platform.isMobile) {
-      throw new Error('Invariant violation: "platform.isMobile"');
-    }
+    const selectableOptions = deviceGroup.devices.map(device => {
+      const value = { platformGroup, platform, deviceGroup, device };
+      return {
+        label: `  ${device.name}`,
+        selectedLabel: (0, (_DeploymentTarget || _load_DeploymentTarget()).formatDeploymentTarget)(value),
+        value
+      };
+    });
 
-    const headerLabel = `${platformGroup.name} ${platform.name}`;
-    if (platform.deviceGroups.length === 0) {
-      header = {
-        label: platformGroup.name,
-        value: platformGroup.name,
-        disabled: true
-      };
-      selectableOptions = [{
-        label: `  ${platform.name}`,
-        selectedLabel: headerLabel,
-        value: { platformGroup, platform, deviceGroup: null, device: null }
-      }];
-    } else {
-      header = {
-        label: headerLabel,
-        value: platform.name,
-        disabled: true
-      };
-      const deviceGroup = platform.deviceGroups[0];
-      selectableOptions = deviceGroup.devices.map(device => {
-        return {
-          label: `  ${device.name}`,
-          selectedLabel: `${headerLabel}: ${device.name}`,
-          value: { platformGroup, platform, deviceGroup, device }
-        };
-      });
+    return { header, selectableOptions };
+  }
+
+  _topLevelOptionsAreDeviceGroups(platformGroup, platform) {
+    const header = {
+      label: (0, (_DeploymentTarget || _load_DeploymentTarget()).formatDeploymentTarget)({
+        platformGroup,
+        platform,
+        deviceGroup: null,
+        device: null
+      }),
+      value: platform.name,
+      disabled: true
+    };
+    const selectableOptions = [];
+
+    for (const deviceGroup of platform.deviceGroups) {
+      if (deviceGroup.name !== '') {
+        const submenu = [];
+        for (const device of deviceGroup.devices) {
+          const value = { platformGroup, platform, deviceGroup, device };
+          submenu.push({
+            label: `  ${device.name}`,
+            selectedLabel: (0, (_DeploymentTarget || _load_DeploymentTarget()).formatDeploymentTarget)(value),
+            value
+          });
+        }
+
+        selectableOptions.push({
+          type: 'submenu',
+          label: `  ${deviceGroup.name}`,
+          submenu
+        });
+      } else {
+        for (const device of deviceGroup.devices) {
+          const value = { platformGroup, platform, deviceGroup, device };
+          selectableOptions.push({
+            label: `  ${device.name}`,
+            selectedLabel: (0, (_DeploymentTarget || _load_DeploymentTarget()).formatDeploymentTarget)(value),
+            value
+          });
+        }
+      }
     }
 
     return { header, selectableOptions };
   }
 
-  _putDevicesIntoSubmenus(platformGroup) {
+  _topLevelOptionsArePlatforms(platformGroup) {
     const header = {
       label: platformGroup.name,
       value: platformGroup.name,
       disabled: true
     };
-
     const selectableOptions = [];
 
     for (const platform of platformGroup.platforms) {
-      const headerLabel = `${platformGroup.name} ${platform.name}`;
       if (platform.isMobile && platform.deviceGroups.length) {
         const submenu = [];
 
@@ -262,10 +314,11 @@ class BuckToolbar extends _react.Component {
           }
 
           for (const device of deviceGroup.devices) {
+            const value = { platformGroup, platform, deviceGroup, device };
             submenu.push({
               label: `  ${device.name}`,
-              selectedLabel: `${headerLabel}: ${device.name}`,
-              value: { platformGroup, platform, deviceGroup, device }
+              selectedLabel: (0, (_DeploymentTarget || _load_DeploymentTarget()).formatDeploymentTarget)(value),
+              value
             });
           }
 
@@ -280,10 +333,16 @@ class BuckToolbar extends _react.Component {
           submenu
         });
       } else {
+        const value = {
+          platformGroup,
+          platform,
+          deviceGroup: null,
+          device: null
+        };
         selectableOptions.push({
           label: `  ${platform.name}`,
-          selectedLabel: headerLabel,
-          value: { platformGroup, platform, deviceGroup: null, device: null }
+          selectedLabel: (0, (_DeploymentTarget || _load_DeploymentTarget()).formatDeploymentTarget)(value),
+          value
         });
       }
     }

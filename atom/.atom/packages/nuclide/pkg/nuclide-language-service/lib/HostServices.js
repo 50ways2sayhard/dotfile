@@ -79,6 +79,7 @@ class RootHostServices {
     this._consoleSubjects = new Map();
     this._progressWrappers = new Map();
   }
+
   // lazily created map from source, to how we'll push messages from that source
 
 

@@ -141,6 +141,7 @@ class MultiSelectListExample extends _react.Component {
     super(props);
     this.state = { value: [2] };
   }
+
   render() {
     const options = [{ value: 1, label: 'One' }, { value: 2, label: 'Two' }, { value: 3, label: 'Three' }, { value: 4, label: 'Four' }];
 

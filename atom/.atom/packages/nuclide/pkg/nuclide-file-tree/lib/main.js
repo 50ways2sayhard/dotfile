@@ -272,7 +272,7 @@ class Activation {
   }
 
   _currentActiveFilePath() {
-    const rawPathStream = (0, (_event || _load_event()).observableFromSubscribeFunction)(atom.workspace.onDidStopChangingActivePaneItem.bind(atom.workspace)).map(() => {
+    const rawPathStream = (0, (_event || _load_event()).observableFromSubscribeFunction)(atom.workspace.onDidStopChangingActivePaneItem.bind(atom.workspace)).startWith(null).map(() => {
       const editor = atom.workspace.getActiveTextEditor();
       return editor != null ? editor.getPath() : null;
     });

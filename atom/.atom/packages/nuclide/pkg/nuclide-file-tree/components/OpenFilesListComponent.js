@@ -172,7 +172,7 @@ class OpenFilesListComponent extends _react.PureComponent {
               return _react.createElement(
                 (_Tree || _load_Tree()).TreeItem,
                 {
-                  className: (0, (_classnames || _load_classnames()).default)('file', {
+                  className: (0, (_classnames || _load_classnames()).default)('file', 'nuclide-path-with-terminal', {
                     'text-highlight': isHoveredUri
                   }),
                   selected: e.isSelected,

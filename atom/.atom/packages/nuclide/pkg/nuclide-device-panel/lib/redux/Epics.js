@@ -65,8 +65,7 @@ function pollDevicesEpic(actions, store) {
 
     return _rxjsBundlesRxMinJs.Observable.of([store.getState(), action.payload.isActive]);
   }).distinctUntilChanged(([stateA, isActiveA], [stateB, isActiveB]) => stateA.deviceType === stateB.deviceType && stateA.host === stateB.host && isActiveA === isActiveB).switchMap(([state, isActive]) => {
-    // eslint-disable-next-line eqeqeq
-    if (state.deviceType === null || !isActive) {
+    if (state.deviceType == null || !isActive) {
       return _rxjsBundlesRxMinJs.Observable.empty();
     }
     for (const fetcher of (0, (_providers || _load_providers()).getProviders)().deviceList) {

@@ -85,7 +85,12 @@ class ExpressionEvaluationManager {
   evaluateOnCallFrame(transactionId, callFrameId, expression, objectGroup) {
     function callback(error, response) {
       if (error != null) {
-        (0, (_EventReporter || _load_EventReporter()).reportError)(`evaluateOnCallFrame failed with ${JSON.stringify(error)}`);
+        const errorMsg = `evaluateOnCallFrame failed with ${typeof error === 'string' ? error : JSON.stringify(error)}`;
+        if (objectGroup === 'console') {
+          (0, (_EventReporter || _load_EventReporter()).reportErrorFromConsole)(errorMsg);
+        } else {
+          (0, (_EventReporter || _load_EventReporter()).reportError)(errorMsg);
+        }
         return;
       }
       const { result, wasThrown, exceptionDetails } = response;

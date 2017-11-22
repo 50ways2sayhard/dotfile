@@ -1,5 +1,71 @@
 'use strict';
 
+var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
+
+let main = (() => {
+  var _ref = (0, _asyncToGenerator.default)(function* () {
+    const root = process.argv.length === 3 ? toPath(process.argv[2]) : DEFAULT_PROJECT_PATH;
+
+    const envs = (0, (_getConfig || _load_getConfig()).getEslintEnvs)(root);
+    const autoImportsManager = new (_AutoImportsManager || _load_AutoImportsManager()).AutoImportsManager(envs);
+    const { hasteSettings } = (0, (_getConfig || _load_getConfig()).getConfigFromFlow)(root);
+
+    const index = yield (0, (_fileIndex || _load_fileIndex()).getFileIndex)(root, hasteSettings);
+    const indexDirStream = (0, (_AutoImportsWorker || _load_AutoImportsWorker()).indexDirectory)(index, hasteSettings, _os.default.cpus().length).do({
+      next: function (exportForFiles) {
+        exportForFiles.forEach(function (exportForFile) {
+          autoImportsManager.handleUpdateForFile(exportForFile);
+        });
+      },
+      error: function (err) {
+        console.error('Encountered error in AutoImportsWorker', err);
+      },
+      complete: function () {
+        console.log(`Finished indexing source code for ${root}`);
+      }
+    });
+
+    const indexModulesStream = (0, (_AutoImportsWorker || _load_AutoImportsWorker()).indexNodeModules)(index).do({
+      next: function (exportForFiles) {
+        exportForFiles.forEach(function (exportForFile) {
+          autoImportsManager.handleUpdateForFile(exportForFile);
+        });
+      },
+      error: function (err) {
+        console.error('Encountered error in AutoImportsWorker', err);
+      },
+      complete: function () {
+        console.log(`Finished indexing node modules ${root}`);
+      }
+    });
+
+    console.log('Began indexing all files');
+
+    // Check all files for missing imports
+    _rxjsBundlesRxMinJs.Observable.merge(indexModulesStream, indexDirStream).concat(
+    // Don't bother checking non-Flow files.
+    (0, (_process || _load_process()).observeProcess)('flow', ['ls', root, '--ignore', '.*/\\(node_modules\\|VendorLib\\|3rdParty\\)/.*']).filter(function (event) {
+      return event.kind === 'stdout';
+    }).mergeMap(function (event) {
+      if (!(event.kind === 'stdout')) {
+        throw new Error('Invariant violation: "event.kind === \'stdout\'"');
+      }
+
+      return checkFileForMissingImports(event.data.trim(), autoImportsManager);
+    }, 10)).subscribe({
+      complete: function () {
+        // Report the results
+        console.log(`Ran on ${numFiles} files. Terminated with ${numErrors} errors.`);
+        process.exit(numErrors > 0 ? 1 : 0);
+      }
+    });
+  });
+
+  return function main() {
+    return _ref.apply(this, arguments);
+  };
+})();
+
 var _os = _interopRequireDefault(require('os'));
 
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
@@ -40,6 +106,12 @@ function _load_AutoImportsWorker() {
   return _AutoImportsWorker = require('../src/lib/AutoImportsWorker');
 }
 
+var _fileIndex;
+
+function _load_fileIndex() {
+  return _fileIndex = require('../src/lib/file-index');
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const DEFAULT_PROJECT_PATH = (_nuclideUri || _load_nuclideUri()).default.join(__dirname, '..', '..', '..'); /**
@@ -57,59 +129,6 @@ const DEFAULT_PROJECT_PATH = (_nuclideUri || _load_nuclideUri()).default.join(__
 
 let numErrors = 0;
 let numFiles = 0;
-
-function main() {
-  const root = process.argv.length === 3 ? toPath(process.argv[2]) : DEFAULT_PROJECT_PATH;
-
-  const envs = (0, (_getConfig || _load_getConfig()).getEslintEnvs)(root);
-  const autoImportsManager = new (_AutoImportsManager || _load_AutoImportsManager()).AutoImportsManager(envs);
-  const { hasteSettings } = (0, (_getConfig || _load_getConfig()).getConfigFromFlow)(root);
-
-  const indexDirStream = (0, (_AutoImportsWorker || _load_AutoImportsWorker()).indexDirectory)(root, hasteSettings, _os.default.cpus().length).do({
-    next: exportForFiles => {
-      exportForFiles.forEach(exportForFile => autoImportsManager.handleUpdateForFile(exportForFile));
-    },
-    error: err => {
-      console.error('Encountered error in AutoImportsWorker', err);
-    },
-    complete: () => {
-      console.log(`Finished indexing source code for ${root}`);
-    }
-  });
-
-  const indexModulesStream = (0, (_AutoImportsWorker || _load_AutoImportsWorker()).indexNodeModules)(root).do({
-    next: exportForFile => {
-      if (exportForFile) {
-        autoImportsManager.handleUpdateForFile(exportForFile);
-      }
-    },
-    error: err => {
-      console.error('Encountered error in AutoImportsWorker', err);
-    },
-    complete: () => {
-      console.log(`Finished indexing node modules ${root}`);
-    }
-  });
-
-  console.log('Began indexing all files');
-
-  // Check all files for missing imports
-  _rxjsBundlesRxMinJs.Observable.merge(indexModulesStream, indexDirStream).concat(
-  // Don't bother checking non-Flow files.
-  (0, (_process || _load_process()).observeProcess)('flow', ['ls', root, '--ignore', '.*/\\(node_modules\\|VendorLib\\|3rdParty\\)/.*']).filter(event => event.kind === 'stdout').mergeMap(event => {
-    if (!(event.kind === 'stdout')) {
-      throw new Error('Invariant violation: "event.kind === \'stdout\'"');
-    }
-
-    return checkFileForMissingImports(event.data.trim(), autoImportsManager);
-  }, 10)).subscribe({
-    complete: () => {
-      // Report the results
-      console.log(`Ran on ${numFiles} files. Terminated with ${numErrors} errors.`);
-      process.exit(numErrors > 0 ? 1 : 0);
-    }
-  });
-}
 
 function checkFileForMissingImports(file, autoImportsManager) {
   numFiles++;

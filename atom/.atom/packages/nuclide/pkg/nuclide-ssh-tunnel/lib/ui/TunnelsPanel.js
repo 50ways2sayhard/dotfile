@@ -11,6 +11,12 @@ function _load_bindObservableAsProps() {
   return _bindObservableAsProps = require('nuclide-commons-ui/bindObservableAsProps');
 }
 
+var _nuclideUri;
+
+function _load_nuclideUri() {
+  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
+}
+
 var _Actions;
 
 function _load_Actions() {
@@ -19,10 +25,10 @@ function _load_Actions() {
 
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
 
-var _TunnelsPanelTable;
+var _TunnelsPanelContents;
 
-function _load_TunnelsPanelTable() {
-  return _TunnelsPanelTable = require('./TunnelsPanelTable');
+function _load_TunnelsPanelContents() {
+  return _TunnelsPanelContents = require('./TunnelsPanelContents');
 }
 
 var _renderReactRoot;
@@ -34,6 +40,8 @@ function _load_renderReactRoot() {
 var _react = _interopRequireWildcard(require('react'));
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const WORKSPACE_VIEW_URI = exports.WORKSPACE_VIEW_URI = 'atom://nuclide/ssh-tunnels'; /**
                                                                                        * Copyright (c) 2015-present, Facebook, Inc.
@@ -61,7 +69,7 @@ class TunnelsPanel {
   }
 
   getPreferredWidth() {
-    return 300;
+    return 400;
   }
 
   getDefaultLocation() {
@@ -77,14 +85,32 @@ class TunnelsPanel {
     const states = _rxjsBundlesRxMinJs.Observable.from(this._store);
 
     const props = states.map(state => {
+      let workingDirectoryHost;
+      if (state.currentWorkingDirectory == null) {
+        workingDirectoryHost = null;
+      } else {
+        const path = state.currentWorkingDirectory.getPath();
+        if ((_nuclideUri || _load_nuclideUri()).default.isLocal(path)) {
+          workingDirectoryHost = 'localhost';
+        } else {
+          workingDirectoryHost = (_nuclideUri || _load_nuclideUri()).default.getHostname(path);
+        }
+      }
       return {
         tunnels: Array.from(state.openTunnels.entries()),
-        closeTunnel: tunnel => this._store.dispatch((_Actions || _load_Actions()).closeTunnel(tunnel))
+        openTunnel: tunnel => {
+          if (this._store.getState().status === 'opening') {
+            return;
+          }
+          this._store.dispatch((_Actions || _load_Actions()).openTunnel(tunnel, () => {}, () => {}));
+        },
+        closeTunnel: tunnel => this._store.dispatch((_Actions || _load_Actions()).closeTunnel(tunnel)),
+        workingDirectoryHost
       };
     });
 
-    const BoundTable = (0, (_bindObservableAsProps || _load_bindObservableAsProps()).bindObservableAsProps)(props, (_TunnelsPanelTable || _load_TunnelsPanelTable()).TunnelsPanelTable);
-    return (0, (_renderReactRoot || _load_renderReactRoot()).renderReactRoot)(_react.createElement(BoundTable, null));
+    const BoundPanelContents = (0, (_bindObservableAsProps || _load_bindObservableAsProps()).bindObservableAsProps)(props, (_TunnelsPanelContents || _load_TunnelsPanelContents()).TunnelsPanelContents);
+    return (0, (_renderReactRoot || _load_renderReactRoot()).renderReactRoot)(_react.createElement(BoundPanelContents, null));
   }
 
   serialize() {

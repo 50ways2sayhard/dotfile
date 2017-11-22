@@ -63,11 +63,10 @@
     titleBar: "custom-inset"
   "easy-motion-redux": {}
   editor:
-    fontFamily: "SF Mono"
+    fontFamily: "Lucida Console"
     fontSize: 16
     invisibles: {}
     showIndentGuide: true
-    softWrap: true
     softWrapAtPreferredLineLength: true
     tabLength: 4
     tabType: "soft"
@@ -123,6 +122,9 @@
 ".dict.text":
   editor:
     showInvisibles: false
+".python.source":
+  editor:
+    autoIndentOnPaste: true
 runner:
   scopes:
     python: "/usr/local/bin/python3"

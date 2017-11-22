@@ -529,7 +529,7 @@ function _getArgsStringSkipClientId(args) {
 function _normalizeNameForBuckQuery(aliasOrTarget) {
   let canonicalName = aliasOrTarget;
   // Don't prepend // for aliases (aliases will not have colons or .)
-  if ((canonicalName.indexOf(':') !== -1 || canonicalName.indexOf('.') !== -1) && !canonicalName.startsWith('//')) {
+  if ((canonicalName.indexOf(':') !== -1 || canonicalName.indexOf('.') !== -1) && canonicalName.indexOf('//') === -1) {
     canonicalName = '//' + canonicalName;
   }
   // Strip flavor string

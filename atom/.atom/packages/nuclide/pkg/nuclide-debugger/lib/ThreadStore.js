@@ -34,12 +34,6 @@ function _load_DebuggerDispatcher() {
   return _DebuggerDispatcher = require('./DebuggerDispatcher');
 }
 
-var _passesGK;
-
-function _load_passesGK() {
-  return _passesGK = _interopRequireDefault(require('../../commons-node/passesGK'));
-}
-
 var _DebuggerStore;
 
 function _load_DebuggerStore() {
@@ -50,18 +44,16 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const GK_THREAD_SWITCH_UI = 'nuclide_debugger_thread_switch_ui'; /**
-                                                                  * Copyright (c) 2015-present, Facebook, Inc.
-                                                                  * All rights reserved.
-                                                                  *
-                                                                  * This source code is licensed under the license found in the LICENSE file in
-                                                                  * the root directory of this source tree.
-                                                                  *
-                                                                  * 
-                                                                  * @format
-                                                                  */
-
-const GK_TIMEOUT = 5000;
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
 class ThreadStore {
 
@@ -174,10 +166,6 @@ class ThreadStore {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const notifyThreadSwitches = yield (0, (_passesGK || _load_passesGK()).default)(GK_THREAD_SWITCH_UI, GK_TIMEOUT);
-      if (!notifyThreadSwitches) {
-        return;
-      }
       const path = (_nuclideUri || _load_nuclideUri()).default.uriToNuclideUri(sourceURL);
       // we want to put the message one line above the current line unless the selected
       // line is the top line, in which case we will put the datatip next to the line.

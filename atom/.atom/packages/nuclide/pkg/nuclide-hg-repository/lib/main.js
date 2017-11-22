@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", {
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
 let getAllHgAdditionalLogFiles = (() => {
-  var _ref = (0, _asyncToGenerator.default)(function* (expire) {
+  var _ref = (0, _asyncToGenerator.default)(function* (deadline) {
     // Atom provides one repository object per project.
     const repositories = atom.project.getRepositories();
     // We want to avoid duplication in the case where two different projects both
@@ -23,7 +23,7 @@ let getAllHgAdditionalLogFiles = (() => {
     }).values());
 
     const results = yield Promise.all(uniqueRepositories.map(function (r) {
-      return r.getAdditionalLogFiles(expire);
+      return r.getAdditionalLogFiles(deadline);
     }));
     return (0, (_collection || _load_collection()).arrayFlatten)(results);
   });

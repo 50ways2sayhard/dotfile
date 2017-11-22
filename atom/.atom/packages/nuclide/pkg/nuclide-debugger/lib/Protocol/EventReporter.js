@@ -5,6 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getEventObservable = getEventObservable;
 exports.reportError = reportError;
+exports.reportErrorFromConsole = reportErrorFromConsole;
 exports.reportWarning = reportWarning;
 
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
@@ -26,6 +27,10 @@ function getEventObservable() {
 
 function reportError(message) {
   customEvent$.next(['ReportError', message]);
+}
+
+function reportErrorFromConsole(message) {
+  customEvent$.next(['ReportErrorFromConsole', message]);
 }
 
 function reportWarning(message) {

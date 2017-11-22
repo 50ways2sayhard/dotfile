@@ -2,39 +2,39 @@
   "_args": [
     [
       {
-        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117523-87090-f0w5nf.2uvv6uhaor/package.tgz",
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65971-18a1663.ajbw2sxlxr/package.tgz",
         "scope": null,
         "escapedName": null,
         "name": null,
-        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117523-87090-f0w5nf.2uvv6uhaor/package.tgz",
-        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117523-87090-f0w5nf.2uvv6uhaor/package.tgz",
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65971-18a1663.ajbw2sxlxr/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65971-18a1663.ajbw2sxlxr/package.tgz",
         "type": "local"
       },
-      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117523-87090-1oyvwy5.cc4qssv2t9"
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-1171020-65971-1glp8vu.pdcwok1emi"
     ]
   ],
-  "_from": "../d-117523-87090-f0w5nf.2uvv6uhaor/package.tgz",
-  "_id": "simplified-chinese-menu@5.3.4",
+  "_from": "../d-1171020-65971-18a1663.ajbw2sxlxr/package.tgz",
+  "_id": "simplified-chinese-menu@5.3.5",
   "_inCache": true,
   "_location": "/simplified-chinese-menu",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117523-87090-f0w5nf.2uvv6uhaor/package.tgz",
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65971-18a1663.ajbw2sxlxr/package.tgz",
     "scope": null,
     "escapedName": null,
     "name": null,
-    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117523-87090-f0w5nf.2uvv6uhaor/package.tgz",
-    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117523-87090-f0w5nf.2uvv6uhaor/package.tgz",
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65971-18a1663.ajbw2sxlxr/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65971-18a1663.ajbw2sxlxr/package.tgz",
     "type": "local"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "file:../d-117523-87090-f0w5nf.2uvv6uhaor/package.tgz",
-  "_shasum": "286a7d07dbbf60718815f0f802d16a92422c0f60",
+  "_resolved": "file:../d-1171020-65971-18a1663.ajbw2sxlxr/package.tgz",
+  "_shasum": "dd3bebd5f066b140d2f4f8ee9a8735915826805e",
   "_shrinkwrap": null,
-  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117523-87090-f0w5nf.2uvv6uhaor/package.tgz",
-  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117523-87090-1oyvwy5.cc4qssv2t9",
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65971-18a1663.ajbw2sxlxr/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-1171020-65971-1glp8vu.pdcwok1emi",
   "bugs": {
     "url": "https://github.com/chinakids/atom-simplified-chinese-menu/issues"
   },
@@ -63,18 +63,5 @@
     "type": "git",
     "url": "git+https://github.com/chinakids/atom-simplified-chinese-menu.git"
   },
-  "version": "5.3.4",
-  "_atomModuleCache": {
-    "version": 1,
-    "dependencies": [],
-    "extensions": {
-      ".coffee": [
-        "lib/main.coffee"
-      ],
-      ".json": [
-        "package.json"
-      ]
-    },
-    "folders": []
-  }
+  "version": "5.3.5"
 }

@@ -176,7 +176,7 @@ class WatchExpressionStore {
 
       return cachedResult;
     }
-    const subject = new _rxjsBundlesRxMinJs.BehaviorSubject();
+    const subject = new _rxjsBundlesRxMinJs.BehaviorSubject(null);
     this._requestExpressionEvaluation(expression, subject, supportRepl);
     if (!supportRepl) {
       this._watchExpressions.set(expression, subject);
@@ -210,22 +210,15 @@ class WatchExpressionStore {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      try {
-        const result = yield _this._sendEvaluationCommand('evaluateOnSelectedCallFrame', expression, objectGroup);
-        if (result == null) {
-          // Backend returned neither a result nor an error message
-          return {
-            type: 'text',
-            value: `Failed to evaluate: ${expression}`
-          };
-        } else {
-          return result;
-        }
-      } catch (e) {
+      const result = yield _this._sendEvaluationCommand('evaluateOnSelectedCallFrame', expression, objectGroup);
+      if (result == null) {
+        // Backend returned neither a result nor an error message
         return {
           type: 'text',
-          value: `Failed to evaluate: ${expression} ` + e.toString()
+          value: `Failed to evaluate: ${expression}`
         };
+      } else {
+        return result;
       }
     })();
   }
@@ -234,22 +227,15 @@ class WatchExpressionStore {
     var _this2 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      try {
-        const result = yield _this2._sendEvaluationCommand('runtimeEvaluate', expression);
-        if (result == null) {
-          // Backend returned neither a result nor an error message
-          return {
-            type: 'text',
-            value: `Failed to evaluate: ${expression}`
-          };
-        } else {
-          return result;
-        }
-      } catch (e) {
+      const result = yield _this2._sendEvaluationCommand('runtimeEvaluate', expression);
+      if (result == null) {
+        // Backend returned neither a result nor an error message
         return {
           type: 'text',
-          value: `Failed to evaluate: ${expression} ` + e.toString()
+          value: `Failed to evaluate: ${expression}`
         };
+      } else {
+        return result;
       }
     })();
   }
@@ -264,19 +250,12 @@ class WatchExpressionStore {
       _this3._evaluationRequestsInFlight.set(evalId, deferred);
       _this3._bridge.sendEvaluationCommand(command, evalId, ...args);
       let result = null;
-      let errorMsg = null;
       try {
         result = yield deferred.promise;
       } catch (e) {
         (0, (_log4js || _load_log4js()).getLogger)('nuclide-debugger').warn(`${command}: Error getting result.`, e);
-        if (e.description) {
-          errorMsg = e.description;
-        }
       }
       _this3._evaluationRequestsInFlight.delete(evalId);
-      if (errorMsg != null) {
-        throw new Error(errorMsg);
-      }
       return result;
     })();
   }

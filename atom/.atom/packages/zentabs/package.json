@@ -2,40 +2,39 @@
   "_args": [
     [
       {
-        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-5186-1tjwkyz/package.tgz",
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65973-1q3pk7r.gj2nfp3nmi/package.tgz",
         "scope": null,
         "escapedName": null,
         "name": null,
-        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-5186-1tjwkyz/package.tgz",
-        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-5186-1tjwkyz/package.tgz",
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65973-1q3pk7r.gj2nfp3nmi/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65973-1q3pk7r.gj2nfp3nmi/package.tgz",
         "type": "local"
       },
-      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117113-5186-12kr4p7"
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-1171020-65973-vkblkb.qlz2p4x6r"
     ]
   ],
-  "_from": "../d-117113-5186-1tjwkyz/package.tgz",
-  "_id": "zentabs@0.8.8",
+  "_from": "../d-1171020-65973-1q3pk7r.gj2nfp3nmi/package.tgz",
+  "_id": "zentabs@0.8.9",
   "_inCache": true,
-  "_installable": true,
   "_location": "/zentabs",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-5186-1tjwkyz/package.tgz",
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65973-1q3pk7r.gj2nfp3nmi/package.tgz",
     "scope": null,
     "escapedName": null,
     "name": null,
-    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-5186-1tjwkyz/package.tgz",
-    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-5186-1tjwkyz/package.tgz",
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65973-1q3pk7r.gj2nfp3nmi/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65973-1q3pk7r.gj2nfp3nmi/package.tgz",
     "type": "local"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "file:../d-117113-5186-1tjwkyz/package.tgz",
-  "_shasum": "b889b6d05eca699d7b695951c75aec44eb98d8a6",
+  "_resolved": "file:../d-1171020-65973-1q3pk7r.gj2nfp3nmi/package.tgz",
+  "_shasum": "1a1cd36cfa46e64588a92d1a9f155e3d3602d339",
   "_shrinkwrap": null,
-  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117113-5186-1tjwkyz/package.tgz",
-  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117113-5186-12kr4p7",
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-1171020-65973-1q3pk7r.gj2nfp3nmi/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-1171020-65973-vkblkb.qlz2p4x6r",
   "bugs": {
     "url": "https://github.com/ArnaudRinquin/atom-zentabs/issues"
   },
@@ -91,5 +90,5 @@
     "type": "git",
     "url": "git+https://github.com/ArnaudRinquin/atom-zentabs.git"
   },
-  "version": "0.8.8"
+  "version": "0.8.9"
 }

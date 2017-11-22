@@ -188,16 +188,16 @@ class BuckClangCompilationDatabaseHandler {
         flagsFile: buildFile,
         libclangPath: null
       };
-      return _this3._processCompilationDb(compilationDB, buckProjectRoot);
+      return _this3._processCompilationDb(compilationDB, buckProjectRoot, allArgs);
     })();
   }
 
-  _processCompilationDb(db, buckRoot) {
+  _processCompilationDb(db, buckRoot, args) {
     return (0, _asyncToGenerator.default)(function* () {
       try {
         // $FlowFB
         const { createOmCompilationDb } = require('./fb/omCompilationDb');
-        return yield createOmCompilationDb(db, buckRoot);
+        return yield createOmCompilationDb(db, buckRoot, args);
       } catch (e) {}
       return db;
     })();

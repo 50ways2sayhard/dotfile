@@ -104,6 +104,10 @@ class DebuggerDomainDispatcher {
     this._agent.setVariableValue(expression, newValue, scopeObjectId, callback);
   }
 
+  completions(text, column, frameId, callback) {
+    this._agent.completions(text, column, frameId, callback);
+  }
+
   selectThread(threadId) {
     this._agent.selectThread(threadId);
   }

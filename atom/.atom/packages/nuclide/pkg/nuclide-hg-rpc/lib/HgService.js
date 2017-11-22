@@ -309,12 +309,12 @@ class HgService {
     return this.fetchStatuses('ancestor(. or (. and (not public()))^)');
   }
 
-  getAdditionalLogFiles(expire) {
+  getAdditionalLogFiles(deadline) {
     var _this2 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const options = { cwd: _this2._workingDirectory };
-      const base = yield (0, (_promise || _load_promise()).expirePromise)(expire, getForkBaseName(_this2._workingDirectory)); // e.g. master
+      const base = yield (0, (_promise || _load_promise()).timeoutAfterDeadline)(deadline, getForkBaseName(_this2._workingDirectory)); // e.g. master
       const root = (0, (_hgRevisionExpressionHelpers || _load_hgRevisionExpressionHelpers()).expressionForCommonAncestor)(base); // ancestor(master, .)
 
       // The ID of the root
@@ -367,11 +367,11 @@ class HgService {
         };
       })();
 
-      const [id, diff, status] = yield Promise.all([(0, (_promise || _load_promise()).expirePromise)(expire, getId()).catch(function (e) {
+      const [id, diff, status] = yield Promise.all([(0, (_promise || _load_promise()).timeoutAfterDeadline)(deadline, getId()).catch(function (e) {
         return `id ${e.message}\n${e.stack}`;
-      }), (0, (_promise || _load_promise()).expirePromise)(expire, getDiff()).catch(function (e) {
+      }), (0, (_promise || _load_promise()).timeoutAfterDeadline)(deadline, getDiff()).catch(function (e) {
         return 'diff ' + (0, (_string || _load_string()).stringifyError)(e);
-      }), (0, (_promise || _load_promise()).expirePromise)(expire, getStatus()).catch(function (e) {
+      }), (0, (_promise || _load_promise()).timeoutAfterDeadline)(deadline, getStatus()).catch(function (e) {
         return 'status ' + (0, (_string || _load_string()).stringifyError)(e);
       })]);
 
@@ -1032,6 +1032,17 @@ class HgService {
     }).publish();
   }
 
+  diff(revision, unified) {
+    const args = ['diff', '-r', revision];
+    if (unified != null) {
+      args.push('--unified', `${unified}`);
+    }
+    const execOptions = {
+      cwd: this._workingDirectory
+    };
+    return (0, (_hgUtils || _load_hgUtils()).hgRunCommand)(args, execOptions).publish();
+  }
+
   /**
    * Removes files not tracked by Mercurial.
    */
@@ -1265,24 +1276,23 @@ class HgService {
     return this._hgObserveExecution(args, execOptions).switchMap((_hgUtils || _load_hgUtils()).processExitCodeAndThrow).publish();
   }
 
-  continueOperation(command) {
+  continueOperation(commandWithOptions) {
     // TODO(T17463635)
 
     // prevent user-specified merge tools from attempting to
     // open interactive editors
-    const args = [command, '--continue', '--config', 'ui.merge=:merge'];
+    const args = [...commandWithOptions, '--config', 'ui.merge=:merge'];
     const execOptions = {
       cwd: this._workingDirectory
     };
     return this._hgObserveExecution(args, execOptions).switchMap((_hgUtils || _load_hgUtils()).processExitCodeAndThrow).publish();
   }
 
-  abortOperation(command) {
-    const args = [command, '--abort'];
+  abortOperation(commandWithOptions) {
     const execOptions = {
       cwd: this._workingDirectory
     };
-    return (0, (_hgUtils || _load_hgUtils()).hgRunCommand)(args, execOptions).publish();
+    return (0, (_hgUtils || _load_hgUtils()).hgRunCommand)(commandWithOptions, execOptions).publish();
   }
 
   resolveAllFiles() {

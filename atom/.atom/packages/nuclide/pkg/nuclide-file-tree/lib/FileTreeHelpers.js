@@ -125,7 +125,9 @@ function getDirectoryByKey(key) {
   } else if ((_nuclideUri || _load_nuclideUri()).default.isRemote(path)) {
     const connection = (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).ServerConnection.getForUri(path);
     if (connection == null) {
-      return null;
+      // Placeholder remote directories are just empty.
+      // These will be removed by nuclide-remote-projects after reconnection, anyway.
+      return new (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).RemoteDirectoryPlaceholder(path);
     }
     if ((_nuclideUri || _load_nuclideUri()).default.hasKnownArchiveExtension(key)) {
       return connection.createFileAsDirectory(path);

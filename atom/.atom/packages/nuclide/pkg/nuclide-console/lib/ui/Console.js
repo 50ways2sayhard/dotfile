@@ -279,7 +279,8 @@ class Console extends _react.Component {
       _react.createElement((_InputArea || _load_InputArea()).default, {
         scopeName: currentExecutor.scopeName,
         onSubmit: this._executePrompt,
-        history: this.props.history
+        history: this.props.history,
+        watchEditor: this.props.watchEditor
       })
     );
   }

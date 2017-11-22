@@ -108,6 +108,10 @@ class ScopesStore {
     return this._scopes.asObservable();
   }
 
+  getScopesNow() {
+    return this._scopes.getValue();
+  }
+
   supportsSetVariable() {
     return this._debuggerStore.supportsSetVariable();
   }

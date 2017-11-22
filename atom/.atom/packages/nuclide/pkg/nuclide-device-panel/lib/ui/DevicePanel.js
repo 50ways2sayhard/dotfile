@@ -138,6 +138,7 @@ class DevicePanel extends _react.Component {
       )
     );
   }
+
   _getStatus() {
     if (this.props.isDeviceConnected) {
       return null;

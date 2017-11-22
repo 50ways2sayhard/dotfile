@@ -7,10 +7,18 @@ exports.NUCLIDE_PROTOCOL_PREFIX_WIN = exports.NUCLIDE_PROTOCOL_PREFIX = undefine
 exports.sanitizeNuclideUri = sanitizeNuclideUri;
 exports.getOpenFileEditorForRemoteProject = getOpenFileEditorForRemoteProject;
 
+var _atom = require('atom');
+
 var _nuclideUri;
 
 function _load_nuclideUri() {
   return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
+}
+
+var _RemoteTextEditorPlaceholder;
+
+function _load_RemoteTextEditorPlaceholder() {
+  return _RemoteTextEditorPlaceholder = require('./RemoteTextEditorPlaceholder');
 }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -63,11 +71,11 @@ function* getOpenFileEditorForRemoteProject(connectionConfig) {
     for (const paneItem of paneItems) {
       // Here, we're explicitly looking for broken nuclide:/ editors.
       // eslint-disable-next-line rulesdir/atom-apis
-      if (!atom.workspace.isTextEditor(paneItem) || !paneItem.getURI()) {
+      if (!(paneItem instanceof _atom.TextEditor || paneItem instanceof (_RemoteTextEditorPlaceholder || _load_RemoteTextEditorPlaceholder()).RemoteTextEditorPlaceholder) || !paneItem.getURI()) {
         // Ignore non-text editors and new editors with empty uris / paths.
         continue;
       }
-      const uri = sanitizeNuclideUri(paneItem.getURI());
+      const uri = sanitizeNuclideUri(paneItem.getPath());
       const { hostname: fileHostname, path: filePath } = (_nuclideUri || _load_nuclideUri()).default.parse(uri);
       if (fileHostname === connectionConfig.host) {
         // flowlint-next-line sketchy-null-string:off

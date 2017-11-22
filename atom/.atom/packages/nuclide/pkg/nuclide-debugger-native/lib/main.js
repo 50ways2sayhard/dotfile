@@ -70,16 +70,10 @@ function _load_log4js() {
   return _log4js = require('log4js');
 }
 
-var _RemoteFile;
-
-function _load_RemoteFile() {
-  return _RemoteFile = require('../../nuclide-remote-connection/lib/RemoteFile');
-}
-
-var _fs = _interopRequireDefault(require('fs'));
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// eslint-disable-next-line rulesdir/no-cross-atom-imports
+const SUPPORTED_RULE_TYPES = new Set(['cxx_binary', 'cxx_test']);
 // eslint-disable-next-line rulesdir/no-cross-atom-imports
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
@@ -91,9 +85,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * 
  * @format
  */
-
-const SUPPORTED_RULE_TYPES = new Set(['cxx_binary', 'cxx_test']);
-// eslint-disable-next-line rulesdir/no-cross-atom-imports
 
 const LLDB_PROCESS_ID_REGEX = /lldb -p ([0-9]+)/;
 
@@ -193,35 +184,7 @@ class Activation {
       throw new Error('Invariant violation: "taskType === \'debug\'"');
     }
 
-    // Copy task settings so that changes only apply to this current run.
-
-
-    const settings = JSON.parse(JSON.stringify(taskSettings));
-    const checkMode = settings.buildArguments == null || settings.buildArguments.find(arg => arg.includes('@mode')) == null;
-
-    // If debugging and no build mode is specified, add @mode/dbg if
-    // it has a corresponding configuration in this buck root.
-    const modeObsvervable = checkMode ? _rxjsBundlesRxMinJs.Observable.fromPromise((0, _asyncToGenerator.default)(function* () {
-      let exists = false;
-      const uri = (_nuclideUri || _load_nuclideUri()).default.join(buckRoot, 'mode', 'dbg');
-      if ((_nuclideUri || _load_nuclideUri()).default.isRemote(uri)) {
-        // Remote file URI, see if buckRoot/mode/dbg exists.
-        const connection = (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).ServerConnection.getForUri(uri);
-        if (connection != null) {
-          const file = new (_RemoteFile || _load_RemoteFile()).RemoteFile(connection, uri, false);
-          exists = yield file.exists();
-        }
-      } else {
-        // Local file URI.
-        exists = yield _fs.default.exists(uri);
-      }
-
-      if (exists) {
-        settings.buildArguments = ['@mode/dbg'].concat(settings.buildArguments != null ? settings.buildArguments : []);
-      }
-    })()) : _rxjsBundlesRxMinJs.Observable.empty();
-
-    return modeObsvervable.ignoreElements().concat(_rxjsBundlesRxMinJs.Observable.defer(() => {
+    return this._addModeDbgIfNoModeInBuildArguments(buckRoot, taskSettings).switchMap(settings => {
       switch (ruleType) {
         case 'cxx_binary':
         case 'cxx_test':
@@ -263,7 +226,7 @@ class Activation {
           }
 
       }
-    }));
+    });
   }
 
   _getDebuggerService() {
@@ -349,6 +312,27 @@ class Activation {
       yield debuggerService.startDebugging(info);
       return remoteOutputPath;
     })();
+  }
+
+  _addModeDbgIfNoModeInBuildArguments(buckRoot, settings) {
+    const buildArguments = settings.buildArguments != null ? settings.buildArguments : [];
+    if (buildArguments.some(arg => arg.includes('@mode'))) {
+      return _rxjsBundlesRxMinJs.Observable.of(settings);
+    }
+
+    const fileSystemService = (0, (_nuclideRemoteConnection || _load_nuclideRemoteConnection()).getFileSystemServiceByNuclideUri)(buckRoot);
+    return _rxjsBundlesRxMinJs.Observable.defer((0, _asyncToGenerator.default)(function* () {
+      const modeDbgFile = (_nuclideUri || _load_nuclideUri()).default.join(buckRoot, 'mode', 'dbg');
+      if (yield fileSystemService.exists(modeDbgFile)) {
+        buildArguments.push('@mode/dbg');
+        return {
+          buildArguments,
+          runArguments: settings.runArguments
+        };
+      } else {
+        return settings;
+      }
+    }));
   }
 }
 
