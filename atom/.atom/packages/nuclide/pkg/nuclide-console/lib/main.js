@@ -1,5 +1,7 @@
 'use strict';
 
+var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
+
 var _createPackage;
 
 function _load_createPackage() {
@@ -89,6 +91,8 @@ const MAXIMUM_SERIALIZED_MESSAGES_CONFIG = 'nuclide-console.maximumSerializedMes
                                                                                          * @format
                                                                                          */
 
+const MAXIMUM_SERIALIZED_HISTORY_CONFIG = 'nuclide-console.maximumSerializedHistory';
+
 class Activation {
 
   constructor(rawState) {
@@ -144,6 +148,39 @@ class Activation {
         this._getStore().dispatch((_Actions || _load_Actions()).setCreatePasteFunction(null));
       }
     });
+  }
+
+  consumeWatchEditor(watchEditor) {
+    this._getStore().dispatch((_Actions || _load_Actions()).setWatchEditor(watchEditor));
+    return new (_UniversalDisposable || _load_UniversalDisposable()).default(() => {
+      if (this._getStore().getState().watchEditor === watchEditor) {
+        this._getStore().dispatch((_Actions || _load_Actions()).setWatchEditor(null));
+      }
+    });
+  }
+
+  provideAutocomplete() {
+    const activation = this;
+    return {
+      labels: ['nuclide-console'],
+      selector: '*',
+      // Copies Chrome devtools and puts history suggestions at the bottom.
+      suggestionPriority: -1,
+      getSuggestions(request) {
+        return (0, _asyncToGenerator.default)(function* () {
+          // History provides suggestion only on exact match to current input.
+          const prefix = request.editor.getText();
+          const history = activation._getStore().getState().history;
+          // Use a set to remove duplicates.
+          const seen = new Set(history);
+          return Array.from(seen).filter(function (text) {
+            return text.startsWith(prefix);
+          }).map(function (text) {
+            return { text, replacementPrefix: prefix };
+          });
+        })();
+      }
+    };
   }
 
   _registerCommandAndOpener() {
@@ -295,8 +332,10 @@ class Activation {
       return {};
     }
     const maximumSerializedMessages = (_featureConfig || _load_featureConfig()).default.get(MAXIMUM_SERIALIZED_MESSAGES_CONFIG);
+    const maximumSerializedHistory = (_featureConfig || _load_featureConfig()).default.get(MAXIMUM_SERIALIZED_HISTORY_CONFIG);
     return {
-      records: this._store.getState().records.slice(-maximumSerializedMessages)
+      records: this._store.getState().records.slice(-maximumSerializedMessages),
+      history: this._store.getState().history.slice(-maximumSerializedHistory)
     };
   }
 }
@@ -307,7 +346,7 @@ function deserializeAppState(rawState) {
     createPasteFunction: null,
     currentExecutorId: null,
     records: rawState && rawState.records ? rawState.records.map(deserializeRecord) : [],
-    history: [],
+    history: rawState && rawState.history ? rawState.history : [],
     providers: new Map(),
     providerStatuses: new Map(),
 

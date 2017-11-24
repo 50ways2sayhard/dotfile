@@ -15,7 +15,7 @@ module.exports = _client => {
         location: {
           type: "source",
           fileName: "PhpDebuggerService.js",
-          line: 67
+          line: 65
         },
         name: "PhpDebuggerService"
       })])).switchMap(([args, id]) => _client.callRemoteMethod(id, "getNotificationObservable", "observable", args)).concatMap(value => {
@@ -32,7 +32,7 @@ module.exports = _client => {
         location: {
           type: "source",
           fileName: "PhpDebuggerService.js",
-          line: 67
+          line: 65
         },
         name: "PhpDebuggerService"
       })])).switchMap(([args, id]) => _client.callRemoteMethod(id, "getServerMessageObservable", "observable", args)).concatMap(value => {
@@ -48,7 +48,7 @@ module.exports = _client => {
         location: {
           type: "source",
           fileName: "PhpDebuggerService.js",
-          line: 67
+          line: 65
         },
         name: "PhpDebuggerService"
       })])).switchMap(([args, id]) => _client.callRemoteMethod(id, "getOutputWindowObservable", "observable", args)).concatMap(value => {
@@ -70,7 +70,7 @@ module.exports = _client => {
         location: {
           type: "source",
           fileName: "PhpDebuggerService.js",
-          line: 67
+          line: 65
         },
         name: "PhpDebuggerService"
       })]).then(([args, id]) => _client.callRemoteMethod(id, "debug", "promise", args)).then(value => {
@@ -91,7 +91,7 @@ module.exports = _client => {
         location: {
           type: "source",
           fileName: "PhpDebuggerService.js",
-          line: 67
+          line: 65
         },
         name: "PhpDebuggerService"
       })]).then(([args, id]) => _client.callRemoteMethod(id, "sendCommand", "promise", args)).then(value => {
@@ -214,7 +214,7 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "PhpDebuggerService.js",
-        line: 28
+        line: 27
       },
       name: "PhpDebuggerSessionConfig",
       definition: {
@@ -379,7 +379,7 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "PhpDebuggerService.js",
-        line: 67
+        line: 65
       },
       constructorArgs: [],
       staticMethods: {},
@@ -388,7 +388,7 @@ Object.defineProperty(module.exports, "defs", {
           location: {
             type: "source",
             fileName: "PhpDebuggerService.js",
-            line: 81
+            line: 79
           },
           kind: "function",
           argumentTypes: [],
@@ -404,7 +404,7 @@ Object.defineProperty(module.exports, "defs", {
           location: {
             type: "source",
             fileName: "PhpDebuggerService.js",
-            line: 85
+            line: 83
           },
           kind: "function",
           argumentTypes: [],
@@ -419,7 +419,7 @@ Object.defineProperty(module.exports, "defs", {
           location: {
             type: "source",
             fileName: "PhpDebuggerService.js",
-            line: 89
+            line: 87
           },
           kind: "function",
           argumentTypes: [],
@@ -434,7 +434,7 @@ Object.defineProperty(module.exports, "defs", {
           location: {
             type: "source",
             fileName: "PhpDebuggerService.js",
-            line: 93
+            line: 91
           },
           kind: "function",
           argumentTypes: [{
@@ -455,7 +455,7 @@ Object.defineProperty(module.exports, "defs", {
           location: {
             type: "source",
             fileName: "PhpDebuggerService.js",
-            line: 142
+            line: 138
           },
           kind: "function",
           argumentTypes: [{
@@ -475,7 +475,7 @@ Object.defineProperty(module.exports, "defs", {
           location: {
             type: "source",
             fileName: "PhpDebuggerService.js",
-            line: 174
+            line: 170
           },
           kind: "function",
           argumentTypes: [],

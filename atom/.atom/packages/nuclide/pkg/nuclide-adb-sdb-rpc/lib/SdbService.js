@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.launchApp = exports.getFileContentsAtPath = exports.getPidFromPackageName = exports.registerCustomPath = exports.getFullConfig = exports.registerSdbPath = undefined;
+exports.stopProcess = exports.launchApp = exports.getFileContentsAtPath = exports.getPidFromPackageName = exports.registerCustomPath = exports.getFullConfig = exports.registerSdbPath = undefined;
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
@@ -64,6 +64,16 @@ let launchApp = exports.launchApp = (() => {
 
   return function launchApp(_x8, _x9) {
     return _ref6.apply(this, arguments);
+  };
+})();
+
+let stopProcess = exports.stopProcess = (() => {
+  var _ref7 = (0, _asyncToGenerator.default)(function* (device, packageName, pid) {
+    return new (_Sdb || _load_Sdb()).Sdb(device).stopProcess(packageName, pid);
+  });
+
+  return function stopProcess(_x10, _x11, _x12) {
+    return _ref7.apply(this, arguments);
   };
 })();
 

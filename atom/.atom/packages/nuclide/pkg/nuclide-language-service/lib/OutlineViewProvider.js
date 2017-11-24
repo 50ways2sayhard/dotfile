@@ -29,16 +29,17 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 class OutlineViewProvider {
 
-  constructor(name, grammarScopes, priority, analyticsEventName, connectionToLanguageService) {
+  constructor(name, grammarScopes, priority, analyticsEventName, updateOnEdit, connectionToLanguageService) {
     this.name = name;
     this.grammarScopes = grammarScopes;
     this.priority = priority;
+    this.updateOnEdit = updateOnEdit == null ? undefined : updateOnEdit;
     this._analyticsEventName = analyticsEventName;
     this._connectionToLanguageService = connectionToLanguageService;
   }
 
   static register(name, grammarScopes, config, connectionToLanguageService) {
-    return atom.packages.serviceHub.provide('outline-view', config.version, new OutlineViewProvider(name, grammarScopes, config.priority, config.analyticsEventName, connectionToLanguageService));
+    return atom.packages.serviceHub.provide('outline-view', config.version, new OutlineViewProvider(name, grammarScopes, config.priority, config.analyticsEventName, config.updateOnEdit, connectionToLanguageService));
   }
 
   getOutline(editor) {

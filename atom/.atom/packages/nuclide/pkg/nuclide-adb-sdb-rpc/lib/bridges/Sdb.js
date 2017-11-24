@@ -66,6 +66,14 @@ class Sdb extends (_DebugBridge || _load_DebugBridge()).DebugBridge {
     });
   }
 
+  stopProcess(packageName, pid) {
+    var _this2 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      yield _this2.runShortCommand('shell', 'kill', '-9', `${pid}`).toPromise();
+    })();
+  }
+
   getDeviceArchitecture() {
     return this.runShortCommand('shell', 'uname', '-m').map(s => s.trim());
   }

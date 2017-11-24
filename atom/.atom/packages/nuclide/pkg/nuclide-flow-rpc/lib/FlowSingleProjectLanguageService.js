@@ -187,9 +187,8 @@ class FlowSingleProjectLanguageService {
     var _this2 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      // `flow find-refs` came out in v0.38.0
-      // https://github.com/facebook/flow/releases/tag/v0.38.0
-      const isSupported = yield _this2._version.satisfies('>=0.38.0');
+      // `flow find-refs` did not work well until version v0.55.0
+      const isSupported = yield _this2._version.satisfies('>=0.55.0');
       if (!isSupported) {
         return null;
       }
@@ -528,7 +527,7 @@ class FlowSingleProjectLanguageService {
     throw new Error('Not implemeneted');
   }
 
-  getAdditionalLogFiles(expire) {
+  getAdditionalLogFiles(deadline) {
     return (0, _asyncToGenerator.default)(function* () {
       return [];
     })();

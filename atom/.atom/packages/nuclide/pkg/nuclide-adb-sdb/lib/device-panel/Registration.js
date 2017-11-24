@@ -41,10 +41,10 @@ function _load_ATDeviceProcessesProvider() {
   return _ATDeviceProcessesProvider = require('./ATDeviceProcessesProvider');
 }
 
-var _ATDeviceStopPackageProvider;
+var _ATDeviceStopProcessProvider;
 
-function _load_ATDeviceStopPackageProvider() {
-  return _ATDeviceStopPackageProvider = require('./ATDeviceStopPackageProvider');
+function _load_ATDeviceStopProcessProvider() {
+  return _ATDeviceStopProcessProvider = require('./ATDeviceStopProcessProvider');
 }
 
 var _ATConfigurePathTaskProvider;
@@ -64,7 +64,7 @@ function registerDevicePanelProviders(api, android, tizen) {
   // processes
   api.registerProcessesProvider(new (_ATDeviceProcessesProvider || _load_ATDeviceProcessesProvider()).ATDeviceProcessesProvider(android)), api.registerProcessesProvider(new (_ATDeviceProcessesProvider || _load_ATDeviceProcessesProvider()).ATDeviceProcessesProvider(tizen)),
   // process tasks
-  api.registerProcessTaskProvider(new (_ATDeviceStopPackageProvider || _load_ATDeviceStopPackageProvider()).ATDeviceStopPackageProvider(android)),
+  api.registerProcessTaskProvider(new (_ATDeviceStopProcessProvider || _load_ATDeviceStopProcessProvider()).ATDeviceStopProcessProvider(android)), api.registerProcessTaskProvider(new (_ATDeviceStopProcessProvider || _load_ATDeviceStopProcessProvider()).ATDeviceStopProcessProvider(tizen)),
   // device type tasks
   api.registerDeviceTypeTaskProvider(new (_ATConfigurePathTaskProvider || _load_ATConfigurePathTaskProvider()).ATConfigurePathTaskProvider(android)), api.registerDeviceTypeTaskProvider(new (_ATConfigurePathTaskProvider || _load_ATConfigurePathTaskProvider()).ATConfigurePathTaskProvider(tizen)));
 } /**

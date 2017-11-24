@@ -141,7 +141,7 @@ class DebuggerInstance extends DebuggerInstanceBase {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      _this._useNewChannel = yield (0, (_NewProtocolChannelChecker || _load_NewProtocolChannelChecker()).isNewProtocolChannelEnabled)(_this.getProviderName());
+      _this._useNewChannel = (0, (_NewProtocolChannelChecker || _load_NewProtocolChannelChecker()).isNewProtocolChannelEnabled)(_this.getProviderName());
       return Promise.resolve(_this._startChromeWebSocketServer());
     })();
   }
@@ -207,7 +207,6 @@ class DebuggerInstance extends DebuggerInstanceBase {
 
   _handleServerMessage(message_) {
     let message = message_;
-    this.getLogger().debug('Received server message: ' + message);
     const processedMessage = this.preProcessServerMessage(message);
     const webSocket = this._chromeWebSocket;
     message = this._translateMessageIfNeeded(processedMessage);
@@ -236,7 +235,6 @@ class DebuggerInstance extends DebuggerInstanceBase {
     var _this2 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      _this2.getLogger().debug('Received Chrome message: ' + message);
       const processedMessage = yield _this2.preProcessClientMessage(message);
       _this2._rpcService.sendCommand((0, (_ChromeMessageRemoting || _load_ChromeMessageRemoting()).translateMessageToServer)(processedMessage));
     })();

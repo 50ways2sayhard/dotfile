@@ -308,12 +308,12 @@ class FileTreeEntryComponent extends _react.Component {
     this.dragEventCount = 0;
 
     this.state = {
-      isLoading: false
+      isLoading: props.node.isLoading
     };
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return nextProps.node !== this.props.node || nextState.isLoading !== this.state.isLoading || nextProps.selectedNodes !== this.props.selectedNodes || nextProps.focusedNodes !== this.props.focusedNodes;
+    return nextProps.node !== this.props.node || nextProps.node.isLoading !== this.props.node.isLoading || nextState.isLoading !== this.state.isLoading || nextProps.selectedNodes !== this.props.selectedNodes || nextProps.focusedNodes !== this.props.focusedNodes;
   }
 
   componentWillReceiveProps(nextProps) {
@@ -493,11 +493,16 @@ class FileTreeEntryComponent extends _react.Component {
     }
 
     const node = this.props.node;
-    return node.isContainer &&
+    const shouldToggleExpand = node.isContainer &&
     // $FlowFixMe
     _reactDom.default.findDOMNode(this.refs.arrowContainer).contains(event.target) && event.clientX <
     // $FlowFixMe
     _reactDom.default.findDOMNode(this._pathContainer).getBoundingClientRect().left;
+    if (shouldToggleExpand) {
+      getActions().clearTrackedNode();
+    }
+
+    return shouldToggleExpand;
   }
 
   _toggleNodeExpanded(deep) {

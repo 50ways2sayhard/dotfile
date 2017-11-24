@@ -13,8 +13,8 @@ let resolveTool = (() => {
       return tool;
     }
     return (0, (_promise || _load_promise()).asyncFind)(_os.default.platform() === 'win32' ? WINDOWS_TOOLS : POSIX_TOOLS, function (t) {
-      return (0, (_hasCommand || _load_hasCommand()).hasCommand)(t).then(function (has) {
-        return has ? t : null;
+      return (0, (_which || _load_which()).default)(t).then(function (cmd) {
+        return cmd != null ? t : null;
       });
     });
   });
@@ -83,16 +83,16 @@ function _load_RgService() {
 
 var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
 
-var _hasCommand;
-
-function _load_hasCommand() {
-  return _hasCommand = require('nuclide-commons/hasCommand');
-}
-
 var _promise;
 
 function _load_promise() {
   return _promise = require('nuclide-commons/promise');
+}
+
+var _which;
+
+function _load_which() {
+  return _which = _interopRequireDefault(require('nuclide-commons/which'));
 }
 
 var _FileSystemService;

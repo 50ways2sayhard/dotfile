@@ -72,6 +72,12 @@ function _load_getElementFilePath() {
   return _getElementFilePath = _interopRequireDefault(require('../../commons-atom/getElementFilePath'));
 }
 
+var _removeProjectPath;
+
+function _load_removeProjectPath() {
+  return _removeProjectPath = _interopRequireDefault(require('../../commons-atom/removeProjectPath'));
+}
+
 var _UniversalDisposable;
 
 function _load_UniversalDisposable() {
@@ -92,20 +98,17 @@ var _electron = require('electron');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const VALID_FILTER_CHARS = '!#./0123456789-:;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ' + '_abcdefghijklmnopqrstuvwxyz~';
 // $FlowFixMe(>=0.53.0) Flow suppress
-
+const VALID_FILTER_CHARS = '!#./0123456789-:;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ' + '_abcdefghijklmnopqrstuvwxyz~'; /**
+                                                                                                              * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                                              * All rights reserved.
+                                                                                                              *
+                                                                                                              * This source code is licensed under the license found in the LICENSE file in
+                                                                                                              * the root directory of this source tree.
+                                                                                                              *
+                                                                                                              * 
+                                                                                                              * @format
+                                                                                                              */
 
 class ProjectSelectionManager {
 
@@ -577,33 +580,7 @@ class FileTreeController {
     return (0, _asyncToGenerator.default)(function* () {
       const rootNode = _this._store.getSingleSelectedNode();
       if (rootNode != null && rootNode.isRoot) {
-        // close all the files associated with the project before closing
-        const projectEditors = atom.workspace.getTextEditors();
-
-        const roots = _this._store.getRootKeys();
-        for (const editor of projectEditors) {
-          const path = editor.getPath();
-          // if the path of the editor is not null AND
-          // is part of the currently selected root that would be removed AND
-          // is not part of any other open root, then close the file.
-          if (path != null && path.startsWith(rootNode.uri) && roots.filter(function (root) {
-            return path.startsWith(root);
-          }).length === 1) {
-            // eslint-disable-next-line no-await-in-loop
-            const didDestroy = yield atom.workspace.paneForURI(path).destroyItem(editor);
-
-            // Atom has a bug where, in some cases, destroyItem returns nonsense.
-            // Luckily, in the case we care about, it returns a literal `false`,
-            // so we check for that explictly.
-            // https://github.com/atom/atom/issues/15157
-            if (didDestroy === false) {
-              return;
-            }
-          }
-        }
-
-        // actually close the project
-        atom.project.removePath((_FileTreeHelpers || _load_FileTreeHelpers()).default.keyToPath(rootNode.uri));
+        yield (0, (_removeProjectPath || _load_removeProjectPath()).default)(rootNode.uri);
       }
     })();
   }

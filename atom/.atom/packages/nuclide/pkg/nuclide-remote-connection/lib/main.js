@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.loadBufferForUri = exports.existingBufferForUri = exports.bufferForUri = exports.getlocalService = exports.getServiceByNuclideUri = exports.getServiceByConnection = exports.getService = exports.decorateSshConnectionDelegateWithTracking = exports.SshHandshake = exports.ConnectionCache = exports.ServerConnection = exports.RemoteFile = exports.RemoteDirectory = exports.RemoteConnection = undefined;
+exports.RemoteDirectoryPlaceholder = exports.loadBufferForUri = exports.existingBufferForUri = exports.bufferForUri = exports.getlocalService = exports.getServiceByNuclideUri = exports.getServiceByConnection = exports.getService = exports.decorateSshConnectionDelegateWithTracking = exports.SshHandshake = exports.ConnectionCache = exports.ServerConnection = exports.RemoteFile = exports.RemoteDirectory = exports.RemoteConnection = undefined;
 
 var _remoteTextBuffer;
 
@@ -27,6 +27,19 @@ Object.defineProperty(exports, 'loadBufferForUri', {
   enumerable: true,
   get: function () {
     return (_remoteTextBuffer || _load_remoteTextBuffer()).loadBufferForUri;
+  }
+});
+
+var _RemoteDirectoryPlaceholder;
+
+function _load_RemoteDirectoryPlaceholder() {
+  return _RemoteDirectoryPlaceholder = require('./RemoteDirectoryPlaceholder');
+}
+
+Object.defineProperty(exports, 'RemoteDirectoryPlaceholder', {
+  enumerable: true,
+  get: function () {
+    return _interopRequireDefault(_RemoteDirectoryPlaceholder || _load_RemoteDirectoryPlaceholder()).default;
   }
 });
 exports.getAdbServiceByNuclideUri = getAdbServiceByNuclideUri;
@@ -57,6 +70,7 @@ exports.getSocketServiceByNuclideUri = getSocketServiceByNuclideUri;
 exports.getSourceControlServiceByNuclideUri = getSourceControlServiceByNuclideUri;
 exports.getVSCodeLanguageServiceByConnection = getVSCodeLanguageServiceByConnection;
 exports.getVSCodeLanguageServiceByNuclideUri = getVSCodeLanguageServiceByNuclideUri;
+exports.getClangdLSPServiceByConnection = getClangdLSPServiceByConnection;
 
 var _nullthrows;
 
@@ -240,4 +254,8 @@ function getVSCodeLanguageServiceByConnection(connection) {
 
 function getVSCodeLanguageServiceByNuclideUri(uri) {
   return (0, (_nullthrows || _load_nullthrows()).default)((0, (_serviceManager || _load_serviceManager()).getServiceByNuclideUri)('VSCodeLanguageService', uri));
+}
+
+function getClangdLSPServiceByConnection(connection) {
+  return (0, (_nullthrows || _load_nullthrows()).default)((0, (_serviceManager || _load_serviceManager()).getServiceByConnection)('ClangdLSPService', connection));
 }

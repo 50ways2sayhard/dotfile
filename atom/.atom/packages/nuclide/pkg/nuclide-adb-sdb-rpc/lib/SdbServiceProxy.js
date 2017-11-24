@@ -185,6 +185,32 @@ module.exports = _client => {
     });
   };
 
+  remoteModule.stopProcess = function (arg0, arg1, arg2) {
+    return _client.marshalArguments(Array.from(arguments), [{
+      name: "device",
+      type: {
+        kind: "named",
+        name: "DeviceId"
+      }
+    }, {
+      name: "packageName",
+      type: {
+        kind: "string"
+      }
+    }, {
+      name: "pid",
+      type: {
+        kind: "number"
+      }
+    }]).then(args => {
+      return _client.callRemoteFunction("SdbService/stopProcess", "promise", args);
+    }).then(value => {
+      return _client.unmarshal(value, {
+        kind: "void"
+      });
+    });
+  };
+
   remoteModule.uninstallPackage = function (arg0, arg1) {
     return Observable.fromPromise(_client.marshalArguments(Array.from(arguments), [{
       name: "device",
@@ -915,9 +941,9 @@ Object.defineProperty(module.exports, "defs", {
         }
       }
     },
-    uninstallPackage: {
+    stopProcess: {
       kind: "function",
-      name: "uninstallPackage",
+      name: "stopProcess",
       location: {
         type: "source",
         fileName: "SdbService.js",
@@ -928,6 +954,46 @@ Object.defineProperty(module.exports, "defs", {
           type: "source",
           fileName: "SdbService.js",
           line: 86
+        },
+        kind: "function",
+        argumentTypes: [{
+          name: "device",
+          type: {
+            kind: "named",
+            name: "DeviceId"
+          }
+        }, {
+          name: "packageName",
+          type: {
+            kind: "string"
+          }
+        }, {
+          name: "pid",
+          type: {
+            kind: "number"
+          }
+        }],
+        returnType: {
+          kind: "promise",
+          type: {
+            kind: "void"
+          }
+        }
+      }
+    },
+    uninstallPackage: {
+      kind: "function",
+      name: "uninstallPackage",
+      location: {
+        type: "source",
+        fileName: "SdbService.js",
+        line: 94
+      },
+      type: {
+        location: {
+          type: "source",
+          fileName: "SdbService.js",
+          line: 94
         },
         kind: "function",
         argumentTypes: [{
@@ -1012,13 +1078,13 @@ Object.defineProperty(module.exports, "defs", {
       location: {
         type: "source",
         fileName: "SdbService.js",
-        line: 94
+        line: 102
       },
       type: {
         location: {
           type: "source",
           fileName: "SdbService.js",
-          line: 94
+          line: 102
         },
         kind: "function",
         argumentTypes: [{

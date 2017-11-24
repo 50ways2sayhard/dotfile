@@ -31,6 +31,9 @@ const RECORD_PROPERTIES_TO_COMPARE = ['text', 'level', 'scopeName', 'sourceId', 
                                                                                           */
 
 function shouldAccumulateRecordCount(recordA, recordB) {
+  if (String(recordA.sourceId).toLowerCase().includes('debugger') || String(recordB.sourceId).toLowerCase().includes('debugger')) {
+    return false;
+  }
   const areRelevantPropertiesEqual = RECORD_PROPERTIES_TO_COMPARE.every(prop => recordA[prop] === recordB[prop]);
 
   // if data exists, we should not accumulate this into the previous record
@@ -137,6 +140,13 @@ function accumulateState(state, action) {
         const { createPasteFunction } = action.payload;
         return Object.assign({}, state, {
           createPasteFunction
+        });
+      }
+    case (_Actions || _load_Actions()).SET_WATCH_EDITOR_FUNCTION:
+      {
+        const { watchEditor } = action.payload;
+        return Object.assign({}, state, {
+          watchEditor
         });
       }
   }

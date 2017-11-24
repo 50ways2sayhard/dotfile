@@ -46,14 +46,14 @@ class LanguageAdditionalLogFilesProvider {
     return atom.packages.serviceHub.provide('additional-log-files', '0.0.0', new LanguageAdditionalLogFilesProvider(name, connectionToLanguageService));
   }
 
-  getAdditionalLogFiles(expire) {
+  getAdditionalLogFiles(deadline) {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const resultsForConnection = (() => {
         var _ref = (0, _asyncToGenerator.default)(function* (prefix, connection) {
           const service = yield _this._connectionToLanguageService.get(connection);
-          const subResults = yield service.getAdditionalLogFiles(expire - 1000);
+          const subResults = yield service.getAdditionalLogFiles(deadline - 1000);
           return subResults.map(function (log) {
             return Object.assign({}, log, { title: prefix + log.title });
           });
@@ -67,7 +67,7 @@ class LanguageAdditionalLogFilesProvider {
       const connections = Array.from(_this._connectionToLanguageService.keys());
       const results = yield Promise.all(connections.map(function (connection) {
         const prefix = `[${_this._name}]` + (connection == null ? '' : connection.getRemoteHostname() + ':');
-        return (0, (_promise || _load_promise()).expirePromise)(expire, resultsForConnection(prefix, connection)).catch(function (e) {
+        return (0, (_promise || _load_promise()).timeoutAfterDeadline)(deadline, resultsForConnection(prefix, connection)).catch(function (e) {
           return [{
             title: `${prefix}language_service`,
             data: (0, (_string || _load_string()).stringifyError)(e)

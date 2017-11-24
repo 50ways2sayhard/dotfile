@@ -62,6 +62,7 @@ class RevisionsCache {
     this._hgService = hgService;
     this._revisions = new _rxjsBundlesRxMinJs.BehaviorSubject([]);
     this._fetchRevisionsRequests = new _rxjsBundlesRxMinJs.Subject();
+    this._isFetchingRevisions = new _rxjsBundlesRxMinJs.Subject();
 
     this._lazyRevisionFetcher = this._fetchRevisionsRequests.startWith(null) // Initially, no refresh requests applied.
     .let((0, (_observable || _load_observable()).fastDebounce)(FETCH_REVISIONS_DEBOUNCE_MS)).switchMap(() =>
@@ -74,11 +75,14 @@ class RevisionsCache {
   }
 
   _fetchSmartlogRevisions() {
+    this._isFetchingRevisions.next(true);
     return this._hgService.fetchSmartlogRevisions().refCount().timeout(FETCH_REVISIONS_TIMEOUT_MS).catch(err => {
       if (err instanceof _rxjsBundlesRxMinJs.TimeoutError) {
         throw new Error('Timed out fetching smartlog revisions');
       }
       throw err;
+    }).finally(() => {
+      this._isFetchingRevisions.next(false);
     });
   }
 
@@ -92,6 +96,10 @@ class RevisionsCache {
 
   observeRevisionChanges() {
     return this._lazyRevisionFetcher.startWith(this.getCachedRevisions());
+  }
+
+  observeIsFetchingRevisions() {
+    return this._isFetchingRevisions.asObservable();
   }
 }
 exports.default = RevisionsCache;

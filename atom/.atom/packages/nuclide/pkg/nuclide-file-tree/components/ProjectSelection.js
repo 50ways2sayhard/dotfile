@@ -77,6 +77,7 @@ class ProjectSelection extends _react.Component {
     this.setState({
       extraContent: this.calculateExtraContent()
     });
+    this.props.remeasureHeight();
   }
 
   calculateExtraContent() {

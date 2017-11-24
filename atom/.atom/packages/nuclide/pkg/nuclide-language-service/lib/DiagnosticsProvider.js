@@ -301,15 +301,13 @@ class ObservableDiagnosticProvider {
           return _rxjsBundlesRxMinJs.Observable.empty();
         }));
       }).map(updates => {
+        (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)(this._analyticsEventName);
         const filePathToMessages = new Map();
         updates.forEach((messages, filePath) => {
-          (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)(this._analyticsEventName);
           const fileCache = this._connectionToFiles.get(connection);
           if (messages.length === 0) {
-            this._logger.debug(`Observing diagnostics: removing ${filePath}, ${this._analyticsEventName}`);
             fileCache.delete(filePath);
           } else {
-            this._logger.debug(`Observing diagnostics: adding ${filePath}, ${this._analyticsEventName}`);
             fileCache.add(filePath);
           }
           filePathToMessages.set(filePath, messages);

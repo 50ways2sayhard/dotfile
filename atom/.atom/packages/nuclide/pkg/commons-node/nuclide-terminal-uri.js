@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.TERMINAL_DEFAULT_ICON = exports.TERMINAL_DEFAULT_LOCATION = exports.URI_PREFIX = undefined;
+exports.TERMINAL_DEFAULT_INFO = exports.TERMINAL_DEFAULT_ICON = exports.TERMINAL_DEFAULT_LOCATION = exports.URI_PREFIX = undefined;
 exports.uriFromCwd = uriFromCwd;
 exports.uriFromInfo = uriFromInfo;
 exports.infoFromUri = infoFromUri;
@@ -31,14 +31,15 @@ const URI_PREFIX = exports.URI_PREFIX = 'atom://nuclide-terminal-view'; /**
 
 const TERMINAL_DEFAULT_LOCATION = exports.TERMINAL_DEFAULT_LOCATION = 'pane';
 const TERMINAL_DEFAULT_ICON = exports.TERMINAL_DEFAULT_ICON = 'terminal';
+const TERMINAL_DEFAULT_INFO = exports.TERMINAL_DEFAULT_INFO = {
+  remainOnCleanExit: false,
+  defaultLocation: TERMINAL_DEFAULT_LOCATION,
+  icon: TERMINAL_DEFAULT_ICON
+};
 
 function uriFromCwd(cwd) {
   const cwdOptions = cwd == null ? {} : { cwd };
-  return uriFromInfo(Object.assign({}, cwdOptions, {
-    remainOnCleanExit: false,
-    defaultLocation: TERMINAL_DEFAULT_LOCATION,
-    icon: TERMINAL_DEFAULT_ICON
-  }));
+  return uriFromInfo(Object.assign({}, cwdOptions, TERMINAL_DEFAULT_INFO));
 }
 
 function uriFromInfo(info) {
@@ -55,7 +56,8 @@ function uriFromInfo(info) {
       defaultLocation: info.defaultLocation,
       icon: info.icon,
       environmentVariables: info.environmentVariables != null ? JSON.stringify([...info.environmentVariables]) : '',
-      preservedCommands: JSON.stringify(info.preservedCommands || [])
+      preservedCommands: JSON.stringify(info.preservedCommands || []),
+      initialInput: info.initialInput != null ? info.initialInput : ''
     }
   });
 
@@ -69,11 +71,7 @@ function uriFromInfo(info) {
 function infoFromUri(paneUri) {
   const { query } = _url.default.parse(paneUri, true);
   if (query == null) {
-    return {
-      remainOnCleanExit: false,
-      defaultLocation: TERMINAL_DEFAULT_LOCATION,
-      icon: TERMINAL_DEFAULT_ICON
-    };
+    return TERMINAL_DEFAULT_INFO;
   } else {
     const cwd = query.cwd === '' ? {} : { cwd: query.cwd };
     const command = query.command === '' ? {} : { command: JSON.parse(query.command) };
@@ -84,13 +82,15 @@ function infoFromUri(paneUri) {
     const icon = query.icon != null && query.icon !== '' ? query.icon : TERMINAL_DEFAULT_ICON;
     const environmentVariables = query.environmentVariables != null && query.environmentVariables !== '' ? new Map(JSON.parse(query.environmentVariables)) : new Map();
     const preservedCommands = JSON.parse(query.preservedCommands || '[]');
+    const initialInput = query.initialInput != null ? query.initialInput : '';
     return Object.assign({}, cwd, command, title, {
       remainOnCleanExit,
       defaultLocation,
       icon,
       key,
       environmentVariables,
-      preservedCommands
+      preservedCommands,
+      initialInput
     });
   }
 }

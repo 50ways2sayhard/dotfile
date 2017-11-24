@@ -136,15 +136,10 @@ class FileTreeActions {
   }
 
   setRootKeys(rootKeys) {
-    const existingRootKeySet = new (_immutable || _load_immutable()).default.Set(this._store.getRootKeys());
-    const addedRootKeys = new (_immutable || _load_immutable()).default.Set(rootKeys).subtract(existingRootKeySet);
     this._dispatcher.dispatch({
       actionType: (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.SET_ROOT_KEYS,
       rootKeys
     });
-    for (const rootKey of addedRootKeys) {
-      this.expandNode(rootKey, rootKey);
-    }
   }
 
   clearFilter() {

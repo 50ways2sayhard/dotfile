@@ -105,6 +105,12 @@ function _load_nuclideUri() {
   return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
 }
 
+var _promise;
+
+function _load_promise() {
+  return _promise = require('nuclide-commons/promise');
+}
+
 var _FileTreeSelectionRange;
 
 function _load_FileTreeSelectionRange() {
@@ -120,19 +126,19 @@ function _load_nuclideRemoteConnection() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Used to ensure the version we serialized is the same version we are deserializing.
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
+const VERSION = 1;
 // $FlowFixMe(>=0.53.0) Flow suppress
-const VERSION = 1; /**
-                    * Copyright (c) 2015-present, Facebook, Inc.
-                    * All rights reserved.
-                    *
-                    * This source code is licensed under the license found in the LICENSE file in
-                    * the root directory of this source tree.
-                    *
-                    * 
-                    * @format
-                    */
-
 const DEFAULT_CONF = exports.DEFAULT_CONF = {
   vcsStatuses: new (_immutable || _load_immutable()).default.Map(),
   workingSet: new (_nuclideWorkingSetsCommon || _load_nuclideWorkingSetsCommon()).WorkingSet(),
@@ -147,6 +153,8 @@ const DEFAULT_CONF = exports.DEFAULT_CONF = {
   reposByRoot: {},
   fileChanges: new (_immutable || _load_immutable()).default.Map()
 };
+
+const FETCH_TIMEOUT = 20000;
 
 let instance;
 
@@ -208,45 +216,14 @@ class FileTreeStore {
    * [1]: https://atom.io/docs/latest/behind-atom-serialization-in-atom
    */
   exportData() {
-    const childKeyMap = {};
-    const expandedKeysByRoot = {};
-    const selectedKeysByRoot = {};
-
-    this.roots.forEach(root => {
-      const expandedKeys = [];
-      const selectedKeys = [];
-
-      // Grab the data of only the expanded portion of the tree.
-      root.traverse(node => {
-        if (node.isSelected()) {
-          selectedKeys.push(node.uri);
-        }
-
-        if (!node.isExpanded) {
-          return false;
-        }
-
-        expandedKeys.push(node.uri);
-
-        if (!node.children.isEmpty()) {
-          childKeyMap[node.uri] = node.children.map(child => child.uri).toArray();
-        }
-
-        return true;
-      });
-
-      expandedKeysByRoot[root.uri] = expandedKeys;
-      selectedKeysByRoot[root.uri] = selectedKeys;
-    });
-
     const rootKeys = this.roots.map(root => root.uri).toArray();
 
     return {
       version: VERSION,
-      childKeyMap,
-      expandedKeysByRoot,
+      childKeyMap: {},
+      expandedKeysByRoot: {},
       rootKeys,
-      selectedKeysByRoot,
+      selectedKeysByRoot: {},
       openFilesExpanded: this.openFilesExpanded,
       uncommittedChangesExpanded: this.uncommittedChangesExpanded,
       foldersExpanded: this.foldersExpanded
@@ -262,27 +239,16 @@ class FileTreeStore {
       return;
     }
 
-    const buildNode = (rootUri, uri) => {
-      const rootExpandedKeys = data.expandedKeysByRoot[rootUri] || [];
-      const rootSelectedKeys = data.selectedKeysByRoot[rootUri] || [];
-      const childrenUris = data.childKeyMap[uri] || [];
-      const children = (_FileTreeNode || _load_FileTreeNode()).FileTreeNode.childrenFromArray(childrenUris.map(childUri => buildNode(rootUri, childUri)));
-
-      const isExpanded = rootExpandedKeys.indexOf(uri) >= 0;
-      let isLoading = false;
-
-      if (isExpanded && (_FileTreeHelpers || _load_FileTreeHelpers()).default.isDirOrArchiveKey(uri)) {
-        this._fetchChildKeys(uri);
-        isLoading = true;
-      }
+    const buildRootNode = rootUri => {
+      this._fetchChildKeys(rootUri);
 
       return new (_FileTreeNode || _load_FileTreeNode()).FileTreeNode({
-        uri,
+        uri: rootUri,
         rootUri,
-        isExpanded,
-        isSelected: rootSelectedKeys.indexOf(uri) >= 0,
-        isLoading,
-        children,
+        isExpanded: true,
+        isSelected: false,
+        isLoading: true,
+        children: new (_immutable || _load_immutable()).default.OrderedMap(),
         isCwd: false,
         connectionTitle: (_FileTreeHelpers || _load_FileTreeHelpers()).default.getDisplayTitle(rootUri) || ''
       }, this._conf);
@@ -305,7 +271,7 @@ class FileTreeStore {
     const pathsMissingInData = normalizedAtomPaths.filter(rootUri => normalizedDataPaths.indexOf(rootUri) === -1);
     const combinedPaths = normalizedDataPaths.concat(pathsMissingInData);
 
-    this._setRoots(new (_immutable || _load_immutable()).default.OrderedMap(combinedPaths.map(rootUri => [rootUri, buildNode(rootUri, rootUri)])));
+    this._setRoots(new (_immutable || _load_immutable()).default.OrderedMap(combinedPaths.map(rootUri => [rootUri, buildRootNode(rootUri)])));
   }
 
   _setExcludeVcsIgnoredPaths(excludeVcsIgnoredPaths) {
@@ -447,7 +413,6 @@ class FileTreeStore {
       case (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.UNCHECK_NODE:
         this._uncheckNode(payload.rootKey, payload.nodeKey);
         break;
-
       case (_FileTreeDispatcher2 || _load_FileTreeDispatcher2()).ActionTypes.SET_DRAG_HOVERED_NODE:
         this._setDragHoveredNode(payload.rootKey, payload.nodeKey);
         break;
@@ -632,12 +597,12 @@ class FileTreeStore {
     }
 
     this._animationFrameRequestSubscription = (_observable || _load_observable()).nextAnimationFrame.subscribe(() => {
+      this._animationFrameRequestSubscription = null;
       const { performance } = global;
       const renderStart = performance.now();
       const childrenCount = this.roots.reduce((sum, root) => sum + root.shownChildrenCount, 0);
 
       this._emitter.emit('change');
-      this._animationFrameRequestSubscription = null;
 
       const duration = (performance.now() - renderStart).toString();
       (0, (_nuclideAnalytics || _load_nuclideAnalytics()).track)('filetree-root-node-component-render', {
@@ -910,6 +875,15 @@ class FileTreeStore {
     return rootNode.find(nodeKey);
   }
 
+  getNodeByIndex(index) {
+    const firstRoot = this.roots.find(r => r.shouldBeShown);
+    if (firstRoot == null) {
+      return null;
+    }
+
+    return firstRoot.findByIndex(index);
+  }
+
   getRootForPath(nodeKey) {
     const rootNode = this.roots.find(root => nodeKey.startsWith(root.uri));
     return rootNode || null;
@@ -947,7 +921,7 @@ class FileTreeStore {
       return existingPromise;
     }
 
-    const promise = (_FileTreeHelpers || _load_FileTreeHelpers()).default.fetchChildren(nodeKey).then(childrenKeys => this._setFetchedKeys(nodeKey, childrenKeys), error => {
+    const promise = (0, (_promise || _load_promise()).timeoutAfterDeadline)((0, (_promise || _load_promise()).createDeadline)(FETCH_TIMEOUT), (_FileTreeHelpers || _load_FileTreeHelpers()).default.fetchChildren(nodeKey)).then(childrenKeys => this._setFetchedKeys(nodeKey, childrenKeys), error => {
       this._logger.error(`Unable to fetch children for "${nodeKey}".`);
       this._logger.error('Original error: ', error);
 
@@ -1226,7 +1200,7 @@ class FileTreeStore {
   /*
   * Manually sets a target node used for context menu actions. The value can be
   * retrieved by calling `getTargetNodes` or `getSingleTargetNode` both of
-  * which will retrive the target node if it exists and default to selected
+  * which will retrieve the target node if it exists and default to selected
   * nodes otherwise.
   * This value gets cleared everytime a selection is set
   */
@@ -1798,9 +1772,12 @@ class FileTreeStore {
         return root;
       }
 
+      this._fetchChildKeys(rootUri);
       return new (_FileTreeNode || _load_FileTreeNode()).FileTreeNode({
         uri: rootUri,
         rootUri,
+        isLoading: true,
+        isExpanded: true,
         connectionTitle: (_FileTreeHelpers || _load_FileTreeHelpers()).default.getDisplayTitle(rootUri) || ''
       }, this._conf);
     });

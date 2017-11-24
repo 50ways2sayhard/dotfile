@@ -22,6 +22,17 @@ function _load_nuclideFbsimctl() {
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 function getSimulatorPlatform(buckRoot, ruleType, debuggerCallback) {
   return (_nuclideFbsimctl || _load_nuclideFbsimctl()).getDevices().map(devices => {
     let simulators;
@@ -35,23 +46,7 @@ function getSimulatorPlatform(buckRoot, ruleType, debuggerCallback) {
     if (simulators.length === 0) {
       deviceGroups = NO_SIMULATORS_FOUND_GROUPS;
     } else {
-      const simulatorsByOs = simulators.reduce((memo, sim) => {
-        let simsForOs = memo.get(sim.os);
-        if (simsForOs == null) {
-          simsForOs = [];
-          memo.set(sim.os, simsForOs);
-        }
-        simsForOs.push(sim);
-        return memo;
-      }, new Map());
-
-      for (const simsForOs of simulatorsByOs.values()) {
-        simsForOs.sort((a, b) => {
-          return b.name.localeCompare(a.name);
-        });
-      }
-
-      deviceGroups = Array.from(simulatorsByOs.entries()).map(([os, simsForOs]) => ({
+      deviceGroups = Array.from(groupByOs(simulators).entries()).map(([os, simsForOs]) => ({
         name: os,
         devices: simsForOs.map(simulator => ({
           name: simulator.name,
@@ -70,34 +65,25 @@ function getSimulatorPlatform(buckRoot, ruleType, debuggerCallback) {
       deviceGroups
     };
   });
-} /**
-   * Copyright (c) 2015-present, Facebook, Inc.
-   * All rights reserved.
-   *
-   * This source code is licensed under the license found in the LICENSE file in
-   * the root directory of this source tree.
-   *
-   * 
-   * @format
-   */
+}
 
 function getDevicePlatform(buckRoot, ruleType, debuggerCallback) {
   return (_nuclideFbsimctl || _load_nuclideFbsimctl()).getDevices().map(devices => {
-    const deviceGroups = [];
+    let deviceGroups = [];
 
     if (devices instanceof Array) {
       const physicalDevices = devices.filter(device => device.type === 'physical_device');
 
       if (physicalDevices.length > 0) {
-        deviceGroups.push({
-          name: 'Connected',
-          devices: physicalDevices.map(device => ({
+        deviceGroups = Array.from(groupByOs(physicalDevices).entries()).map(([os, devicesForOs]) => ({
+          name: os,
+          devices: devicesForOs.map(device => ({
             name: device.name,
             udid: device.udid,
             arch: device.arch,
             type: 'device'
           }))
-        });
+        }));
       }
     }
 
@@ -111,6 +97,26 @@ function getDevicePlatform(buckRoot, ruleType, debuggerCallback) {
       deviceGroups
     };
   });
+}
+
+function groupByOs(devices) {
+  const devicesByOs = devices.reduce((memo, device) => {
+    let devicesForOs = memo.get(device.os);
+    if (devicesForOs == null) {
+      devicesForOs = [];
+      memo.set(device.os, devicesForOs);
+    }
+    devicesForOs.push(device);
+    return memo;
+  }, new Map());
+
+  for (const devicesForOs of devicesByOs.values()) {
+    devicesForOs.sort((a, b) => {
+      return b.name.localeCompare(a.name);
+    });
+  }
+
+  return devicesByOs;
 }
 
 const NO_SIMULATORS_FOUND_GROUPS = [{

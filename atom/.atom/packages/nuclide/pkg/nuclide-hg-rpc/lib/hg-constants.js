@@ -100,12 +100,14 @@ const MergeConflictFileStatus = Object.freeze({
 MergeConflictFileStatus;
 
 const HEAD_REVISION_EXPRESSION = '.';
+const PARENT_REVISION_EXPRESSION = '.^';
 
 // eslint-disable-next-line rulesdir/no-commonjs
 module.exports = {
   AmendMode,
   CommitPhase,
   HEAD_REVISION_EXPRESSION,
+  PARENT_REVISION_EXPRESSION,
   MergeConflictStatus,
   MergeConflictFileStatus,
   StatusCodeId,

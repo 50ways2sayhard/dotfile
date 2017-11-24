@@ -43,12 +43,6 @@ function _load_constants() {
   return _constants = require('../../nuclide-debugger-common/lib/constants');
 }
 
-var _passesGK;
-
-function _load_passesGK() {
-  return _passesGK = _interopRequireDefault(require('../../commons-node/passesGK'));
-}
-
 var _nuclideDebuggerCommon;
 
 function _load_nuclideDebuggerCommon() {
@@ -58,17 +52,18 @@ function _load_nuclideDebuggerCommon() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Connection states
-const INITIAL = 'initial'; /**
-                            * Copyright (c) 2015-present, Facebook, Inc.
-                            * All rights reserved.
-                            *
-                            * This source code is licensed under the license found in the LICENSE file in
-                            * the root directory of this source tree.
-                            *
-                            * 
-                            * @format
-                            */
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
 
+const INITIAL = 'initial';
 const CONNECTING = 'connecting';
 const CONNECTED = 'connected';
 const CLOSED = 'closed';
@@ -85,7 +80,6 @@ const CLOSED = 'closed';
  *    After the promise returned by debug() is resolved, call sendCommand() to send Chrome Commands,
  *    and be prepared to receive notifications via the server notifications observable.
  */
-const GK_PAUSE_ONE_PAUSE_ALL = 'nuclide_debugger_php_pause_one_pause_all';
 
 class PhpDebuggerService {
 
@@ -113,12 +107,10 @@ class PhpDebuggerService {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
+      config.stopOneStopAll = false;
       (_utils || _load_utils()).default.info('Connecting config: ' + JSON.stringify(config));
 
       yield _this._warnIfHphpdAttached();
-      if (!(yield (0, (_passesGK || _load_passesGK()).default)(GK_PAUSE_ONE_PAUSE_ALL))) {
-        config.stopOneStopAll = false;
-      }
 
       (0, (_config || _load_config()).setConfig)(config);
       yield (0, (_ConnectionUtils || _load_ConnectionUtils()).setRootDirectoryUri)(config.targetUri);

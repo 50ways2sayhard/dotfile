@@ -7,8 +7,6 @@ exports.__test__ = undefined;
 
 var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
 
-var _child_process = _interopRequireDefault(require('child_process'));
-
 var _os = _interopRequireDefault(require('os'));
 
 var _process;
@@ -17,18 +15,20 @@ function _load_process() {
   return _process = require('nuclide-commons/process');
 }
 
+var _which;
+
+function _load_which() {
+  return _which = _interopRequireDefault(require('nuclide-commons/which'));
+}
+
 var _once;
 
 function _load_once() {
   return _once = _interopRequireDefault(require('./once'));
 }
 
-var _rxjsBundlesRxMinJs = require('rxjs/bundles/Rx.min.js');
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const DEFAULT_JOIN_TIMEOUT = 5000;
-// $FlowFixMe: Add EmptyError to type defs
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -40,7 +40,13 @@ const DEFAULT_JOIN_TIMEOUT = 5000;
  * @format
  */
 
+const DEFAULT_JOIN_TIMEOUT = 5000;
 let SCRIBE_CAT_COMMAND = 'scribe_cat';
+
+// On Mac OS, `scribe_cat` isn't quite the same as the server-side one:
+// it only dumps its logs on exit. To make sure that logs are delivered
+// in a timely manner, we'll periodically force-kill the process.
+const DEFAULT_JOIN_INTERVAL = process.platform === 'darwin' ? 60000 : null;
 
 /**
  * A wrapper of `scribe_cat` (https://github.com/facebookarchive/scribe/blob/master/examples/scribe_cat)
@@ -50,9 +56,9 @@ let SCRIBE_CAT_COMMAND = 'scribe_cat';
  */
 class ScribeProcess {
 
-  constructor(scribeCategory) {
-    this._disposals = new _rxjsBundlesRxMinJs.Subject();
+  constructor(scribeCategory, joinInterval = DEFAULT_JOIN_INTERVAL) {
     this._scribeCategory = scribeCategory;
+    this._joinInterval = joinInterval;
     this._getChildProcess();
   }
 
@@ -76,33 +82,36 @@ class ScribeProcess {
     })();
   }
 
-  dispose() {
-    var _this2 = this;
-
-    return (0, _asyncToGenerator.default)(function* () {
-      _this2._disposals.next();
-      if (_this2._subscription != null) {
-        _this2._childPromise = null;
-        _this2._subscription.unsubscribe();
-        _this2._subscription = null;
-      }
-    })();
-  }
-
   /**
    * Waits for the remaining messages to be written, then closes the write stream. Resolves once the
    * process has exited. This method is called when the server shuts down in order to guarantee we
    * capture logging during shutdown.
    */
   join(timeout = DEFAULT_JOIN_TIMEOUT) {
-    var _this3 = this;
+    var _this2 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      if (_this3._childPromise == null) {
+      const { _childPromise, _subscription } = _this2;
+      if (_childPromise == null || _subscription == null) {
         return;
       }
 
-      const { stdin } = yield _this3._childPromise;
+      // join() renders the existing process unusable.
+      // The next call to write() should create a new process, so clear out the references.
+      // Note that we stored them in local variables already above.
+      _this2._clear();
+
+      const child = yield _childPromise;
+      const { stdin } = child;
+      const waitForExit = new Promise(function (resolve) {
+        child.on('exit', function () {
+          resolve();
+        });
+        setTimeout(function () {
+          _subscription.unsubscribe();
+          resolve();
+        }, timeout);
+      });
       // Make sure stdin has drained before ending it.
       if (!stdin.write(_os.default.EOL)) {
         stdin.once('drain', function () {
@@ -111,16 +120,7 @@ class ScribeProcess {
       } else {
         stdin.end();
       }
-      if (_this3._childPromise == null) {
-        return;
-      }
-      const child = yield _this3._childPromise;
-      yield new Promise(function (resolve) {
-        child.on('exit', function () {
-          resolve();
-        });
-        setTimeout(resolve, timeout);
-      });
+      return waitForExit;
     })();
   }
 
@@ -129,38 +129,42 @@ class ScribeProcess {
       return this._childPromise;
     }
 
-    // Kick off the process. Ideally we would store the subscription and unsubscribe when
-    // `dispose()` was called. Practically, it probably doesn't matter since there's very little
-    // chance we'd want to cancel before the process was ready.
+    // Obtain a promise to get the child process, but don't start it yet.
+    // this._subscription will have control over starting / stopping the process.
     const processStream = (0, (_process || _load_process()).spawn)(SCRIBE_CAT_COMMAND, [this._scribeCategory]).do(child => {
       child.stdin.setDefaultEncoding('utf8');
     }).finally(() => {
-      this._childPromise = null;
-      this._subscription = null;
+      // We may have already started a new process in the meantime.
+      if (this._childPromise === childPromise) {
+        this._clear();
+      }
     }).publish();
 
-    const childPromise = this._childPromise = processStream.takeUntil(this._disposals).first().catch(err => {
-      if (err instanceof _rxjsBundlesRxMinJs.EmptyError) {
-        // Disposing before we have a process should send an error to anybody waiting on the
-        // process promise.
-        throw new Error('Disconnected before process was spawned');
-      }
-      throw err;
-    }).toPromise();
+    const childPromise = this._childPromise = processStream.first().toPromise();
     this._subscription = processStream.connect();
+
+    if (this._joinInterval != null) {
+      this._joinTimer = setTimeout(() => {
+        this._joinTimer = null;
+        this.join();
+      }, this._joinInterval);
+    }
+
     return childPromise;
+  }
+
+  _clear() {
+    this._childPromise = null;
+    this._subscription = null;
+    if (this._joinTimer != null) {
+      clearTimeout(this._joinTimer);
+      this._joinTimer = null;
+    }
   }
 }
 
 exports.default = ScribeProcess;
-ScribeProcess.isScribeCatOnPath = (0, (_once || _load_once()).default)(() => {
-  try {
-    const proc = _child_process.default.spawnSync('which', [SCRIBE_CAT_COMMAND]);
-    return proc.status === 0;
-  } catch (e) {
-    return false;
-  }
-});
+ScribeProcess.isScribeCatOnPath = (0, (_once || _load_once()).default)(() => (0, (_which || _load_which()).default)(SCRIBE_CAT_COMMAND).then(cmd => cmd != null));
 const __test__ = exports.__test__ = {
   setScribeCatCommand(newCommand) {
     const originalCommand = SCRIBE_CAT_COMMAND;

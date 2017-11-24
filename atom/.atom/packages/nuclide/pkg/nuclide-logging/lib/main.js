@@ -3,10 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.initialUpdateConfig = exports.getServerLogAppenderConfig = exports.FileAppender = exports.getPathToLogFile = exports.getDefaultConfig = undefined;
+exports.initializeLogging = exports.getPathToLogFile = exports.getDefaultConfig = undefined;
 exports.flushLogsAndExit = flushLogsAndExit;
 exports.flushLogsAndAbort = flushLogsAndAbort;
-exports.initializeLogging = initializeLogging;
 
 var _log4js;
 
@@ -29,18 +28,16 @@ function _load_config() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.getDefaultConfig = (_config || _load_config()).getDefaultConfig;
-exports.getPathToLogFile = (_config || _load_config()).getPathToLogFile;
-exports.FileAppender = (_config || _load_config()).FileAppender;
-exports.getServerLogAppenderConfig = (_config || _load_config()).getServerLogAppenderConfig; /**
-                                                                                              * Copyright (c) 2015-present, Facebook, Inc.
-                                                                                              * All rights reserved.
-                                                                                              *
-                                                                                              * This source code is licensed under the license found in the LICENSE file in
-                                                                                              * the root directory of this source tree.
-                                                                                              *
-                                                                                              * 
-                                                                                              * @format
-                                                                                              */
+exports.getPathToLogFile = (_config || _load_config()).getPathToLogFile; /**
+                                                                          * Copyright (c) 2015-present, Facebook, Inc.
+                                                                          * All rights reserved.
+                                                                          *
+                                                                          * This source code is licensed under the license found in the LICENSE file in
+                                                                          * the root directory of this source tree.
+                                                                          *
+                                                                          * 
+                                                                          * @format
+                                                                          */
 
 /**
  * This designed for logging on both Nuclide client and Nuclide server. It is based on [log4js]
@@ -62,10 +59,6 @@ function flushLogsAndAbort() {
  * Push initial default config to log4js.
  * Execute only once.
  */
-const initialUpdateConfig = exports.initialUpdateConfig = (0, (_once || _load_once()).default)(() => {
+const initializeLogging = exports.initializeLogging = (0, (_once || _load_once()).default)(() => {
   (_log4js || _load_log4js()).default.configure((0, (_config || _load_config()).getDefaultConfig)());
 });
-
-function initializeLogging() {
-  initialUpdateConfig();
-}

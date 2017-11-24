@@ -7,6 +7,12 @@ exports.serialize = exports.deactivate = exports.activate = exports.config = und
 
 require('./preload-dependencies');
 
+var _nuclideUri;
+
+function _load_nuclideUri() {
+  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
+}
+
 var _FeatureLoader;
 
 function _load_FeatureLoader() {
@@ -89,11 +95,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // The minimum version of Atom required to run Nuclide. Anything less than this and users will get
 // a redbox and Nuclide will not activate.
-const MINIMUM_SUPPORTED_ATOM_VERSION = '1.19.0';
-
-// Install the error reporting even before Nuclide is activated.
-
-// eslint-disable-next-line rulesdir/prefer-nuclide-uri
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -115,6 +116,11 @@ const MINIMUM_SUPPORTED_ATOM_VERSION = '1.19.0';
  *
  */
 
+const MINIMUM_SUPPORTED_ATOM_VERSION = '1.19.0';
+
+// Install the error reporting even before Nuclide is activated.
+
+// eslint-disable-next-line rulesdir/prefer-nuclide-uri
 let errorReporterDisposable = (0, (_installErrorReporter || _load_installErrorReporter()).default)();
 // Install the logger config before Nuclide is activated.
 (0, (_nuclideLogging || _load_nuclideLogging()).initializeLogging)();
@@ -260,6 +266,11 @@ function _activate() {
     atom.menu.template.splice(newIndex, 0, menuItem);
     atom.menu.update();
   }
+
+  // Remove all remote directories up front to prevent packages from using remote URIs
+  // before they are ready. The nuclide-remote-projects package manually
+  // serializes/deserializes and then reloads these during the activation phase.
+  atom.project.setPaths(atom.project.getPaths().filter(uri => !(_nuclideUri || _load_nuclideUri()).default.isRemote(uri)));
 
   // Activate all of the loaded features. Technically, this will be a no-op
   // generally because Atom [will activate all loaded packages][1]. However,

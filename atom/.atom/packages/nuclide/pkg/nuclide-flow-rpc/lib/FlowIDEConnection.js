@@ -31,6 +31,12 @@ function _load_UniversalDisposable() {
   return _UniversalDisposable = _interopRequireDefault(require('nuclide-commons/UniversalDisposable'));
 }
 
+var _SafeStreamMessageReader;
+
+function _load_SafeStreamMessageReader() {
+  return _SafeStreamMessageReader = _interopRequireDefault(require('../../commons-node/SafeStreamMessageReader'));
+}
+
 var _nuclideAnalytics;
 
 function _load_nuclideAnalytics() {
@@ -55,18 +61,16 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 // TODO put these in flow-typed when they are fleshed out better
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const SUBSCRIBE_METHOD_NAME = 'subscribeToDiagnostics';
+const SUBSCRIBE_METHOD_NAME = 'subscribeToDiagnostics'; /**
+                                                         * Copyright (c) 2015-present, Facebook, Inc.
+                                                         * All rights reserved.
+                                                         *
+                                                         * This source code is licensed under the license found in the LICENSE file in
+                                                         * the root directory of this source tree.
+                                                         *
+                                                         * 
+                                                         * @format
+                                                         */
 
 const NOTIFICATION_METHOD_NAME = 'diagnosticsNotification';
 
@@ -87,7 +91,7 @@ class FlowIDEConnection {
     this._ideProcess.stderr.pipe((0, (_through || _load_through()).default)(msg => {
       (0, (_log4js || _load_log4js()).getLogger)('nuclide-flow-rpc').info('Flow IDE process stderr: ', msg.toString());
     }));
-    this._connection = (_vscodeJsonrpc || _load_vscodeJsonrpc()).createMessageConnection(new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageReader(this._ideProcess.stdout), new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageWriter(this._ideProcess.stdin));
+    this._connection = (_vscodeJsonrpc || _load_vscodeJsonrpc()).createMessageConnection(new (_SafeStreamMessageReader || _load_SafeStreamMessageReader()).default(this._ideProcess.stdout), new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageWriter(this._ideProcess.stdin));
     this._connection.listen();
 
     this._ideProcess.on('exit', () => this.dispose());

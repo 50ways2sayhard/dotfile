@@ -124,7 +124,13 @@ class InternalTransport {
   }
 
   send(message) {
-    this._ws.send(`${this._tag}\0${message}`);
+    this._ws.send(`${this._tag}\0${message}`, err => {
+      if (err != null) {
+        // This may happen if the client disconnects.
+        // TODO: use the reliable transport from Nuclide when that's ready.
+        (0, (_log4js || _load_log4js()).getLogger)().warn('Error sending websocket message', err);
+      }
+    });
   }
 
   onMessage() {

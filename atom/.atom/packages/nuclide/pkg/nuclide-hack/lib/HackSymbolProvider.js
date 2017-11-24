@@ -40,6 +40,12 @@ let getHackDirectoriesByService = (() => {
        * @format
        */
 
+var _humanizePath;
+
+function _load_humanizePath() {
+  return _humanizePath = _interopRequireDefault(require('nuclide-commons-atom/humanizePath'));
+}
+
 var _HackLanguage;
 
 function _load_HackLanguage() {
@@ -50,12 +56,6 @@ var _collection;
 
 function _load_collection() {
   return _collection = require('nuclide-commons/collection');
-}
-
-var _nuclideUri;
-
-function _load_nuclideUri() {
-  return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
 }
 
 var _react = _interopRequireWildcard(require('react'));
@@ -100,8 +100,6 @@ const HackSymbolProvider = exports.HackSymbolProvider = {
   },
 
   getComponentForItem(item) {
-    const filePath = item.path;
-    const filename = (_nuclideUri || _load_nuclideUri()).default.basename(filePath);
     const name = item.name || '';
 
     // flowlint-next-line sketchy-null-string:off
@@ -121,7 +119,7 @@ const HackSymbolProvider = exports.HackSymbolProvider = {
       _react.createElement(
         'span',
         { className: 'omnisearch-symbol-result-filename' },
-        filename
+        (0, (_humanizePath || _load_humanizePath()).default)(item.path)
       )
     );
   }

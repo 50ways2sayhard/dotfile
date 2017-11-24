@@ -44,7 +44,8 @@ class DebuggerProcessInfo {
       registers: false,
       setVariable: false,
       singleThreadStepping: false,
-      threads: false
+      threads: false,
+      completionsRequest: false
     };
   }
 

@@ -49,7 +49,7 @@ class NullLanguageService {
     return Promise.resolve(null);
   }
 
-  getAdditionalLogFiles(expire) {
+  getAdditionalLogFiles(deadline) {
     return Promise.resolve([]);
   }
 

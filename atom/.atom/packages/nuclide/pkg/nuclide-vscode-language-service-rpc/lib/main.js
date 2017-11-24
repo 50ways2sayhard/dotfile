@@ -15,13 +15,17 @@ var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
  */
 let createMultiLspLanguageService = exports.createMultiLspLanguageService = (() => {
   var _ref = (0, _asyncToGenerator.default)(function* (languageId, command, args, params) {
-    const result = new (_nuclideLanguageServiceRpc || _load_nuclideLanguageServiceRpc()).MultiProjectLanguageService();
     const logger = (0, (_log4js || _load_log4js()).getLogger)(params.logCategory);
     logger.setLevel(params.logLevel);
-    // There's a centralized way to override logging:
-    if ((yield (0, (_passesGK || _load_passesGK()).default)('nuclide_lsp_verbose')) && !logger.isLevelEnabled('TRACE')) {
-      logger.setLevel('TRACE');
+
+    if ((yield (0, (_which || _load_which()).default)(command)) == null) {
+      const message = `Command "${command}" could not be found: ${languageId} language features will be disabled.`;
+      logger.warn(message);
+      params.host.consoleNotification(languageId, 'warning', message);
+      return null;
     }
+
+    const result = new (_nuclideLanguageServiceRpc || _load_nuclideLanguageServiceRpc()).MultiProjectLanguageService();
 
     const fileCache = params.fileNotifier;
 
@@ -33,7 +37,7 @@ let createMultiLspLanguageService = exports.createMultiLspLanguageService = (() 
     // created upon demand, one per project root. Demand is usually "when the
     // user opens a file" or "when the user requests project-wide symbol search".
 
-    // What state is the each LspLanguageService in? ...
+    // What state is each LspLanguageService in? ...
     // * 'Initializing' state, still spawning the LSP server and negotiating with
     //    it, or inviting the user via a dialog box to retry initialization.
     // * 'Ready' state, able to handle LanguageService requests properly.
@@ -89,16 +93,16 @@ function _load_log4js() {
   return _log4js = require('log4js');
 }
 
+var _which;
+
+function _load_which() {
+  return _which = _interopRequireDefault(require('nuclide-commons/which'));
+}
+
 var _LspLanguageService;
 
 function _load_LspLanguageService() {
   return _LspLanguageService = require('./LspLanguageService');
-}
-
-var _passesGK;
-
-function _load_passesGK() {
-  return _passesGK = _interopRequireDefault(require('../../commons-node/passesGK'));
 }
 
 var _main;

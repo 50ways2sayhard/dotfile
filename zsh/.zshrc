@@ -6,6 +6,7 @@ eval $(thefuck --alias)
 alias py="/usr/bin/python3"
 alias go="/usr/local/var/homebrew/linked/go/bin/go"
 alias ll="ls -a -l"
+alias pip="pip3"
 
 GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
 
@@ -65,6 +66,7 @@ else
 fi
 source ~/.zshplug/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.zshplug/geometry/geometry.zsh
+# source ~/.zshplug/incr.zsh
 
 #{{{ 关于历史纪录的配置
 #历史纪录条目数量

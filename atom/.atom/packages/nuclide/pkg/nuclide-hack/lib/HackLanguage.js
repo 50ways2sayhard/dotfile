@@ -36,11 +36,12 @@ let connectionToHackService = (() => {
     if (yield getUseLspConnection()) {
       const host = yield (0, (_nuclideLanguageService || _load_nuclideLanguageService()).getHostServices)();
       const autocompleteArg = (yield getUseFfpAutocomplete()) ? ['--ffp-autocomplete'] : [];
-      return hackService.initializeLsp(config.hhClientPath, // command
+      const lspService = yield hackService.initializeLsp(config.hhClientPath, // command
       ['lsp', '--from', 'nuclide', ...autocompleteArg], // arguments
       [(_constants || _load_constants()).HACK_CONFIG_FILE_NAME], // project file
       (_constants || _load_constants()).HACK_FILE_EXTENSIONS, // which file-notifications should be sent to LSP
       config.logLevel, fileNotifier, host);
+      return lspService || new (_nuclideLanguageServiceRpc || _load_nuclideLanguageServiceRpc()).NullLanguageService();
     } else {
       return hackService.initialize(config.hhClientPath, config.logLevel, fileNotifier);
     }
@@ -156,6 +157,12 @@ let isFileInHackProject = exports.isFileInHackProject = (() => {
 
 exports.resetHackLanguageService = resetHackLanguageService;
 
+var _nuclideLanguageServiceRpc;
+
+function _load_nuclideLanguageServiceRpc() {
+  return _nuclideLanguageServiceRpc = require('../../nuclide-language-service-rpc');
+}
+
 var _nuclideRemoteConnection;
 
 function _load_nuclideRemoteConnection() {
@@ -212,18 +219,16 @@ function _load_evaluationExpression() {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
-const HACK_SERVICE_NAME = 'HackService';
+const HACK_SERVICE_NAME = 'HackService'; /**
+                                          * Copyright (c) 2015-present, Facebook, Inc.
+                                          * All rights reserved.
+                                          *
+                                          * This source code is licensed under the license found in the LICENSE file in
+                                          * the root directory of this source tree.
+                                          *
+                                          * 
+                                          * @format
+                                          */
 
 let hackLanguageService = exports.hackLanguageService = createLanguageService();
 

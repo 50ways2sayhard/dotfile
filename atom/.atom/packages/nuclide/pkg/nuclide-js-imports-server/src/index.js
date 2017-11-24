@@ -24,6 +24,12 @@ function _load_log4js() {
   return _log4js = require('log4js');
 }
 
+var _SafeStreamMessageReader;
+
+function _load_SafeStreamMessageReader() {
+  return _SafeStreamMessageReader = _interopRequireDefault(require('../../commons-node/SafeStreamMessageReader'));
+}
+
 var _AutoImportsManager;
 
 function _load_AutoImportsManager() {
@@ -90,18 +96,24 @@ function _load_nuclideUri() {
   return _nuclideUri = _interopRequireDefault(require('nuclide-commons/nuclideUri'));
 }
 
+var _WorkspaceSymbols;
+
+function _load_WorkspaceSymbols() {
+  return _WorkspaceSymbols = require('./WorkspaceSymbols');
+}
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const reader = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageReader(process.stdin); /**
-                                                                                                  * Copyright (c) 2015-present, Facebook, Inc.
-                                                                                                  * All rights reserved.
-                                                                                                  *
-                                                                                                  * This source code is licensed under the license found in the LICENSE file in
-                                                                                                  * the root directory of this source tree.
-                                                                                                  *
-                                                                                                  * 
-                                                                                                  * @format
-                                                                                                  */
+const reader = new (_SafeStreamMessageReader || _load_SafeStreamMessageReader()).default(process.stdin); /**
+                                                                                                          * Copyright (c) 2015-present, Facebook, Inc.
+                                                                                                          * All rights reserved.
+                                                                                                          *
+                                                                                                          * This source code is licensed under the license found in the LICENSE file in
+                                                                                                          * the root directory of this source tree.
+                                                                                                          *
+                                                                                                          * 
+                                                                                                          * @format
+                                                                                                          */
 
 const writer = new (_vscodeJsonrpc || _load_vscodeJsonrpc()).StreamMessageWriter(process.stdout);
 
@@ -145,7 +157,8 @@ connection.onInitialize(params => {
         triggerCharacters: getAllTriggerCharacters()
       },
       codeActionProvider: true,
-      executeCommandProvider: Array.from(Object.keys((_CommandExecutor || _load_CommandExecutor()).CommandExecutor.COMMANDS))
+      executeCommandProvider: Array.from(Object.keys((_CommandExecutor || _load_CommandExecutor()).CommandExecutor.COMMANDS)),
+      workspaceSymbolProvider: true
     }
   };
 });
@@ -209,6 +222,10 @@ connection.onExecuteCommand(params => {
   const { command, arguments: args } = params;
   logger.debug('Executing command', command, 'with args', args);
   commandExecuter.executeCommand(command, args);
+});
+
+connection.onWorkspaceSymbol(params => {
+  return (_WorkspaceSymbols || _load_WorkspaceSymbols()).WorkspaceSymbols.getWorkspaceSymbols(autoImportsManager, params);
 });
 
 documents.listen(connection);

@@ -3,6 +3,10 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _asyncToGenerator = _interopRequireDefault(require('async-to-generator'));
+
+exports.createAutocompleteProvider = createAutocompleteProvider;
 exports.createDebuggerView = createDebuggerView;
 exports.activate = activate;
 exports.serialize = serialize;
@@ -18,6 +22,12 @@ exports.consumeDatatipService = consumeDatatipService;
 exports.consumeRegisterNuxService = consumeRegisterNuxService;
 exports.consumeTriggerNuxService = consumeTriggerNuxService;
 exports.consumeCurrentWorkingDirectory = consumeCurrentWorkingDirectory;
+
+var _collection;
+
+function _load_collection() {
+  return _collection = require('nuclide-commons/collection');
+}
 
 var _constants;
 
@@ -153,18 +163,17 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
+const DATATIP_PACKAGE_NAME = 'nuclide-debugger-datatip'; /**
+                                                          * Copyright (c) 2015-present, Facebook, Inc.
+                                                          * All rights reserved.
+                                                          *
+                                                          * This source code is licensed under the license found in the LICENSE file in
+                                                          * the root directory of this source tree.
+                                                          *
+                                                          * 
+                                                          * @format
+                                                          */
 
-const DATATIP_PACKAGE_NAME = 'nuclide-debugger-datatip';
 const SCREEN_ROW_ATTRIBUTE_NAME = 'data-screen-row';
 
 function getGutterLineNumber(target) {
@@ -212,6 +221,19 @@ function getLineForEvent(editor, event) {
   return firstNonNull(getGutterLineNumber(target), getEditorLineNumber(editor, target),
   // fall back to the line the cursor is on.
   cursorLine);
+}
+
+function createAutocompleteProvider() {
+  return {
+    labels: ['nuclide-console'],
+    selector: '*',
+    filterSuggestions: true,
+    getSuggestions(request) {
+      return (0, _asyncToGenerator.default)(function* () {
+        return activation != null ? activation.getSuggestions(request) : null;
+      })();
+    }
+  };
 }
 
 function createDebuggerView(model) {
@@ -429,6 +451,39 @@ class Activation {
     const key = (_nuclideUri || _load_nuclideUri()).default.isRemote(connection) ? (_nuclideUri || _load_nuclideUri()).default.getHostname(connection) : 'local';
     const availableProviders = store.getLaunchAttachProvidersForConnection(connection);
     this._connectionProviders.set(key, availableProviders);
+  }
+
+  getSuggestions(request) {
+    let text = request.editor.getText();
+    const lines = text.split('\n');
+    const { row, column } = request.bufferPosition;
+    // Only keep the lines up to and including the buffer position row.
+    text = lines.slice(0, row + 1).join('\n');
+    const debuggerInstance = this.getModel().getStore().getDebuggerInstance();
+    if (debuggerInstance == null || !debuggerInstance.getDebuggerProcessInfo().getDebuggerCapabilities().completionsRequest) {
+      // As a fallback look at the variable names of currently visible scopes.
+      const scopes = this.getModel().getScopesStore().getScopesNow();
+      return Promise.resolve((0, (_collection || _load_collection()).arrayFlatten)(scopes.map(({ scopeVariables }) => scopeVariables.map(({ name }) => ({ text: name, type: 'variable' })))));
+    }
+    return new Promise((resolve, reject) => {
+      this.getModel().getBridge().sendCompletionsCommand(text, column + 1, (err, response) => {
+        if (err != null) {
+          reject(err);
+        } else {
+          const result = response.targets.map(obj => {
+            const { label, type } = obj;
+            let replaceText;
+            if (obj.text != null) {
+              replaceText = obj.text;
+            } else {
+              replaceText = label;
+            }
+            return { text: replaceText, displayText: label, type };
+          });
+          resolve(result);
+        }
+      });
+    });
   }
 
   serialize() {

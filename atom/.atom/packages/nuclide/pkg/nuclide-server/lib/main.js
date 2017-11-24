@@ -27,6 +27,7 @@ let main = (() => {
     process.on('SIGHUP', function () {});
 
     try {
+      (0, (_nuclideLogging || _load_nuclideLogging()).initializeLogging)();
       const { port, expirationDays } = args;
       if (expirationDays) {
         setTimeout(function () {
@@ -34,9 +35,7 @@ let main = (() => {
           (0, (_nuclideLogging || _load_nuclideLogging()).flushLogsAndExit)(0);
         }, expirationDays * 24 * 60 * 60 * 1000);
       }
-      const [serverCredentials] = yield Promise.all([getServerCredentials(args),
-      // Ensure logging is configured.
-      (0, (_nuclideLogging || _load_nuclideLogging()).initialUpdateConfig)()]);
+      const serverCredentials = yield getServerCredentials(args);
       const server = new (_NuclideServer || _load_NuclideServer()).default(Object.assign({
         port
       }, serverCredentials, {
@@ -48,8 +47,6 @@ let main = (() => {
       logger.info(`Using node ${process.version}.`);
       logger.info(`Server ready time: ${process.uptime() * 1000}ms`);
     } catch (e) {
-      // In case the exception occurred before logging initialization finished.
-      (0, (_nuclideLogging || _load_nuclideLogging()).initialUpdateConfig)();
       serverStartTimer.onError(e);
       logger.fatal(e);
       (0, (_nuclideLogging || _load_nuclideLogging()).flushLogsAndAbort)();

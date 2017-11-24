@@ -188,7 +188,8 @@ class HgRepositoryClient {
 
     this._emitter = new _atom.Emitter();
     this._subscriptions = new (_UniversalDisposable || _load_UniversalDisposable()).default(this._emitter, this._service);
-
+    this._isFetchingPathStatuses = new _rxjsBundlesRxMinJs.Subject();
+    this._manualStatusRefreshRequests = new _rxjsBundlesRxMinJs.Subject();
     this._hgStatusCache = new Map();
     this._bookmarks = new _rxjsBundlesRxMinJs.BehaviorSubject({ isLoading: true, bookmarks: [] });
 
@@ -235,7 +236,7 @@ class HgRepositoryClient {
     });
     // Get updates that tell the HgRepositoryClient when to clear its caches.
     const fileChanges = this._service.observeFilesDidChange().refCount();
-    const repoStateChanges = this._service.observeHgRepoStateDidChange().refCount();
+    const repoStateChanges = _rxjsBundlesRxMinJs.Observable.merge(this._service.observeHgRepoStateDidChange().refCount(), this._manualStatusRefreshRequests);
     const activeBookmarkChanges = this._service.observeActiveBookmarkDidChange().refCount();
     const allBookmarkChanges = this._service.observeBookmarksDidChange().refCount();
     const conflictStateChanges = this._service.observeHgConflictStateDidChange().refCount();
@@ -269,13 +270,13 @@ class HgRepositoryClient {
   } // legacy, only for uncommitted
 
 
-  getAdditionalLogFiles(expire) {
+  getAdditionalLogFiles(deadline) {
     var _this = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const path = _this._workingDirectory.getPath();
       const prefix = (_nuclideUri || _load_nuclideUri()).default.isRemote(path) ? `${(_nuclideUri || _load_nuclideUri()).default.getHostname(path)}:` : '';
-      const results = yield (0, (_promise || _load_promise()).expirePromise)(expire, _this._service.getAdditionalLogFiles(expire - 1000)).catch(function (e) {
+      const results = yield (0, (_promise || _load_promise()).timeoutAfterDeadline)(deadline, _this._service.getAdditionalLogFiles(deadline - 1000)).catch(function (e) {
         return [{ title: `${path}:hg`, data: (0, (_string || _load_string()).stringifyError)(e) }];
       });
       return results.map(function (log) {
@@ -291,10 +292,15 @@ class HgRepositoryClient {
     // statusChanges and isCalculatingChanges, to pick up their own copy of
     // startWith(null) no matter which order they subscribe.
 
-    const statusChanges = (0, (_observable || _load_observable()).cacheWhileSubscribed)(triggers.switchMap(() => fetchStatuses().refCount().catch(error => {
-      (0, (_log4js || _load_log4js()).getLogger)('nuclide-hg-repository-client').error('HgService cannot fetch statuses', error);
-      return _rxjsBundlesRxMinJs.Observable.empty();
-    })).map(uriToStatusIds => (0, (_collection || _load_collection()).mapTransform)(uriToStatusIds, (v, k) => (_hgConstants || _load_hgConstants()).StatusCodeIdToNumber[v])));
+    const statusChanges = (0, (_observable || _load_observable()).cacheWhileSubscribed)(triggers.switchMap(() => {
+      this._isFetchingPathStatuses.next(true);
+      return fetchStatuses().refCount().catch(error => {
+        (0, (_log4js || _load_log4js()).getLogger)('nuclide-hg-repository-client').error('HgService cannot fetch statuses', error);
+        return _rxjsBundlesRxMinJs.Observable.empty();
+      }).finally(() => {
+        this._isFetchingPathStatuses.next(false);
+      });
+    }).map(uriToStatusIds => (0, (_collection || _load_collection()).mapTransform)(uriToStatusIds, (v, k) => (_hgConstants || _load_hgConstants()).StatusCodeIdToNumber[v])));
 
     const isCalculatingChanges = (0, (_observable || _load_observable()).cacheWhileSubscribed)(_rxjsBundlesRxMinJs.Observable.merge(triggers.map(_ => true), statusChanges.map(_ => false)).distinctUntilChanged());
 
@@ -341,6 +347,14 @@ class HgRepositoryClient {
 
   observeRevisionChanges() {
     return this._revisionsCache.observeRevisionChanges();
+  }
+
+  observeIsFetchingRevisions() {
+    return this._revisionsCache.observeIsFetchingRevisions();
+  }
+
+  observeIsFetchingPathStatuses() {
+    return this._isFetchingPathStatuses.asObservable();
   }
 
   observeRevisionStatusesChanges() {
@@ -799,6 +813,11 @@ class HgRepositoryClient {
     return this._service.show(revision).refCount();
   }
 
+  diff(revision, options = {}) {
+    const { unified } = options;
+    return this._service.diff(String(revision), unified).refCount();
+  }
+
   purge() {
     return this._service.purge();
   }
@@ -1010,13 +1029,13 @@ class HgRepositoryClient {
     return this._service.log(filePaths, limit);
   }
 
-  continueOperation(command) {
+  continueOperation(commandWithOptions) {
     // TODO(T17463635)
-    return this._service.continueOperation(command).refCount();
+    return this._service.continueOperation(commandWithOptions).refCount();
   }
 
-  abortOperation(command) {
-    return this._service.abortOperation(command).refCount();
+  abortOperation(commandWithOptions) {
+    return this._service.abortOperation(commandWithOptions).refCount();
   }
 
   resolveAllFiles() {
@@ -1047,6 +1066,10 @@ class HgRepositoryClient {
       });
     }
     this._emitter.emit('did-change-statuses');
+  }
+
+  requestPathStatusRefresh() {
+    this._manualStatusRefreshRequests.next();
   }
 }
 exports.HgRepositoryClient = HgRepositoryClient;

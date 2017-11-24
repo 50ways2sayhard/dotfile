@@ -101,7 +101,7 @@ class AutoImportsManager {
     logger.debug('Indexing the directory', root, 'recursively');
     const worker = _child_process.default.fork((_nuclideUri || _load_nuclideUri()).default.join(__dirname, 'AutoImportsWorker-entry.js'), [root]);
     worker.on('message', updateForFile => {
-      return updateForFile.forEach(this.handleUpdateForFile.bind(this));
+      updateForFile.forEach(this.handleUpdateForFile.bind(this));
     });
 
     worker.on('exit', code => {

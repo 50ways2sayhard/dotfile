@@ -5,6 +5,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.BuckTaskRunner = undefined;
 
+var _DeploymentTarget;
+
+function _load_DeploymentTarget() {
+  return _DeploymentTarget = require('./DeploymentTarget');
+}
+
 var _PlatformService;
 
 function _load_PlatformService() {
@@ -109,17 +115,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
 const TASKS = [{
   type: 'build',
   label: 'Build',
@@ -143,6 +138,17 @@ const TASKS = [{
 }];
 
 // This must match URI defined in ../../nuclide-console/lib/ui/ConsoleContainer
+/**
+ * Copyright (c) 2015-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the license found in the LICENSE file in
+ * the root directory of this source tree.
+ *
+ * 
+ * @format
+ */
+
 const CONSOLE_VIEW_URI = 'atom://nuclide/console';
 
 function shouldEnableTask(taskType, ruleType) {
@@ -311,7 +317,8 @@ class BuckTaskRunner {
       throw new Error('Invariant violation: "buildRuleType"');
     }
 
-    const deploymentString = formatDeploymentTarget(selectedDeploymentTarget);
+    const deploymentTargetString = (0, (_DeploymentTarget || _load_DeploymentTarget()).formatDeploymentTarget)(selectedDeploymentTarget);
+    const deploymentString = deploymentTargetString === '' ? '' : ` on "${deploymentTargetString}"`;
 
     const task = (0, (_tasks || _load_tasks()).taskFromObservable)(_rxjsBundlesRxMinJs.Observable.concat((0, (_tasks || _load_tasks()).createMessage)(`Resolving ${taskType} command for "${buildTarget}"${deploymentString}`, 'log'), _rxjsBundlesRxMinJs.Observable.defer(() => {
       if (selectedDeploymentTarget) {
@@ -371,14 +378,4 @@ class BuckTaskRunner {
     };
   }
 }
-
 exports.BuckTaskRunner = BuckTaskRunner;
-function formatDeploymentTarget(deploymentTarget) {
-  if (deploymentTarget == null) {
-    return '';
-  }
-  const { device, deviceGroup, platform, platformGroup } = deploymentTarget;
-  const deviceString = device != null ? `: ${device.name}` : '';
-  const deviceGroupString = deviceGroup != null && deviceGroup.name !== '' ? ` (${deviceGroup.name})` : '';
-  return ` on "${platformGroup.name} ${platform.name}${deviceString}${deviceGroupString}"`;
-}

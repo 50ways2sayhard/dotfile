@@ -5,6 +5,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.TunnelsPanelTable = undefined;
 
+var _shortenHostname;
+
+function _load_shortenHostname() {
+  return _shortenHostname = require('../shortenHostname');
+}
+
 var _TunnelCloseButton;
 
 function _load_TunnelCloseButton() {
@@ -23,19 +29,12 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
 class TunnelsPanelTable extends _react.Component {
   render() {
     const columns = [{
+      title: 'Description',
+      key: 'description'
+    }, {
       title: 'From',
       key: 'from'
     }, {
@@ -47,19 +46,17 @@ class TunnelsPanelTable extends _react.Component {
     }, {
       title: '',
       key: 'close',
-      width: 0
+      width: 0,
+      minWidth: 35
     }];
     const rows = this.props.tunnels.map(([tunnel, openTunnel]) => {
-      let { host } = tunnel.from;
-      const ignoredEnding = '.facebook.com';
-      if (host.endsWith(ignoredEnding)) {
-        host = host.slice(0, host.length - ignoredEnding.length);
-      }
+      const { from, to } = tunnel;
       return {
         className: 'nuclide-ssh-tunnels-table-row',
         data: {
-          from: `${host}:${tunnel.from.port}`,
-          to: `${tunnel.to.host}:${tunnel.to.port}`,
+          description: tunnel.description,
+          from: `${(0, (_shortenHostname || _load_shortenHostname()).shortenHostname)(from.host)}:${from.port}`,
+          to: `${(0, (_shortenHostname || _load_shortenHostname()).shortenHostname)(to.host)}:${to.port}`,
           status: openTunnel.state,
           close: _react.createElement((_TunnelCloseButton || _load_TunnelCloseButton()).default, {
             tunnel: tunnel,
@@ -74,11 +71,19 @@ class TunnelsPanelTable extends _react.Component {
         { className: 'nuclide-ssh-tunnels-table-empty-message' },
         'No SSH tunnels are open.'
       ),
-      className: 'nuclide-ssh-tunnels-table',
       rows: rows,
       columns: columns,
       selectable: true
     });
   }
 }
-exports.TunnelsPanelTable = TunnelsPanelTable;
+exports.TunnelsPanelTable = TunnelsPanelTable; /**
+                                                * Copyright (c) 2015-present, Facebook, Inc.
+                                                * All rights reserved.
+                                                *
+                                                * This source code is licensed under the license found in the LICENSE file in
+                                                * the root directory of this source tree.
+                                                *
+                                                * 
+                                                * @format
+                                                */

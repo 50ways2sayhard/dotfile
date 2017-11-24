@@ -102,7 +102,8 @@ let copy = exports.copy = (() => {
       return false;
     }
     yield (_nuclideFs || _load_nuclideFs()).ROOT_FS.copy(sourcePath, destinationPath);
-    yield copyFilePermissions(sourcePath, destinationPath);
+    // TODO: May need to move into ROOT_FS if future filesystems support writing.
+    yield (_fsPromise || _load_fsPromise()).default.copyFilePermissions(sourcePath, destinationPath);
     return true;
   });
 
@@ -203,83 +204,8 @@ let readFile = exports.readFile = (() => {
   };
 })();
 
-let copyFilePermissions = (() => {
-  var _ref9 = (0, _asyncToGenerator.default)(function* (sourcePath, destinationPath) {
-    try {
-      const { mode, uid, gid } = yield (_nuclideFs || _load_nuclideFs()).ROOT_FS.stat(sourcePath);
-      yield Promise.all([
-      // The user may not have permissions to use the uid/gid.
-      (_nuclideFs || _load_nuclideFs()).ROOT_FS.chown(destinationPath, uid, gid).catch(function () {}), (_nuclideFs || _load_nuclideFs()).ROOT_FS.chmod(destinationPath, mode)]);
-    } catch (e) {
-      // If the file does not exist, then ENOENT will be thrown.
-      if (e.code !== 'ENOENT') {
-        throw e;
-      }
-      // For new files, use the default process file creation mask.
-      yield (_nuclideFs || _load_nuclideFs()).ROOT_FS.chmod(destinationPath,
-      // $FlowIssue: umask argument is optional
-      0o666 & ~process.umask() // eslint-disable-line no-bitwise
-      );
-    }
-  });
-
-  return function copyFilePermissions(_x14, _x15) {
-    return _ref9.apply(this, arguments);
-  };
-})();
-
-/**
- * A small wrapper around fs.writeFile that also implements:
- *
- * - atomic writes (by writing to a temporary file first)
- * - uses a promise rather than a callback
- *
- * `options` is passed directly into fs.writeFile.
- */
-
-
-let _writeFile = (() => {
-  var _ref10 = (0, _asyncToGenerator.default)(function* (path, data, options) {
-    let complete = false;
-    const tempFilePath = yield (_fsPromise || _load_fsPromise()).default.tempfile('nuclide');
-    try {
-      yield (_fsPromise || _load_fsPromise()).default.writeFile(tempFilePath, data, options);
-
-      // Expand the target path in case it contains symlinks.
-      let realPath = path;
-      try {
-        realPath = yield resolveRealPath(path);
-      } catch (e) {}
-      // Fallback to using the specified path if it cannot be expanded.
-      // Note: this is expected in cases where the remote file does not
-      // actually exist.
-
-
-      // Ensure file still has original permissions:
-      // https://github.com/facebook/nuclide/issues/157
-      // We update the mode of the temp file rather than the destination file because
-      // if we did the mv() then the chmod(), there would be a brief period between
-      // those two operations where the destination file might have the wrong permissions.
-      yield copyFilePermissions(realPath, tempFilePath);
-
-      // TODO(mikeo): put renames into a queue so we don't write older save over new save.
-      // Use mv as fs.rename doesn't work across partitions.
-      yield (_fsPromise || _load_fsPromise()).default.mv(tempFilePath, realPath);
-      complete = true;
-    } finally {
-      if (!complete) {
-        yield (_fsPromise || _load_fsPromise()).default.unlink(tempFilePath);
-      }
-    }
-  });
-
-  return function _writeFile(_x16, _x17, _x18) {
-    return _ref10.apply(this, arguments);
-  };
-})();
-
 let getFreeSpace = exports.getFreeSpace = (() => {
-  var _ref11 = (0, _asyncToGenerator.default)(function* (path) {
+  var _ref9 = (0, _asyncToGenerator.default)(function* (path) {
     // Only supported on Linux for now.
     if (process.platform !== 'linux') {
       return null;
@@ -298,8 +224,8 @@ let getFreeSpace = exports.getFreeSpace = (() => {
     });
   });
 
-  return function getFreeSpace(_x19) {
-    return _ref11.apply(this, arguments);
+  return function getFreeSpace(_x14) {
+    return _ref9.apply(this, arguments);
   };
 })();
 
@@ -476,8 +402,17 @@ function isFuse(path) {
   return (_nuclideFs || _load_nuclideFs()).ROOT_FS.isFuse(path);
 }
 
+/**
+ * A small wrapper around fs.writeFile that also implements:
+ *
+ * - atomic writes (by writing to a temporary file first)
+ * - uses a promise rather than a callback
+ *
+ * `options` is passed directly into fs.writeFile.
+ */
 function writeFile(path, data, options) {
-  return _writeFile(path, data, options);
+  // TODO: May need to move into ROOT_FS if future filesystems support writing.
+  return (_fsPromise || _load_fsPromise()).default.writeFileAtomic(path, data, options);
 }
 
 /**
@@ -486,5 +421,5 @@ function writeFile(path, data, options) {
  * Note that options.encoding is ignored for raw buffers.
  */
 function writeFileBuffer(path, data, options) {
-  return _writeFile(path, data, options);
+  return (_fsPromise || _load_fsPromise()).default.writeFileAtomic(path, data, options);
 }

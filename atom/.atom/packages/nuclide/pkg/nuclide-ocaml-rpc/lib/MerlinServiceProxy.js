@@ -487,6 +487,9 @@ Object.defineProperty(module.exports, "defs", {
             }, {
               kind: "string-literal",
               value: "unknown"
+            }, {
+              kind: "string-literal",
+              value: "error"
             }]
           },
           optional: false

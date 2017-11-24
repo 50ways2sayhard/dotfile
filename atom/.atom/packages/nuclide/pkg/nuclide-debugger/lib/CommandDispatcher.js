@@ -126,7 +126,7 @@ class CommandDispatcher {
 
     return (0, _asyncToGenerator.default)(function* () {
       _this._ensureSessionCreated();
-      _this._useNewChannel = yield (0, (_NewProtocolChannelChecker || _load_NewProtocolChannelChecker()).isNewProtocolChannelEnabled)(debuggerInstance.getProviderName());
+      _this._useNewChannel = (0, (_NewProtocolChannelChecker || _load_NewProtocolChannelChecker()).isNewProtocolChannelEnabled)(debuggerInstance.getProviderName());
       if (_this._useNewChannel) {
         const dispatchers = yield (_NuclideProtocolParser || _load_NuclideProtocolParser()).default.bootstrap(debuggerInstance);
         _this._bridgeAdapter = new (_BridgeAdapter || _load_BridgeAdapter()).default(dispatchers, _this._getIsReadonlyTarget, _this._shouldFilterBreak);
@@ -238,6 +238,9 @@ class CommandDispatcher {
         break;
       case 'setVariable':
         this._bridgeAdapter.setVariable(args[1], args[2], args[3], args[4]);
+        break;
+      case 'completions':
+        this._bridgeAdapter.completions(args[1], args[2], args[3]);
         break;
       case 'getProperties':
         this._bridgeAdapter.getProperties(args[1], args[2]);

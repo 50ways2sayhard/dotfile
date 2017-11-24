@@ -52,6 +52,7 @@ class FindAndReplaceProvider {
   constructor(name) {
     this.name = name;
   }
+
   isVisible() {
     const paneElem = document.querySelector('.' + this.name);
     if (paneElem != null) {
@@ -66,6 +67,7 @@ class FindAndReplaceProvider {
 
     return false;
   }
+
   toggle() {
     if (!atom.packages.isPackageActive('find-and-replace')) {
       return;
@@ -80,9 +82,11 @@ class ToolBarProvider {
   constructor() {
     this.name = 'tool-bar';
   }
+
   isVisible() {
     return Boolean(atom.config.get('tool-bar.visible'));
   }
+
   toggle() {
     atom.config.set('tool-bar.visible', !this.isVisible());
   }
@@ -93,9 +97,11 @@ class StatusBarProvider {
     this.name = 'status-bar';
     this._oldDisplay = null;
   }
+
   isVisible() {
     return this._getStatusBarElement() != null && this._oldDisplay == null;
   }
+
   toggle() {
     const element = this._getStatusBarElement();
     if (element == null) {
@@ -114,6 +120,7 @@ class StatusBarProvider {
       this._oldDisplay = null;
     }
   }
+
   _getStatusBarElement() {
     return document.querySelector('status-bar');
   }

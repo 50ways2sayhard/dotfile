@@ -160,6 +160,7 @@ class VsDebugSessionTranslator {
     this._threadsById = new Map();
     this._mainThreadId = null;
     this._lastBreakpointId = 0;
+    this._configDoneSent = false;
     this._exceptionFilters = [];
     this._files = new (_nuclideDebuggerCommon || _load_nuclideDebuggerCommon()).FileCache((method, params) => this._sendMessageToClient({ method, params }));
 
@@ -246,9 +247,36 @@ class VsDebugSessionTranslator {
         return _ref6.apply(this, arguments);
       };
     })())),
+    // Request completions
+    this._commandsOfType('Debugger.completions').flatMap(catchCommandError((() => {
+      var _ref7 = (0, _asyncToGenerator.default)(function* (command) {
+        if (!(command.method === 'Debugger.completions')) {
+          throw new Error('Invariant violation: "command.method === \'Debugger.completions\'"');
+        }
+
+        const { text, column, frameId } = command.params;
+        if (!_this._session.getCapabilities().supportsCompletionsRequest) {
+          // Not supported, return empty result.
+          return { id: command.id, result: { targets: [] } };
+        }
+        const { body } = yield _this._session.completions({
+          text,
+          column,
+          frameId
+        });
+        const result = {
+          targets: body.targets
+        };
+        return { id: command.id, result };
+      });
+
+      return function (_x7) {
+        return _ref7.apply(this, arguments);
+      };
+    })())),
     // Get script source
     this._commandsOfType('Debugger.getScriptSource').flatMap(catchCommandError((() => {
-      var _ref7 = (0, _asyncToGenerator.default)(function* (command) {
+      var _ref8 = (0, _asyncToGenerator.default)(function* (command) {
         if (!(command.method === 'Debugger.getScriptSource')) {
           throw new Error('Invariant violation: "command.method === \'Debugger.getScriptSource\'"');
         }
@@ -259,11 +287,11 @@ class VsDebugSessionTranslator {
         return { id: command.id, result };
       });
 
-      return function (_x7) {
-        return _ref7.apply(this, arguments);
+      return function (_x8) {
+        return _ref8.apply(this, arguments);
       };
     })())), this._commandsOfType('Debugger.setPauseOnExceptions').switchMap(catchCommandError((() => {
-      var _ref8 = (0, _asyncToGenerator.default)(function* (command) {
+      var _ref9 = (0, _asyncToGenerator.default)(function* (command) {
         if (!(command.method === 'Debugger.setPauseOnExceptions')) {
           throw new Error('Invariant violation: "command.method === \'Debugger.setPauseOnExceptions\'"');
         }
@@ -278,7 +306,7 @@ class VsDebugSessionTranslator {
             _this._exceptionFilters = [state];
             break;
         }
-        if (_this._session.isReadyForBreakpoints()) {
+        if (_this._configDoneSent) {
           yield _this._session.setExceptionBreakpoints({
             filters: _this._exceptionFilters
           });
@@ -286,11 +314,11 @@ class VsDebugSessionTranslator {
         return getEmptyResponse(command.id);
       });
 
-      return function (_x8) {
-        return _ref8.apply(this, arguments);
+      return function (_x9) {
+        return _ref9.apply(this, arguments);
       };
     })())), this._commandsOfType('Debugger.continueToLocation').switchMap(catchCommandError((() => {
-      var _ref9 = (0, _asyncToGenerator.default)(function* (command) {
+      var _ref10 = (0, _asyncToGenerator.default)(function* (command) {
         if (!(command.method === 'Debugger.continueToLocation')) {
           throw new Error('Invariant violation: "command.method === \'Debugger.continueToLocation\'"');
         }
@@ -300,15 +328,15 @@ class VsDebugSessionTranslator {
         return getEmptyResponse(command.id);
       });
 
-      return function (_x9) {
-        return _ref9.apply(this, arguments);
+      return function (_x10) {
+        return _ref10.apply(this, arguments);
       };
     })())),
     // Ack config commands
     _rxjsBundlesRxMinJs.Observable.merge(this._commandsOfType('Debugger.setDebuggerSettings'), this._commandsOfType('Runtime.enable')).map(command => getEmptyResponse(command.id)),
     // Get properties
     this._commandsOfType('Runtime.getProperties').flatMap(catchCommandError((() => {
-      var _ref10 = (0, _asyncToGenerator.default)(function* (command) {
+      var _ref11 = (0, _asyncToGenerator.default)(function* (command) {
         if (!(command.method === 'Runtime.getProperties')) {
           throw new Error('Invariant violation: "command.method === \'Runtime.getProperties\'"');
         }
@@ -317,8 +345,8 @@ class VsDebugSessionTranslator {
         return { id: command.id, result };
       });
 
-      return function (_x10) {
-        return _ref10.apply(this, arguments);
+      return function (_x11) {
+        return _ref11.apply(this, arguments);
       };
     })())),
     // Set breakpoints
@@ -327,7 +355,7 @@ class VsDebugSessionTranslator {
     resumeCommands.take(1).map(command => getEmptyResponse(command.id)),
     // Remove breakpoints
     this._commandsOfType('Debugger.removeBreakpoint').flatMap(catchCommandError((() => {
-      var _ref11 = (0, _asyncToGenerator.default)(function* (command) {
+      var _ref12 = (0, _asyncToGenerator.default)(function* (command) {
         if (!(command.method === 'Debugger.removeBreakpoint')) {
           throw new Error('Invariant violation: "command.method === \'Debugger.removeBreakpoint\'"');
         }
@@ -336,8 +364,8 @@ class VsDebugSessionTranslator {
         return getEmptyResponse(command.id);
       });
 
-      return function (_x11) {
-        return _ref11.apply(this, arguments);
+      return function (_x12) {
+        return _ref12.apply(this, arguments);
       };
     })())), this._commandsOfType('Debugger.getThreadStack').map(command => {
       if (!(command.method === 'Debugger.getThreadStack')) {
@@ -354,8 +382,8 @@ class VsDebugSessionTranslator {
         id: command.id,
         result
       };
-    }), this._commandsOfType('Debugger.evaluateOnCallFrame').flatMap(catchCommandError((() => {
-      var _ref12 = (0, _asyncToGenerator.default)(function* (command) {
+    }), this._commandsOfType('Debugger.evaluateOnCallFrame').flatMap((() => {
+      var _ref13 = (0, _asyncToGenerator.default)(function* (command) {
         if (!(command.method === 'Debugger.evaluateOnCallFrame')) {
           throw new Error('Invariant violation: "command.method === \'Debugger.evaluateOnCallFrame\'"');
         }
@@ -368,11 +396,11 @@ class VsDebugSessionTranslator {
         };
       });
 
-      return function (_x12) {
-        return _ref12.apply(this, arguments);
+      return function (_x13) {
+        return _ref13.apply(this, arguments);
       };
-    })())), this._commandsOfType('Debugger.setVariableValue').flatMap(catchCommandError((() => {
-      var _ref13 = (0, _asyncToGenerator.default)(function* (command) {
+    })()), this._commandsOfType('Debugger.setVariableValue').flatMap(catchCommandError((() => {
+      var _ref14 = (0, _asyncToGenerator.default)(function* (command) {
         if (!(command.method === 'Debugger.setVariableValue')) {
           throw new Error('Invariant violation: "command.method === \'Debugger.setVariableValue\'"');
         }
@@ -393,11 +421,11 @@ class VsDebugSessionTranslator {
         };
       });
 
-      return function (_x13) {
-        return _ref13.apply(this, arguments);
+      return function (_x14) {
+        return _ref14.apply(this, arguments);
       };
-    })())), this._commandsOfType('Runtime.evaluate').flatMap(catchCommandError((() => {
-      var _ref14 = (0, _asyncToGenerator.default)(function* (command) {
+    })())), this._commandsOfType('Runtime.evaluate').flatMap((() => {
+      var _ref15 = (0, _asyncToGenerator.default)(function* (command) {
         if (!(command.method === 'Runtime.evaluate')) {
           throw new Error('Invariant violation: "command.method === \'Runtime.evaluate\'"');
         }
@@ -410,10 +438,10 @@ class VsDebugSessionTranslator {
         };
       });
 
-      return function (_x14) {
-        return _ref14.apply(this, arguments);
+      return function (_x15) {
+        return _ref15.apply(this, arguments);
       };
-    })())),
+    })()),
     // Error for unhandled commands
     this._unhandledCommands().map(command => getErrorResponse(command.id, 'Unknown command: ' + command.method)));
   }
@@ -442,26 +470,19 @@ class VsDebugSessionTranslator {
 
     const setBreakpointsCommands = this._commandsOfType('Debugger.setBreakpointByUrl');
 
-    let startedDebugging = false;
-
-    return _rxjsBundlesRxMinJs.Observable.concat(setBreakpointsCommands.buffer(this._commandsOfType('Debugger.resume').first().switchMap(() => {
-      if (this._session.isReadyForBreakpoints()) {
-        // Session is initialized and ready for breakpoint requests.
-        return _rxjsBundlesRxMinJs.Observable.of(null);
-      } else {
-        // Session initialization is pending launch.
-        startedDebugging = true;
-        return _rxjsBundlesRxMinJs.Observable.fromPromise(this._startDebugging()).ignoreElements().concat(this._session.observeInitializeEvents());
+    return _rxjsBundlesRxMinJs.Observable.concat(setBreakpointsCommands.buffer(this._commandsOfType('Debugger.resume').first().switchMap((0, _asyncToGenerator.default)(function* () {
+      yield _this3._startDebugging();
+      if (!_this3._session.isReadyForBreakpoints()) {
+        yield _this3._session.observeInitializeEvents().first().toPromise();
       }
-    })).first().flatMap((() => {
-      var _ref15 = (0, _asyncToGenerator.default)(function* (commands) {
+    }))).first().flatMap((() => {
+      var _ref17 = (0, _asyncToGenerator.default)(function* (commands) {
         // Upon session start, send the cached breakpoints
         // and other configuration requests.
         try {
-          const promises = [_this3._setBulkBreakpoints(commands), _this3._configDone(), startedDebugging ? Promise.resolve() : _this3._startDebugging()];
-          startedDebugging = true;
-          yield Promise.all(promises);
-          return yield promises[0];
+          const breakpoints = yield _this3._setBulkBreakpoints(commands);
+          yield _this3._configDone();
+          return breakpoints;
         } catch (error) {
           return commands.map(function ({ id }) {
             return getErrorResponse(id, error.message);
@@ -469,14 +490,14 @@ class VsDebugSessionTranslator {
         }
       });
 
-      return function (_x15) {
-        return _ref15.apply(this, arguments);
+      return function (_x16) {
+        return _ref17.apply(this, arguments);
       };
     })()),
     // Following breakpoint requests are handled by
     // immediatelly passing to the active debug session.
     setBreakpointsCommands.flatMap((() => {
-      var _ref16 = (0, _asyncToGenerator.default)(function* (command) {
+      var _ref18 = (0, _asyncToGenerator.default)(function* (command) {
         try {
           return yield _this3._setBulkBreakpoints([command]);
         } catch (error) {
@@ -484,25 +505,29 @@ class VsDebugSessionTranslator {
         }
       });
 
-      return function (_x16) {
-        return _ref16.apply(this, arguments);
+      return function (_x17) {
+        return _ref18.apply(this, arguments);
       };
     })())).flatMap(responses => _rxjsBundlesRxMinJs.Observable.from(responses));
   }
 
   _startDebugging() {
-    if (this._debugMode === 'launch') {
-      return this._session.launch(this._debuggerArgs);
-    } else {
-      return this._session.attach(this._debuggerArgs);
-    }
-  }
-
-  _setBulkBreakpoints(setBreakpointsCommands) {
     var _this4 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      if (!_this4._session.isReadyForBreakpoints()) {
+      if (_this4._debugMode === 'launch') {
+        yield _this4._session.launch(_this4._debuggerArgs);
+      } else {
+        yield _this4._session.attach(_this4._debuggerArgs);
+      }
+    })();
+  }
+
+  _setBulkBreakpoints(setBreakpointsCommands) {
+    var _this5 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      if (!_this5._session.isReadyForBreakpoints()) {
         throw new Error('VsDebugSession is not ready for breakpoints');
       }
       if (setBreakpointsCommands.length === 0) {
@@ -525,10 +550,10 @@ class VsDebugSessionTranslator {
       }
 
       const responseGroups = yield Promise.all(Array.from(breakpointCommandsByUrl).map((() => {
-        var _ref17 = (0, _asyncToGenerator.default)(function* ([url, breakpointCommands]) {
+        var _ref19 = (0, _asyncToGenerator.default)(function* ([url, breakpointCommands]) {
           const path = (0, (_helpers || _load_helpers()).uriToPath)(url);
 
-          const existingTranslatorBreakpoints = _this4._getBreakpointsForFilePath(path).map(function (bp) {
+          const existingTranslatorBreakpoints = _this5._getBreakpointsForFilePath(path).map(function (bp) {
             return Object.assign({}, bp);
           });
 
@@ -536,7 +561,7 @@ class VsDebugSessionTranslator {
 
           const translatorBreakpoins = breakpointCommands.map(function (c) {
             const newTranslatorBp = {
-              breakpointId: _this4._nextBreakpointId(),
+              breakpointId: _this5._nextBreakpointId(),
               path,
               lineNumber: c.params.lineNumber + 1,
               condition: c.params.condition || '',
@@ -544,14 +569,14 @@ class VsDebugSessionTranslator {
               hitCount: 0
             };
             breakOnLineNumbers.add(newTranslatorBp.lineNumber);
-            _this4._breakpointsById.set(newTranslatorBp.breakpointId, newTranslatorBp);
+            _this5._breakpointsById.set(newTranslatorBp.breakpointId, newTranslatorBp);
             return newTranslatorBp;
           }).concat(existingTranslatorBreakpoints.filter(function (tBp) {
             return !breakOnLineNumbers.has(tBp.lineNumber);
           }));
 
-          yield _this4._files.registerFile(url);
-          yield _this4._syncBreakpointsForFilePath(path, translatorBreakpoins);
+          yield _this5._files.registerFile(url);
+          yield _this5._syncBreakpointsForFilePath(path, translatorBreakpoins);
 
           return breakpointCommands.map(function (command, i) {
             const { breakpointId, lineNumber, resolved } = translatorBreakpoins[i];
@@ -568,8 +593,8 @@ class VsDebugSessionTranslator {
           });
         });
 
-        return function (_x17) {
-          return _ref17.apply(this, arguments);
+        return function (_x18) {
+          return _ref19.apply(this, arguments);
         };
       })()));
       return (0, (_collection || _load_collection()).arrayFlatten)(responseGroups);
@@ -586,26 +611,27 @@ class VsDebugSessionTranslator {
   }
 
   _configDone() {
-    var _this5 = this;
+    var _this6 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      yield _this5._session.setExceptionBreakpoints({
-        filters: _this5._exceptionFilters
+      yield _this6._session.setExceptionBreakpoints({
+        filters: _this6._exceptionFilters
       });
-      if (_this5._session.getCapabilities().supportsConfigurationDoneRequest) {
-        yield _this5._session.configurationDone();
+      if (_this6._session.getCapabilities().supportsConfigurationDoneRequest) {
+        yield _this6._session.configurationDone();
       }
+      _this6._configDoneSent = true;
     })();
   }
 
   _syncBreakpointsForFilePath(path, breakpoints) {
-    var _this6 = this;
+    var _this7 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const source = { path, name: (_nuclideUri || _load_nuclideUri()).default.basename(path) };
       const {
         body: { breakpoints: vsBreakpoints }
-      } = yield _this6._session.setBreakpoints({
+      } = yield _this7._session.setBreakpoints({
         source,
         lines: breakpoints.map(function (bp) {
           return bp.lineNumber;
@@ -619,7 +645,7 @@ class VsDebugSessionTranslator {
       });
       if (vsBreakpoints.length !== breakpoints.length) {
         const errorMessage = 'Failed to set breakpoints - count mismatch!' + ` ${vsBreakpoints.length} vs. ${breakpoints.length}`;
-        _this6._logger.error(errorMessage, JSON.stringify(vsBreakpoints), JSON.stringify(breakpoints));
+        _this7._logger.error(errorMessage, JSON.stringify(vsBreakpoints), JSON.stringify(breakpoints));
         throw new Error(errorMessage);
       }
       vsBreakpoints.forEach(function (vsBreakpoint, i) {
@@ -629,42 +655,50 @@ class VsDebugSessionTranslator {
   }
 
   _removeBreakpoint(breakpointId) {
-    var _this7 = this;
+    var _this8 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const foundBreakpoint = _this7._breakpointsById.get(breakpointId);
+      const foundBreakpoint = _this8._breakpointsById.get(breakpointId);
       if (foundBreakpoint == null) {
-        _this7._logger.info(`No breakpoint with id: ${breakpointId} to remove!`);
+        _this8._logger.info(`No breakpoint with id: ${breakpointId} to remove!`);
         return;
       }
-      const remainingBreakpoints = _this7._getBreakpointsForFilePath(foundBreakpoint.path).filter(function (breakpoint) {
+      const remainingBreakpoints = _this8._getBreakpointsForFilePath(foundBreakpoint.path).filter(function (breakpoint) {
         return breakpoint.breakpointId !== breakpointId;
       });
-      _this7._breakpointsById.delete(breakpointId);
+      _this8._breakpointsById.delete(breakpointId);
 
-      yield _this7._syncBreakpointsForFilePath(foundBreakpoint.path, remainingBreakpoints.map(function (bp) {
+      yield _this8._syncBreakpointsForFilePath(foundBreakpoint.path, remainingBreakpoints.map(function (bp) {
         return Object.assign({}, bp);
       }));
     })();
   }
 
   _evaluateOnCallFrame(expression, frameId) {
-    var _this8 = this;
+    var _this9 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const { body } = yield _this8._session.evaluate({
-        expression,
-        frameId
-      });
-      return {
-        result: {
-          type: body.type,
-          value: body.result,
-          description: body.result,
-          objectId: body.variablesReference > 0 ? String(body.variablesReference) : undefined
-        },
-        wasThrown: false
-      };
+      try {
+        const { body } = yield _this9._session.evaluate({
+          expression,
+          frameId
+        });
+        return {
+          result: {
+            type: body.type,
+            value: body.result,
+            description: body.result,
+            objectId: body.variablesReference > 0 ? String(body.variablesReference) : undefined
+          },
+          wasThrown: false
+        };
+      } catch (error) {
+        return {
+          result: null,
+          exceptionDetails: error.message,
+          wasThrown: true
+        };
+      }
     })();
   }
 
@@ -686,7 +720,7 @@ class VsDebugSessionTranslator {
   }
 
   _listenToSessionEvents() {
-    var _this9 = this;
+    var _this10 = this;
 
     // The first resume command is the indicator of client readiness
     // to receive session events.
@@ -760,13 +794,13 @@ class VsDebugSessionTranslator {
         this._logger.warn('Unknown breakpoint event', body);
       }
     }), this._session.observeStopEvents().flatMap((() => {
-      var _ref18 = (0, _asyncToGenerator.default)(function* ({ body }) {
+      var _ref20 = (0, _asyncToGenerator.default)(function* ({ body }) {
         const { threadId, reason } = body;
         let callFrames = [];
         const translatedStopReason = translateStopReason(reason);
         if (threadId != null) {
-          callFrames = yield _this9._getTranslatedCallFramesForThread(threadId);
-          _this9._threadsById.set(threadId, {
+          callFrames = yield _this10._getTranslatedCallFramesForThread(threadId);
+          _this10._threadsById.set(threadId, {
             state: 'paused',
             callFrames,
             stopReason: translatedStopReason
@@ -779,12 +813,12 @@ class VsDebugSessionTranslator {
           threadSwitchMessage: null
         };
 
-        const threadsUpdatedEvent = _this9._getThreadsUpdatedEvent();
+        const threadsUpdatedEvent = _this10._getThreadsUpdatedEvent();
         return { pausedEvent, threadsUpdatedEvent };
       });
 
-      return function (_x18) {
-        return _ref18.apply(this, arguments);
+      return function (_x19) {
+        return _ref20.apply(this, arguments);
       };
     })()).subscribe(({ pausedEvent, threadsUpdatedEvent }) => {
       this._sendMessageToClient({
@@ -829,8 +863,8 @@ class VsDebugSessionTranslator {
     // Next initialized events are session restarts.
     // Hence, we need to sync breakpoints & config done.
     .switchMap((0, _asyncToGenerator.default)(function* () {
-      yield _this9._syncBreakpoints();
-      yield _this9._configDone();
+      yield _this10._syncBreakpoints();
+      yield _this10._configDone();
     })).subscribe(() => this._logger.info('Session synced'), error => this._logger.error('Unable to sync session: ', error)));
   }
 
@@ -886,16 +920,20 @@ class VsDebugSessionTranslator {
   }
 
   initilize() {
-    return this._session.initialize({
-      clientID: 'Nuclide',
-      adapterID: 'python' /* TODO(most) */
-      , linesStartAt1: true,
-      columnsStartAt1: true,
-      supportsVariableType: true,
-      supportsVariablePaging: false,
-      supportsRunInTerminalRequest: false,
-      pathFormat: 'path'
-    });
+    var _this11 = this;
+
+    return (0, _asyncToGenerator.default)(function* () {
+      yield _this11._session.initialize({
+        clientID: 'Nuclide',
+        adapterID: _this11._adapterType,
+        linesStartAt1: true,
+        columnsStartAt1: true,
+        supportsVariableType: true,
+        supportsVariablePaging: false,
+        supportsRunInTerminalRequest: false,
+        pathFormat: 'path'
+      });
+    })();
   }
 
   processCommand(command) {
@@ -903,45 +941,47 @@ class VsDebugSessionTranslator {
   }
 
   _getTranslatedCallFramesForThread(threadId) {
-    var _this10 = this;
+    var _this12 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       // $FlowFixMe(>=0.55.0) Flow suppress
-      const { body: { stackFrames } } = yield _this10._session.stackTrace({
+      const { body: { stackFrames } } = yield _this12._session.stackTrace({
         threadId
       });
       return Promise.all(stackFrames.map((() => {
-        var _ref20 = (0, _asyncToGenerator.default)(function* (frame) {
+        var _ref22 = (0, _asyncToGenerator.default)(function* (frame) {
           let scriptId;
           if (frame.source != null && frame.source.path != null) {
             scriptId = frame.source.path;
           } else {
-            _this10._logger.error('Cannot find source/script of frame: ', frame);
+            _this12._logger.error('Cannot find source/script of frame: ', frame);
             scriptId = 'N/A';
           }
-          yield _this10._files.registerFile((0, (_helpers || _load_helpers()).pathToUri)(scriptId));
+          yield _this12._files.registerFile((0, (_helpers || _load_helpers()).pathToUri)(scriptId));
           return {
             callFrameId: String(frame.id),
             functionName: frame.name,
             location: nuclideDebuggerLocation(scriptId, frame.line - 1, frame.column - 1),
             hasSource: frame.source != null,
-            scopeChain: yield _this10._getScopesForFrame(frame.id),
+            scopeChain: yield _this12._getScopesForFrame(frame.id).catch(function (error) {
+              return [];
+            }),
             this: undefined
           };
         });
 
-        return function (_x19) {
-          return _ref20.apply(this, arguments);
+        return function (_x20) {
+          return _ref22.apply(this, arguments);
         };
       })()));
     })();
   }
 
   _getScopesForFrame(frameId) {
-    var _this11 = this;
+    var _this13 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const { body: { scopes } } = yield _this11._session.scopes({ frameId });
+      const { body: { scopes } } = yield _this13._session.scopes({ frameId });
       return scopes.map(function (scope) {
         return {
           type: scope.name,
@@ -957,11 +997,11 @@ class VsDebugSessionTranslator {
   }
 
   _getProperties(id, params) {
-    var _this12 = this;
+    var _this14 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
       const variablesReference = Number(params.objectId);
-      const { body: { variables } } = yield _this12._session.variables({
+      const { body: { variables } } = yield _this14._session.variables({
         variablesReference
       });
       const propertyDescriptors = variables.map(function (variable) {

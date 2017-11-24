@@ -36,6 +36,12 @@ function _load_lruCache() {
 
 var _os = _interopRequireDefault(require('os'));
 
+var _process;
+
+function _load_process() {
+  return _process = require('nuclide-commons/process');
+}
+
 var _promise;
 
 function _load_promise() {
@@ -69,9 +75,6 @@ function _load_findClangServerArgs() {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Limit the number of active Clang servers.
-const SERVER_LIMIT = 20;
-
-// Limit the total memory usage of all Clang servers.
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
  * All rights reserved.
@@ -83,12 +86,17 @@ const SERVER_LIMIT = 20;
  * @format
  */
 
+const SERVER_LIMIT = 20;
+
+// Limit the total memory usage of all Clang servers.
 const MEMORY_LIMIT = Math.round(_os.default.totalmem() * 15 / 100);
 
 let _getDefaultFlags;
 class ClangServerManager {
 
   constructor() {
+    this._memoryLimit = MEMORY_LIMIT;
+
     this._flagsManager = new (_ClangFlagsManager || _load_ClangFlagsManager()).default();
     this._servers = new (_lruCache || _load_lruCache()).default({
       max: SERVER_LIMIT,
@@ -179,36 +187,39 @@ class ClangServerManager {
     var _this2 = this;
 
     return (0, _asyncToGenerator.default)(function* () {
-      const usage = new Map();
-      yield Promise.all(_this2._servers.values().map((() => {
-        var _ref2 = (0, _asyncToGenerator.default)(function* (server) {
-          const mem = yield server.getMemoryUsage();
-          usage.set(server, mem);
-        });
+      const serverPids = _this2._servers.values().map(function (server) {
+        return server.getPID();
+      }).filter(Boolean);
+      if (serverPids.length === 0) {
+        return 0;
+      }
 
-        return function (_x3) {
-          return _ref2.apply(this, arguments);
-        };
-      })()));
-
-      // Servers may have been deleted in the meantime, so calculate the total now.
       let total = 0;
-      let count = 0;
-      _this2._servers.forEach(function (server) {
-        const mem = usage.get(server);
-        if (mem) {
-          total += mem;
-          count++;
-        }
-      });
+      const usage = new Map();
+      try {
+        const stdout = yield (0, (_process || _load_process()).runCommand)('ps', ['-p', serverPids.join(','), '-o', 'pid=', '-o', 'rss=']).toPromise();
+        stdout.split('\n').forEach(function (line) {
+          const parts = line.split(/\s+/);
+          if (parts.length === 2) {
+            const [pid, rss] = parts.map(function (x) {
+              return parseInt(x, 10);
+            });
+            usage.set(pid, rss);
+            total += rss;
+          }
+        });
+      } catch (err) {}
+      // Ignore errors.
+
 
       // Remove servers until we're under the memory limit.
       // Make sure we allow at least one server to stay alive.
-      if (count > 1 && total > MEMORY_LIMIT) {
+      let count = usage.size;
+      if (count > 1 && total > _this2._memoryLimit) {
         const toDispose = [];
         _this2._servers.rforEach(function (server, key) {
-          const mem = usage.get(server);
-          if (mem && count > 1 && total > MEMORY_LIMIT) {
+          const mem = usage.get(server.getPID());
+          if (mem != null && count > 1 && total > _this2._memoryLimit) {
             total -= mem;
             count--;
             toDispose.push(key);
@@ -218,7 +229,13 @@ class ClangServerManager {
           return _this2._servers.del(key);
         });
       }
+
+      return total;
     })();
+  }
+
+  setMemoryLimit(limit) {
+    this._memoryLimit = limit;
   }
 }
 exports.default = ClangServerManager;

@@ -69,7 +69,7 @@ class CommandExecutor {
         return this._addImport(args);
       default:
         command;
-        throw new Error('Unexpected Command');
+        throw new Error(`Unexpected command ${command}`);
     }
   }
 

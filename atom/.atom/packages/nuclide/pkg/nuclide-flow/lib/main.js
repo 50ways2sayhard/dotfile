@@ -51,7 +51,8 @@ let connectionToFlowService = (() => {
       functionSnippetShouldIncludeArguments: Boolean((_featureConfig || _load_featureConfig()).default.get('nuclide-flow.functionSnippetShouldIncludeArguments')),
       stopFlowOnExit: Boolean((_featureConfig || _load_featureConfig()).default.get('nuclide-flow.stopFlowOnExit')),
       lazyServer: Boolean((_featureConfig || _load_featureConfig()).default.get('nuclide-flow.lazyServer')),
-      ideLazyMode
+      ideLazyMode,
+      canUseFlowBin: Boolean((_featureConfig || _load_featureConfig()).default.get('nuclide-flow.canUseFlowBin'))
     };
     const languageService = yield flowService.initialize(fileNotifier, host, config);
 
@@ -81,6 +82,7 @@ let allowFlowServerRestart = (() => {
 
 let getLanguageServiceConfig = (() => {
   var _ref4 = (0, _asyncToGenerator.default)(function* () {
+    const enableHighlight = (_featureConfig || _load_featureConfig()).default.get('nuclide-flow.enableReferencesHighlight');
     const excludeLowerPriority = Boolean((_featureConfig || _load_featureConfig()).default.get('nuclide-flow.excludeOtherAutocomplete'));
     const flowResultsFirst = Boolean((_featureConfig || _load_featureConfig()).default.get('nuclide-flow.flowAutocompleteResultsFirst'));
     const enableTypeHints = Boolean((_featureConfig || _load_featureConfig()).default.get('nuclide-flow.enableTypeHints'));
@@ -88,15 +90,19 @@ let getLanguageServiceConfig = (() => {
     return {
       name: 'Flow',
       grammars: (_constants || _load_constants()).JS_GRAMMARS,
-      highlight: {
+      // flowlint-next-line sketchy-null-mixed:off
+      highlight: enableHighlight ? {
         version: '0.1.0',
         priority: 1,
         analyticsEventName: 'flow.codehighlight'
-      },
+      } : undefined,
       outline: {
         version: '0.1.0',
         priority: 1,
-        analyticsEventName: 'flow.outline'
+        analyticsEventName: 'flow.outline',
+        // Disabled as it's responsible for many calls/spawns that:
+        // In aggregate degrades the performance siginificantly.
+        updateOnEdit: false
       },
       coverage: {
         version: '0.0.0',

@@ -68,17 +68,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the license found in the LICENSE file in
- * the root directory of this source tree.
- *
- * 
- * @format
- */
-
 class Activation {
 
   constructor(rawState) {
@@ -128,6 +117,21 @@ class Activation {
     const tunnels = this._store.getState().openTunnels;
     tunnels.forEach((_, tunnel) => this._store.dispatch((_Actions || _load_Actions()).closeTunnel(tunnel)));
   }
-}
+
+  consumeCurrentWorkingDirectory(api) {
+    this._disposables.add(api.observeCwd(directory => {
+      this._store.dispatch((_Actions || _load_Actions()).setCurrentWorkingDirectory(directory));
+    }));
+  }
+} /**
+   * Copyright (c) 2015-present, Facebook, Inc.
+   * All rights reserved.
+   *
+   * This source code is licensed under the license found in the LICENSE file in
+   * the root directory of this source tree.
+   *
+   * 
+   * @format
+   */
 
 (0, (_createPackage || _load_createPackage()).default)(module.exports, Activation);
