@@ -1,11 +1,14 @@
 #local start_time=$(date "+%s.%N")
 # theFuck
 eval $(thefuck --alias)
+os = `uname -o`
 
 # alias
 alias py="/usr/bin/python3"
 alias go="/usr/local/var/homebrew/linked/go/bin/go"
 alias ll="ls -a -l"
+if [ $os!='GNU/Linux' ]
+then
 alias pip="pip3"
 
 GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
@@ -54,7 +57,6 @@ done
 FINISH="%{$terminfo[sgr0]%}"
 #}}}
 
-os=`uname -o`
 source $HOME/.myshrc
 source ~/.zshplug/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.zshplug/zsh-history-substring-search/zsh-history-substring-search.zsh
