@@ -2,11 +2,17 @@
 
 export LANG="en_US.UTF-8"
 [ -n "$SHELL" ] || export SHELL="/bin/zsh"
+os=`uname -o`
 
 # ls color
 PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 alias ls='ls -F --show-control-chars --color=auto'
-eval `gdircolors -b $HOME/.dir_colors`
+if [ $os='GNU/Linux' ]
+then
+	eval `dircolors -b $HOME/.dir_colors`
+else
+	eval `gdircolors -b $HOME/.dir_colors`
+fi
 
 # man color
 export LESS_TERMCAP_mb=$'\E[01;31m'

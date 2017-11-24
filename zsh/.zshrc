@@ -3,7 +3,7 @@
 eval $(thefuck --alias)
 
 # alias
-alias py="/usr/local/bin/python3"
+alias py="/usr/bin/python3"
 alias go="/usr/local/var/homebrew/linked/go/bin/go"
 alias ll="ls -a -l"
 
@@ -53,10 +53,16 @@ done
 FINISH="%{$terminfo[sgr0]%}"
 #}}}
 
+os=`uname -o`
 source $HOME/.myshrc
 source ~/.zshplug/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.zshplug/zsh-history-substring-search/zsh-history-substring-search.zsh
-source /usr/local/share/autojump/autojump.zsh
+if [ $os='GNU/Linux' ]
+then
+    source /usr/share/autojump/autojump.zsh
+else
+    source /usr/local/share/autojump/autojump.zsh
+fi
 source ~/.zshplug/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.zshplug/geometry/geometry.zsh
 
