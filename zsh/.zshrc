@@ -1,7 +1,7 @@
 #local start_time=$(date "+%s.%N")
 # theFuck
 eval $(thefuck --alias)
-os = `uname -o`
+os=`uname -o`
 
 # alias
 alias py="/usr/bin/python3"
@@ -10,6 +10,7 @@ alias ll="ls -a -l"
 if [ $os!='GNU/Linux' ]
 then
 alias pip="pip3"
+fi
 
 GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
 
