@@ -2,39 +2,39 @@
   "_args": [
     [
       {
-        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117914-31336-1ob7v5e.9i4c34ygb9/package.tgz",
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72806-1l7xjsg.kx340a4i/package.tgz",
         "scope": null,
         "escapedName": null,
         "name": null,
-        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117914-31336-1ob7v5e.9i4c34ygb9/package.tgz",
-        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117914-31336-1ob7v5e.9i4c34ygb9/package.tgz",
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72806-1l7xjsg.kx340a4i/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72806-1l7xjsg.kx340a4i/package.tgz",
         "type": "local"
       },
-      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117914-31336-1h37xux.gvugi7ldi"
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-118029-72806-uhhki6.rqma3y2e29"
     ]
   ],
-  "_from": "../d-117914-31336-1ob7v5e.9i4c34ygb9/package.tgz",
-  "_id": "autocomplete-paths@2.12.1",
+  "_from": "../d-118029-72806-1l7xjsg.kx340a4i/package.tgz",
+  "_id": "autocomplete-paths@2.12.2",
   "_inCache": true,
   "_location": "/autocomplete-paths",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117914-31336-1ob7v5e.9i4c34ygb9/package.tgz",
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72806-1l7xjsg.kx340a4i/package.tgz",
     "scope": null,
     "escapedName": null,
     "name": null,
-    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117914-31336-1ob7v5e.9i4c34ygb9/package.tgz",
-    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117914-31336-1ob7v5e.9i4c34ygb9/package.tgz",
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72806-1l7xjsg.kx340a4i/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72806-1l7xjsg.kx340a4i/package.tgz",
     "type": "local"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "file:../d-117914-31336-1ob7v5e.9i4c34ygb9/package.tgz",
-  "_shasum": "e0588d5e0fef90591d8a26f747c467119c12ec77",
+  "_resolved": "file:../d-118029-72806-1l7xjsg.kx340a4i/package.tgz",
+  "_shasum": "fd934aa91d3cffa9a467d3760152c08917fa392f",
   "_shrinkwrap": null,
-  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117914-31336-1ob7v5e.9i4c34ygb9/package.tgz",
-  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117914-31336-1h37xux.gvugi7ldi",
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72806-1l7xjsg.kx340a4i/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-118029-72806-uhhki6.rqma3y2e29",
   "bugs": {
     "url": "https://github.com/atom-community/autocomplete-paths/issues"
   },
@@ -75,153 +75,5 @@
     "type": "git",
     "url": "git+https://github.com/atom-community/autocomplete-paths.git"
   },
-  "version": "2.12.1",
-  "_atomModuleCache": {
-    "version": 1,
-    "dependencies": [
-      {
-        "name": "balanced-match",
-        "version": "1.0.0",
-        "path": "node_modules/balanced-match/index.js"
-      },
-      {
-        "name": "brace-expansion",
-        "version": "1.1.8",
-        "path": "node_modules/brace-expansion/index.js"
-      },
-      {
-        "name": "concat-map",
-        "version": "0.0.1",
-        "path": "node_modules/concat-map/index.js"
-      },
-      {
-        "name": "fuzzaldrin-plus",
-        "version": "0.4.1",
-        "path": "node_modules/fuzzaldrin-plus/lib/fuzzaldrin.js"
-      },
-      {
-        "name": "git-ignore-parser",
-        "version": "0.0.2",
-        "path": "node_modules/git-ignore-parser/lib/index.js"
-      },
-      {
-        "name": "minimatch",
-        "version": "3.0.4",
-        "path": "node_modules/minimatch/minimatch.js"
-      },
-      {
-        "name": "slash",
-        "version": "1.0.0",
-        "path": "node_modules/slash/index.js"
-      },
-      {
-        "name": "underscore",
-        "version": "1.6.0",
-        "path": "node_modules/underscore/underscore.js"
-      },
-      {
-        "name": "underscore-plus",
-        "version": "1.6.6",
-        "path": "node_modules/underscore-plus/lib/underscore-plus.js"
-      }
-    ],
-    "extensions": {
-      ".js": [
-        "lib/autocomplete-paths.js",
-        "lib/config/default-scopes.js",
-        "lib/config/index.js",
-        "lib/config/option-scopes.js",
-        "lib/paths-cache.js",
-        "lib/paths-provider.js",
-        "lib/utils.js",
-        "node_modules/balanced-match/index.js",
-        "node_modules/brace-expansion/index.js",
-        "node_modules/concat-map/example/map.js",
-        "node_modules/concat-map/index.js",
-        "node_modules/fuzzaldrin-plus/dist-browser/0.3.1/fuzzaldrin-plus.js",
-        "node_modules/fuzzaldrin-plus/dist-browser/0.3.1/fuzzaldrin-plus.min.js",
-        "node_modules/fuzzaldrin-plus/dist-browser/fuzzaldrin-plus.js",
-        "node_modules/fuzzaldrin-plus/dist-browser/fuzzaldrin-plus.min.js",
-        "node_modules/fuzzaldrin-plus/lib/filter.js",
-        "node_modules/fuzzaldrin-plus/lib/fuzzaldrin.js",
-        "node_modules/fuzzaldrin-plus/lib/matcher.js",
-        "node_modules/fuzzaldrin-plus/lib/pathScorer.js",
-        "node_modules/fuzzaldrin-plus/lib/query.js",
-        "node_modules/fuzzaldrin-plus/lib/scorer.js",
-        "node_modules/fuzzaldrin-plus/src/lib/filter.js",
-        "node_modules/fuzzaldrin-plus/src/lib/matcher.js",
-        "node_modules/fuzzaldrin-plus/src/lib/pathScorer.js",
-        "node_modules/fuzzaldrin-plus/src/lib/query.js",
-        "node_modules/fuzzaldrin-plus/src/lib/scorer.js",
-        "node_modules/git-ignore-parser/lib/index.js",
-        "node_modules/git-ignore-parser/lib/utils.js",
-        "node_modules/git-ignore-parser/test.js",
-        "node_modules/minimatch/minimatch.js",
-        "node_modules/slash/index.js",
-        "node_modules/underscore/underscore-min.js",
-        "node_modules/underscore/underscore.js",
-        "node_modules/underscore-plus/lib/underscore-plus.js"
-      ],
-      ".json": [
-        "node_modules/balanced-match/package.json",
-        "node_modules/brace-expansion/package.json",
-        "node_modules/concat-map/package.json",
-        "node_modules/fuzzaldrin-plus/bower.json",
-        "node_modules/fuzzaldrin-plus/demo/movies.json",
-        "node_modules/fuzzaldrin-plus/package.json",
-        "node_modules/git-ignore-parser/package.json",
-        "node_modules/minimatch/package.json",
-        "node_modules/slash/package.json",
-        "node_modules/underscore/package.json",
-        "node_modules/underscore-plus/package.json",
-        "package.json"
-      ]
-    },
-    "folders": [
-      {
-        "paths": [
-          "lib",
-          "lib/config",
-          "",
-          "spec",
-          "spec/fixtures/somedir/testdir",
-          "spec/fixtures/somedir",
-          "spec/fixtures/tests"
-        ],
-        "dependencies": {
-          "fuzzaldrin-plus": "^0.4.1",
-          "git-ignore-parser": "^0.0.2",
-          "minimatch": "^3.0.4",
-          "slash": "^1.0.0",
-          "underscore-plus": ">=1.1.2"
-        }
-      },
-      {
-        "paths": [
-          "node_modules/brace-expansion"
-        ],
-        "dependencies": {
-          "balanced-match": "^1.0.0",
-          "concat-map": "0.0.1"
-        }
-      },
-      {
-        "paths": [
-          "node_modules/minimatch"
-        ],
-        "dependencies": {
-          "brace-expansion": "^1.1.7"
-        }
-      },
-      {
-        "paths": [
-          "node_modules/underscore-plus/lib",
-          "node_modules/underscore-plus"
-        ],
-        "dependencies": {
-          "underscore": "~1.6.0"
-        }
-      }
-    ]
-  }
+  "version": "2.12.2"
 }

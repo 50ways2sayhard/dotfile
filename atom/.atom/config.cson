@@ -1,5 +1,7 @@
 "*":
-  Hydrogen: {}
+  Hydrogen:
+    autocomplete: false
+    languageMappings: "{\"python\":\"magicpython\"}"
   "atom-beautify":
     c:
       default_beautifier: "clang-format"
@@ -7,9 +9,19 @@
       default_beautifier: "clang-format"
     general:
       _analyticsUserId: "b17bdd91-1089-402b-a260-a585ebd7bf4c"
+      showLoadingView: false
+    python:
+      beautify_on_save: true
+      default_beautifier: "pybeautifier"
+  "atom-ide-ui":
+    use: {}
   "atom-runner": {}
   "autocomplete-clang":
     includeSystemHeadersDocumentation: true
+  "autocomplete-python":
+    pythonPaths: "/usr/local/bin/python3"
+    useKite: false
+    useSnippets: "required"
   "autocomplete-ruby":
     port: 12051
     rsensePath: "/usr/local/bin/rsense"
@@ -35,18 +47,19 @@
       "autocomplete-snippets"
       "autocomplete-paths"
       "clang-format"
-      "linter"
       "autocomplete-ruby"
       "linter-ruby"
       "rails-snippets"
-      "recent-files-fuzzy-finder"
-      "linter-flake8"
-      "emmet"
       "linter-clang"
       "zentabs"
       "css-snippets"
       "autocomplete-clang"
-      "tree-view"
+      "platformio-ide-terminal"
+      "busy-signal"
+      "intentions"
+      "vim-mode"
+      "latexer"
+      "language-thrift"
     ]
     openEmptyEditorOnStart: false
     packagesWithKeymapsDisabled: [
@@ -63,7 +76,8 @@
     titleBar: "custom-inset"
   "easy-motion-redux": {}
   editor:
-    fontFamily: "Lucida Console"
+    autoIndentOnPaste: false
+    fontFamily: "source code pro,FontAwesome"
     fontSize: 16
     invisibles: {}
     showIndentGuide: true
@@ -79,7 +93,20 @@
     fontFamily: "Luxi Mono"
   "fuzzy-finder":
     searchAllPanes: true
+  "hydrogen-launcher":
+    app: "iTerm.app"
+  "ide-python": {}
   "js-hyperclick": {}
+  kite:
+    activeSearchPosition: "bottom-right"
+    showKiteTourOnStartup: false
+  latex:
+    engine: "xelatex"
+  "linter-flake8":
+    executablePath: "/usr/local/bin/flake8"
+  "linter-ui-default":
+    panelHeight: 173
+  minimap: {}
   "nord-atom-ui":
     darkerFormFocusEffect: true
   nuclide:
@@ -89,15 +116,29 @@
       pythonBinaryPath: "/usr/local/bin/python3"
     "nuclide-distraction-free-mode":
       hideFindAndReplace: false
+    "nuclide-flow": {}
     "nuclide-home":
+      showChangelogs: false
       showHome: false
     "nuclide-python":
       pathToPython: "/usr/local/bin/python3"
+    use: {}
   "platformio-ide-terminal":
     core: {}
     style:
       theme: "one-dark"
     toggles: {}
+  "python-autopep8":
+    autopep8Path: "/usr/local/bin/autopep8"
+    formatOnSave: true
+    maxLineLength: 80
+  "python-indent":
+    hangingIndentTabs: 2
+  "python-tools":
+    pythonPath: "/usr/local/bin/python3"
+  "python-yapf":
+    formatOnSave: true
+    yapfStyle: "{based_on_style: google, column_limit: 80}"
   "recent-files-fuzzy-finder":
     restoreSession: true
   "script-runner":
@@ -110,10 +151,12 @@
       theme: "dracula"
   "tool-bar":
     position: "Left"
+    visible: false
   "tree-view":
     hideVcsIgnoredFiles: true
   "vim-mode":
     useSmartcaseForSearch: true
+  "vim-mode-plus": {}
   welcome:
     showOnStartup: false
 ".ansi.text":

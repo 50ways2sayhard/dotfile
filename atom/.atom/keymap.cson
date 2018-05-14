@@ -33,6 +33,9 @@
 'atom-text-editor.vim-mode.insert-mode':
   'k': 'exit-insert-mode-if-proceeded-by-j'
 
+'atom-text-editor.vim-mode-plus:not(.normal-mode)':
+  'j k': 'vim-mode-plus:activate-normal-mode'
+
 # 'atom-text-editor.vim-mode.normal-mode':
 #   'ctrl-;': 'smalls:start'
 
@@ -56,3 +59,7 @@
   'alt-shift-backspace': 'hydrogen:clear-results'
 # 'body':
   # 'ctrl-h': 'core:backspace'
+'atom-text-editor.vim-mode-plus:not(.insert-mode)':
+  'cmd-enter': 'hydrogen:run'
+# 'atom-workspace:not(.editor)':
+#   'cmd-enter': 'hydrogen:run'

@@ -2,12 +2,12 @@
 
 export LANG="en_US.UTF-8"
 [ -n "$SHELL" ] || export SHELL="/bin/zsh"
-os=`uname -o`
+os=`uname -s`
 
 # ls color
 PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 alias ls='ls -F --show-control-chars --color=auto'
-if [ $os='GNU/Linux' ]
+if [ $os!='Darwin' ]
 then
 	eval `dircolors -b $HOME/.dir_colors`
 else

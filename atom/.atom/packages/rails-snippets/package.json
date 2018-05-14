@@ -2,39 +2,39 @@
   "_args": [
     [
       {
-        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117631-5598-z36vlm.daxpoav2t9/package.tgz",
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118212-67042-1tegxeu.h72s4f5hfr/package.tgz",
         "scope": null,
         "escapedName": null,
         "name": null,
-        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117631-5598-z36vlm.daxpoav2t9/package.tgz",
-        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117631-5598-z36vlm.daxpoav2t9/package.tgz",
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118212-67042-1tegxeu.h72s4f5hfr/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118212-67042-1tegxeu.h72s4f5hfr/package.tgz",
         "type": "local"
       },
-      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117631-5598-3pu4n2.1nq7b0ggb9"
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-118212-67042-j6ypoc.j07oxn7b9"
     ]
   ],
-  "_from": "../d-117631-5598-z36vlm.daxpoav2t9/package.tgz",
-  "_id": "rails-snippets@2.16.0",
+  "_from": "../d-118212-67042-1tegxeu.h72s4f5hfr/package.tgz",
+  "_id": "rails-snippets@2.18.0",
   "_inCache": true,
   "_location": "/rails-snippets",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117631-5598-z36vlm.daxpoav2t9/package.tgz",
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118212-67042-1tegxeu.h72s4f5hfr/package.tgz",
     "scope": null,
     "escapedName": null,
     "name": null,
-    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117631-5598-z36vlm.daxpoav2t9/package.tgz",
-    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117631-5598-z36vlm.daxpoav2t9/package.tgz",
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118212-67042-1tegxeu.h72s4f5hfr/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118212-67042-1tegxeu.h72s4f5hfr/package.tgz",
     "type": "local"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "file:../d-117631-5598-z36vlm.daxpoav2t9/package.tgz",
-  "_shasum": "ea22536574d4f8f7908961b914fae8619240d2a2",
+  "_resolved": "file:../d-118212-67042-1tegxeu.h72s4f5hfr/package.tgz",
+  "_shasum": "27815eee81637d47f8b629f66ccbc0eb5c648054",
   "_shrinkwrap": null,
-  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117631-5598-z36vlm.daxpoav2t9/package.tgz",
-  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117631-5598-3pu4n2.1nq7b0ggb9",
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118212-67042-1tegxeu.h72s4f5hfr/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-118212-67042-j6ypoc.j07oxn7b9",
   "activationCommands": {
     "atom-text-editor": [
       "rails-snippets:toggleErb"
@@ -71,18 +71,5 @@
     "controller",
     "forms"
   ],
-  "version": "2.16.0",
-  "_atomModuleCache": {
-    "version": 1,
-    "dependencies": [],
-    "extensions": {
-      ".coffee": [
-        "lib/rails-snippets.coffee"
-      ],
-      ".json": [
-        "package.json"
-      ]
-    },
-    "folders": []
-  }
+  "version": "2.18.0"
 }

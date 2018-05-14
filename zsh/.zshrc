@@ -1,15 +1,18 @@
 #local start_time=$(date "+%s.%N")
 # theFuck
 eval $(thefuck --alias)
-os=`uname -o`
+os=`uname -s`
 
 # alias
-alias py="/usr/bin/python3"
+if [ $os='Darwin' ]; then
+    alias py="/usr/local/bin/python3"
+fi
 alias go="/usr/local/var/homebrew/linked/go/bin/go"
 alias ll="ls -a -l"
-if [ $os!='GNU/Linux' ]
+if [ $os='Darwin' ]
 then
 alias pip="pip3"
+alias ipy="ipython"
 fi
 
 GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
@@ -61,11 +64,10 @@ FINISH="%{$terminfo[sgr0]%}"
 source $HOME/.myshrc
 source ~/.zshplug/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.zshplug/zsh-history-substring-search/zsh-history-substring-search.zsh
-if [ $os='GNU/Linux' ]
-then
-    source /usr/share/autojump/autojump.zsh
-else
+if [ $os='Darwin' ];then
     source /usr/local/share/autojump/autojump.zsh
+else
+    source /usr/share/autojump/autojump.zsh
 fi
 source ~/.zshplug/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.zshplug/geometry/geometry.zsh
@@ -270,3 +272,4 @@ export COCOS_CONSOLE_ROOT=/Library/WebServer/Documents/cocos2d-js-v3.6/tools/coc
 export PATH=$COCOS_CONSOLE_ROOT:$PATH
 PATH=$PATH:/opt/pkg_uninstaller
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+export PATH="/usr/local/sbin:$PATH"

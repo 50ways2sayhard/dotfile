@@ -2,39 +2,39 @@
   "_args": [
     [
       {
-        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
+        "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72841-1s5x29z.feay8pvi/package.tgz",
         "scope": null,
         "escapedName": null,
         "name": null,
-        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
-        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
+        "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72841-1s5x29z.feay8pvi/package.tgz",
+        "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72841-1s5x29z.feay8pvi/package.tgz",
         "type": "local"
       },
-      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117924-39248-1rz5fye.cew58hyqfr"
+      "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-118029-72841-ym9vzd.oky5jyvi"
     ]
   ],
-  "_from": "../d-117924-39248-zbnf10.mah908jjor/package.tgz",
-  "_id": "no-title-bar@1.11.3",
+  "_from": "../d-118029-72841-1s5x29z.feay8pvi/package.tgz",
+  "_id": "no-title-bar@1.11.4",
   "_inCache": true,
   "_location": "/no-title-bar",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
+    "raw": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72841-1s5x29z.feay8pvi/package.tgz",
     "scope": null,
     "escapedName": null,
     "name": null,
-    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
-    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
+    "rawSpec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72841-1s5x29z.feay8pvi/package.tgz",
+    "spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72841-1s5x29z.feay8pvi/package.tgz",
     "type": "local"
   },
   "_requiredBy": [
     "#USER"
   ],
-  "_resolved": "file:../d-117924-39248-zbnf10.mah908jjor/package.tgz",
-  "_shasum": "c70e66c90998935184a003379c1e51de1c107b23",
+  "_resolved": "file:../d-118029-72841-1s5x29z.feay8pvi/package.tgz",
+  "_shasum": "e50dd09e653740fa9dac6682bcff755638738945",
   "_shrinkwrap": null,
-  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-117924-39248-zbnf10.mah908jjor/package.tgz",
-  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-117924-39248-1rz5fye.cew58hyqfr",
+  "_spec": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/d-118029-72841-1s5x29z.feay8pvi/package.tgz",
+  "_where": "/private/var/folders/9x/1p449h0n7nj831h5sk2fkq7w0000gn/T/apm-install-dir-118029-72841-ym9vzd.oky5jyvi",
   "author": {
     "name": "lexicalunit",
     "email": "lexicalunit@lexicalunit.com"
@@ -92,5 +92,5 @@
     "type": "git",
     "url": "git+https://github.com/lexicalunit/no-title-bar.git"
   },
-  "version": "1.11.3"
+  "version": "1.11.4"
 }
