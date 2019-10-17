@@ -1,0 +1,8 @@
+#!/bin/sh
+alias ll="ls -a -l"
+
+# git
+alias gs="git status"
+alias ga="git add"
+alias gm="git commit -m"
+alias gp="git push"

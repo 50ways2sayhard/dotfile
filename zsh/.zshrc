@@ -11,9 +11,9 @@ if which pyenv-virtualenv-init > /dev/null;
 fi
 
 # alias
-alias ll="ls -a -l"
+source $HOME/.alias
 
-# eval "$(/Users/GJT/dotfiles/zsh/starship init zsh)"
+eval "$(/Users/GJT/dotfiles/zsh/starship init zsh)"
 
 
 # GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
@@ -66,7 +66,6 @@ source $HOME/.myshrc
 source ~/.zshplug/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.zshplug/zsh-history-substring-search/zsh-history-substring-search.zsh
 if [ $os='Darwin' ];then 
-    export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
     source /usr/local/share/autojump/autojump.zsh
 else
     source /usr/share/autojump/autojump.zsh
@@ -273,3 +272,4 @@ if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 export PATH="/usr/local/sbin:$PATH"
 
 alias code='/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code'
+export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
