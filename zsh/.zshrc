@@ -1,21 +1,22 @@
 #local start_time=$(date "+%s.%N")
 # theFuck
-eval $(thefuck --alias)
 os=`uname -s`
+export ZSH_THEME="spaceship"
+export DOTFILES="/Users/gjt/dotfiles/zsh"
+
+export PATH="~/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+if which pyenv-virtualenv-init > /dev/null;
+    then eval "$(pyenv virtualenv-init -)";
+fi
 
 # alias
-if [ $os='Darwin' ]; then
-    alias py="/usr/local/bin/python3"
-fi
-alias go="/usr/local/var/homebrew/linked/go/bin/go"
 alias ll="ls -a -l"
-if [ $os='Darwin' ]
-then
-alias pip="pip3"
-alias ipy="ipython"
-fi
 
-GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
+# eval "$(/Users/GJT/dotfiles/zsh/starship init zsh)"
+
+
+# GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
 
 
 #{{{ 命令提示符、标题栏、任务栏样式
@@ -64,14 +65,13 @@ FINISH="%{$terminfo[sgr0]%}"
 source $HOME/.myshrc
 source ~/.zshplug/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.zshplug/zsh-history-substring-search/zsh-history-substring-search.zsh
-if [ $os='Darwin' ];then
+if [ $os='Darwin' ];then 
+    export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
     source /usr/local/share/autojump/autojump.zsh
 else
     source /usr/share/autojump/autojump.zsh
 fi
 source ~/.zshplug/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.zshplug/geometry/geometry.zsh
-# source ~/.zshplug/incr.zsh
 
 #{{{ 关于历史纪录的配置
 #历史纪录条目数量
@@ -268,8 +268,8 @@ bindkey '^g' edit-command-line
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 export PATH=$PATH:"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/usr/local/mysql/bin"
-export COCOS_CONSOLE_ROOT=/Library/WebServer/Documents/cocos2d-js-v3.6/tools/cocos2d-console/bin
-export PATH=$COCOS_CONSOLE_ROOT:$PATH
 PATH=$PATH:/opt/pkg_uninstaller
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 export PATH="/usr/local/sbin:$PATH"
+
+alias code='/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code'
