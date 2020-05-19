@@ -5,15 +5,10 @@ export ZSH_THEME="spaceship"
 export DOTFILES="/Users/gjt/dotfiles/zsh"
 
 export PATH="~/.pyenv/bin:$PATH"
-eval "$(pyenv init -)"
-if which pyenv-virtualenv-init > /dev/null;
-    then eval "$(pyenv virtualenv-init -)";
-fi
-
 # alias
 source $HOME/.alias
 
-eval "$(/Users/GJT/dotfiles/zsh/starship init zsh)"
+eval "$(starship init zsh)"
 
 
 # GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
@@ -65,11 +60,7 @@ FINISH="%{$terminfo[sgr0]%}"
 source $HOME/.myshrc
 source ~/.zshplug/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.zshplug/zsh-history-substring-search/zsh-history-substring-search.zsh
-if [ $os='Darwin' ];then 
-    source /usr/local/share/autojump/autojump.zsh
-else
-    source /usr/share/autojump/autojump.zsh
-fi
+source /usr/share/autojump/autojump.zsh
 source ~/.zshplug/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 #{{{ 关于历史纪录的配置
@@ -273,3 +264,8 @@ export PATH="/usr/local/sbin:$PATH"
 
 alias code='/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code'
 export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
+eval "$(direnv hook zsh)"
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"

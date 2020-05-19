@@ -6,3 +6,5 @@ alias gs="git status"
 alias ga="git add"
 alias gm="git commit -m"
 alias gp="git push"
+
+alias mount_samba="sudo mount -t cifs //localhost/test ~/samba -o username=test,password=Test1234"
