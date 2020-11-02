@@ -1,15 +1,15 @@
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# title      Nord dircolors                                    +
-# project    nord-dircolors                                    +
-# version    0.1.1                                             +
-# repository https://github.com/arcticicestudio/nord-dircolors +
-# author     Arctic Ice Studio                                 +
-# email      development@arcticicestudio.com                   +
-# copyright  Copyright (C) 2017                                +
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Copyright (C) 2017-present Arctic Ice Studio <development@arcticicestudio.com>
+# Copyright (C) 2017-present Sven Greb <development@svengreb.de>
+
+# Project:    Nord dircolors
+# Version:    0.2.0
+# Repository: https://github.com/arcticicestudio/nord-dircolors
+# License:    MIT
 
 COLOR tty
 
+TERM alacritty
+TERM alacritty-direct
 TERM ansi
 TERM *color*
 TERM con[0-9]*x[0-9]*
@@ -50,6 +50,7 @@ TERM xterm*
 TERM xterm-color
 TERM xterm-88color
 TERM xterm-256color
+TERM xterm-kitty
 
 #+-----------------+
 #+ Global Defaults +
@@ -253,3 +254,5 @@ STICKY 04;37;44
 .vob 32
 .webm 32
 .wmv 32
+
+
