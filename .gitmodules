@@ -13,3 +13,6 @@
 [submodule "tmux/tmux/.tmux/plugins/nord-tmux"]
 	path = tmux/tmux/.tmux/plugins/nord-tmux
 	url = https://github.com/arcticicestudio/nord-tmux
+[submodule "emacs/.emacs.d"]
+	path = emacs/.emacs.d
+	url = https://github.com/50ways2sayhard/.emacs.d
