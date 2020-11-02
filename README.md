@@ -27,5 +27,6 @@ git clone --recursive https://github.com/50ways2sayhard/dotfile
 ### Create links
 
 ```shell
-stow <module>
+cd dotfile
+sh -c ./bootstrap.sh
 ```
