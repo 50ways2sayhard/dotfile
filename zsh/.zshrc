@@ -1,8 +1,6 @@
 #local start_time=$(date "+%s.%N")
 if [ "$TMUX" = "" ]; then tmux; fi
 os=`uname -s`
-export ZSH_THEME="spaceship"
-export DOTFILES="/Users/gjt/dotfiles/zsh"
 
 export PATH="~/.pyenv/bin:$PATH"
 # alias
