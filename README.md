@@ -28,5 +28,5 @@ git clone --recursive https://github.com/50ways2sayhard/dotfile
 
 ```shell
 cd dotfile
-sh -c ./bootstrap.sh
+stow <module>
 ```
