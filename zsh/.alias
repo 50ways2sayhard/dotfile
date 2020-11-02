@@ -1,5 +1,6 @@
 #!/bin/sh
 alias ll="ls -a -l"
+alias reload_profile="source $HOME/.zshrc"
 
 # git
 alias gs="git status"
@@ -7,4 +8,9 @@ alias ga="git add"
 alias gm="git commit -m"
 alias gp="git push"
 
-alias mount_samba="sudo mount -t cifs //localhost/test ~/samba -o username=test,password=Test1234"
+alias mount_samba="sudo mount -t cifs //127.0.0.1/git /home/imsight/samba -o username=git,password=Gjtzone64"
+alias vim="nvim"
+
+# docker
+alias clean_docker_images='docker rmi $(docker images | grep "^<none>" | awk "{print $3}")'
+alias clean_docker_containers="docker ps -a | grep Exit | cut -d ' ' -f 1 | xargs docker rm"

@@ -1,5 +1,5 @@
 #local start_time=$(date "+%s.%N")
-# theFuck
+if [ "$TMUX" = "" ]; then tmux; fi
 os=`uname -s`
 export ZSH_THEME="spaceship"
 export DOTFILES="/Users/gjt/dotfiles/zsh"
@@ -257,15 +257,12 @@ bindkey '^g' edit-command-line
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-export PATH=$PATH:"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/usr/local/mysql/bin"
+export PATH=$PATH:"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/usr/local/mysql/bin:$HOME/.cargo/bin"
 PATH=$PATH:/opt/pkg_uninstaller
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 export PATH="/usr/local/sbin:$PATH"
 
 alias code='/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code'
-export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 eval "$(direnv hook zsh)"
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
