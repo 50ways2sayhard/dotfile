@@ -58,7 +58,6 @@ FINISH="%{$terminfo[sgr0]%}"
 source $HOME/.myshrc
 source ~/.zshplug/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.zshplug/zsh-history-substring-search/zsh-history-substring-search.zsh
-source /usr/share/autojump/autojump.zsh
 source ~/.zshplug/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 #{{{ 关于历史纪录的配置
@@ -211,23 +210,6 @@ user-complete() {
     esac
 }
 
-#
-# jj() {
-#   pushd "$(fasd -Rdl | head -n -7 | tac | awk '{print $2}' |fzf +s)"
-# }
-
-jj() {
-    local dir
-    dir=$(autojump -s |\
-        head -n -7 |\
-        tac |\
-        awk '{print $2}' |\
-        sed "s:$HOME:~:" |\
-        fzf --no-sort +m -q "$*" |\
-        sed "s:~:$HOME:")\
-    && pushd "$dir" && clear
-}
-
 
 zle -N user-complete
 bindkey "\t" user-complete
@@ -254,6 +236,7 @@ bindkey '^g' edit-command-line
 #echo $(( $(date "+%s.%N") - start_time))
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+eval "$(lua /usr/share/z.lua/z.lua --init zsh)"
 
 export PATH=$PATH:"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/usr/local/mysql/bin:$HOME/.cargo/bin"
 PATH=$PATH:/opt/pkg_uninstaller

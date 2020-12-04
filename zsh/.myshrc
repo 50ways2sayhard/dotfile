@@ -38,11 +38,3 @@ colorbar() {
         printf "\n";
     }'
 }
-
-z() {
-dst=$( autojump -s | head -n -7 | tac | awk '{print $2}' | fzf +s )
-if [ "$dst" != "" ]; then
- cd $dst
-fi
-# source echo $dst
-}
