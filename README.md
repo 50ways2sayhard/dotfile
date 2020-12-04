@@ -2,7 +2,9 @@
 
 ## Installation
 
-### Install stow
+### Install dependencies
+
+#### stow
 
 For macOS user,
 

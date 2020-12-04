@@ -16,3 +16,6 @@
 [submodule "emacs/.emacs.d"]
 	path = emacs/.emacs.d
 	url = https://github.com/50ways2sayhard/.emacs.d
+[submodule "zsh/.zshplug/z.lua"]
+	path = zsh/.zshplug/z.lua
+	url = https://github.com/skywind3000/z.lua

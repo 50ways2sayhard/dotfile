@@ -236,7 +236,7 @@ bindkey '^g' edit-command-line
 #echo $(( $(date "+%s.%N") - start_time))
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-eval "$(lua /usr/share/z.lua/z.lua --init zsh)"
+eval "$(lua ~/.zshplug/z.lua/z.lua --init zsh)"
 
 export PATH=$PATH:"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/usr/local/mysql/bin:$HOME/.cargo/bin"
 PATH=$PATH:/opt/pkg_uninstaller
