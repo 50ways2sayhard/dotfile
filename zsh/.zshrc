@@ -243,7 +243,4 @@ PATH=$PATH:/opt/pkg_uninstaller
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 export PATH="/usr/local/sbin:$PATH"
 
-alias code='/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code'
-
 eval "$(direnv hook zsh)"
-export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
