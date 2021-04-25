@@ -211,6 +211,5 @@ eval "$(lua ~/.zshplug/z.lua/z.lua --init zsh)"
 export PATH=$PATH:"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/usr/local/mysql/bin:$HOME/.cargo/bin"
 PATH=$PATH:/opt/pkg_uninstaller
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
-export PATH="/usr/local/sbin:$PATH"
 
 eval "$(direnv hook zsh)"

@@ -1,7 +1,7 @@
 export http_proxy="http://127.0.0.1:7890"
 export https_proxy="http://127.0.0.1:7890"
 export all_proxy="socks5://127.0.0.1:7890"
-export PATH=$PATH:$HOME/.poetry/bin:$HOME/.gem/ruby/2.5.0/bin:$HOME/.node_modules/bin:$HOME/doom/bin:/usr/bin:$HOME/.emacs.d/bin:$HOME/Library/Python/3.8/bin:$HOME/go/bin
+export PATH=$PATH:$HOME/.poetry/bin:$HOME/.node_modules/bin:/usr/bin:$HOME/.emacs.d/bin:$HOME/Library/Python/3.8/bin:$HOME/go/bin:$HOME/Library/Python/3.9/bin
 export WORKON_HOME=/home/imsight/.cache/pypoetry/virtualenvs
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 export npm_config_prefix=/usr/local
