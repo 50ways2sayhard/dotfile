@@ -11,36 +11,6 @@ eval "$(starship init zsh)"
 
 # GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
 
-
-#{{{ 命令提示符、标题栏、任务栏样式
-precmd() {
-    PROMPT=$(echo "%(?..[%?]:)$CYAN%~\n$GREEN>$FINISH ")
-
-    # 清空上次显示的命令
-    case $TERM in
-        (screen*)
-        print -Pn "\ek%30< ..<%~%<<\e\\"
-        ;;
-    esac
-}
-
-case $TERM in
-    (screen*)
-    preexec() {
-        [ "${1/ */}" = "echo" -o "${1/ */}" = "printf" ] && return
-        print -Pn "\ek%30>..>$1%< <\e\\"
-    }
-    ;;
-
-    (xterm*)
-    preexec() {
-        [ "${1/ */}" = "echo" -o "${1/ */}" = "printf" ] && return
-        print -Pn "\e]0;%~$ ${1//\\/\\\\}\a"
-    }
-    ;;
-esac
-#}}}
-
 #{{{ color
 autoload colors zsh/terminfo
 if [[ "$terminfo[colors]" -ge 8 ]]; then
