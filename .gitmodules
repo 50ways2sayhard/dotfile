@@ -19,3 +19,6 @@
 [submodule "zsh/.zshplug/z.lua"]
 	path = zsh/.zshplug/z.lua
 	url = https://github.com/skywind3000/z.lua
+[submodule "tmux/.tmux/plugins/onedark"]
+	path = tmux/.tmux/plugins/onedark
+	url = https://github.com/odedlaz/tmux-onedark-theme
