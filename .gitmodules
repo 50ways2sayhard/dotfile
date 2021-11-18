@@ -22,3 +22,6 @@
 [submodule "tmux/.tmux/plugins/onedark"]
 	path = tmux/.tmux/plugins/onedark
 	url = https://github.com/odedlaz/tmux-onedark-theme
+[submodule "tmux/.tmux/plugins/tmux-fzf"]
+	path = tmux/.tmux/plugins/tmux-fzf
+	url = https://github.com/sainnhe/tmux-fzf
