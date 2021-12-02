@@ -29,6 +29,7 @@ source $HOME/.myshrc
 source ~/.zshplug/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.zshplug/zsh-history-substring-search/zsh-history-substring-search.zsh
 source ~/.zshplug/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.zshplug/zsh-fzf-history-search/zsh-fzf-history-search.zsh
 
 #{{{ 关于历史纪录的配置
 #历史纪录条目数量
