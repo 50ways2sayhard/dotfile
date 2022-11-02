@@ -28,3 +28,6 @@
 [submodule "tmux/.tmux/plugins/tmux-fzf"]
 	path = tmux/.tmux/plugins/tmux-fzf
 	url = https://github.com/sainnhe/tmux-fzf
+[submodule "zsh/.zshplug/fzf-tab"]
+	path = zsh/.zshplug/fzf-tab
+	url = https://github.com/Aloxaf/fzf-tab
