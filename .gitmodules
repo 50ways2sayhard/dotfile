@@ -31,3 +31,7 @@
 [submodule "zsh/.zshplug/fzf-tab"]
 	path = zsh/.zshplug/fzf-tab
 	url = https://github.com/Aloxaf/fzf-tab
+[submodule "Rime"]
+	path = rime/Rime
+	url = git@github.com:50ways2sayhard/rime-ice.git
+	branch = self
