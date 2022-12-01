@@ -1,5 +1,7 @@
+# Fig pre block. Keep at the top of this file.
+[[ -f "$HOME/.fig/shell/zshrc.pre.zsh" ]] && builtin source "$HOME/.fig/shell/zshrc.pre.zsh"
 #local start_time=$(date "+%s.%N")
-if [ "$TMUX" = "" ]; then tmux; fi
+# if [ "$TMUX" = "" ]; then tmux; fi
 os=`uname -s`
 
 export PATH="~/.pyenv/bin:$PATH"
@@ -82,7 +84,7 @@ bindkey "\e[F"    end-of-line
 
 bindkey "^p"      up-line-or-search
 bindkey "^n"      down-line-or-search
-bindkey "^r"      history-incremental-search-backward
+bindkey "^r"      fzf_history_search
 bindkey "^a"      beginning-of-line
 bindkey "^e"      end-of-line
 bindkey "^f"      forward-char
@@ -214,3 +216,30 @@ PATH=$PATH:/opt/pkg_uninstaller
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 eval "$(direnv hook zsh)"
+
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"
+
+
+if [[ "$INSIDE_EMACS" = 'vterm' ]] \
+    && [[ -n ${EMACS_VTERM_PATH} ]] \
+    && [[ -f ${EMACS_VTERM_PATH}/etc/emacs-vterm-zsh.sh ]]; then
+ source ${EMACS_VTERM_PATH}/etc/emacs-vterm-zsh.sh
+fi
+
+vterm_cmd() {
+    local vterm_elisp
+    vterm_elisp=""
+    while [ $# -gt 0 ]; do
+        vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
+        shift
+    done
+    vterm_printf "51;E$vterm_elisp"
+}
+
+ff() {
+    vterm_cmd find-file "$(realpath "${@:-.}")"
+}
+
+# Fig post block. Keep at the bottom of this file.
+[[ -f "$HOME/.fig/shell/zshrc.post.zsh" ]] && builtin source "$HOME/.fig/shell/zshrc.post.zsh"

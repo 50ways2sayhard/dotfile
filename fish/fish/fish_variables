@@ -1,0 +1,6 @@
+# This file contains fish universal variable definitions.
+# VERSION: 3.0
+SETUVAR __fish_initialized:3400
+SETUVAR _tide_left_items:pwd\x1egit\x1enewline\x1echaracter
+SETUVAR _tide_right_items:status\x1ecmd_duration\x1econtext\x1ejobs\x1evirtual_env\x1etime
+SETUVAR fish_key_bindings:fish_default_key_bindings

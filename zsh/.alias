@@ -19,3 +19,6 @@ alias clean_docker_containers="docker ps -a | grep Exit | cut -d ' ' -f 1 | xarg
 alias j='z';
 alias jj='z -I'
 alias zb='z -b'
+
+alias emacs="/Applications/Emacs.app/Contents/MacOS/Emacs"
+alias vim="lvim"
