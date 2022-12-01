@@ -35,3 +35,6 @@
 	path = rime/Rime
 	url = git@github.com:50ways2sayhard/rime-ice.git
 	branch = self
+[submodule "fish/fish/z.lua"]
+	path = fish/fish/z.lua
+	url = https://github.com/skywind3000/z.lua
