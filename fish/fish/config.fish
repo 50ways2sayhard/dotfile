@@ -7,7 +7,7 @@ set fish_greeting
 
 set PATH $(brew --prefix)/opt/fzf/bin $(brew --prefix)/bin $HOME/bin $HOME/.emacs.d/bin $(brew --prefix)/opt/coreutils/libexec/gnubin/ /usr/local/bin /usr/bin /bin /usr/sbin /sbin $HOME/.local/bin $HOME/fvm/default/bin $HOME/.rvm/bin $PATH
 set FLUTTER_STORAGE_BASE_URL https://storage.flutter-io.cn
-set PUB_HOSTED_URL http://pub.futuoa.com
+set PUB_HOSTED_URL https://pub.dev
 #pyenv init - | source
 starship init fish | source
 
