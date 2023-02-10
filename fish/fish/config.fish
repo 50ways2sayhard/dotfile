@@ -72,8 +72,6 @@ if test ! -d "$rbenv_root/shims"; or test ! -d "$rbenv_root/versions"
     command mkdir -p $rbenv_root/{shims,versions}
 end
 
-# [ "$INSIDE_EMACS" = 'vterm' ] && [ -n {$EMACS_VTERM_PATH} ] && [ -f {$EMACS_VTERM_PATH}/etc/emacs-vterm.fish ] && source {$EMACS_VTERM_PATH}/etc/emacs-vterm.fish
-
 # Some of the most useful features in emacs-libvterm require shell-side
 # configurations. The main goal of these additional functions is to enable the
 # shell to send information to `vterm` via properly escaped sequences. A
@@ -145,5 +143,5 @@ end
 
 function f
     set -q argv[1]; or set argv[1] "."
-    vterm_cmd find-file (realpath "$argv")
+    vterm_cmd +my/smart-vterm-find-file (realpath "$argv")
 end
