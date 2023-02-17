@@ -49,6 +49,8 @@ set LC_CTYPE en_US.UTF-8
 set FZF_DEFAULT_COMMAND 'fd --type file'
 set FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
 
+# private config
+[ -f $Home/.config/fish/private.fish] && source $HOME/.config/fish/private.fish
 
 [ -f $HOME/.config/fish/z.lua/z.lua ] && source (lua $HOME/.config/fish/z.lua/z.lua --init fish fzf | psub)
 alias d="z -I"
