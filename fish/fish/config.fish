@@ -50,10 +50,12 @@ set FZF_DEFAULT_COMMAND 'fd --type file'
 set FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
 
 # private config
-[ -f $Home/.config/fish/private.fish] && source $HOME/.config/fish/private.fish
+[ -f $HOME/.config/fish/private.fish ] && source $HOME/.config/fish/private.fish
 
 [ -f $HOME/.config/fish/z.lua/z.lua ] && source (lua $HOME/.config/fish/z.lua/z.lua --init fish fzf | psub)
 alias d="z -I"
+
+thefuck --alias | source
 
 if not command -s rbenv > /dev/null
     echo "rbenv: command not found. See https://github.com/rbenv/rbenv"
