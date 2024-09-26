@@ -11,8 +11,8 @@ function Rime_install() {
     mkdir ~/Library/Rime
     mkdir ~/.config/rime
     cd ~/dotfile/rime/Rime
-    gln -sr * ~/Library/Rime/
-    gln -sr * ~/.config/rime/
+    gln -srf * ~/Library/Rime/
+    gln -srf * ~/.config/rime/
     echo "Remember to set the installation.yaml"
 }
 
