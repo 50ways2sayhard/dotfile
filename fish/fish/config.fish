@@ -4,10 +4,12 @@ if status is-interactive
 end
 
 set fish_greeting
+fish_add_path -p /opt/homebrew/bin
 
-set PATH $(brew --prefix)/opt/fzf/bin $(brew --prefix)/bin $HOME/bin $HOME/.emacs.d/bin $(brew --prefix)/opt/coreutils/libexec/gnubin/ /usr/local/bin /usr/bin /bin /usr/sbin /sbin $HOME/.local/bin $HOME/fvm/default/bin /Applications/Emacs.app/Contents/MacOS /Applications/Emacs.app/Contents/MacOS/bin $HOME/.rvm/bin $PATH
+fish_add_path -a $(brew --prefix)/opt/fzf/bin $(brew --prefix)/bin $HOME/bin $HOME/.emacs.d/bin $(brew --prefix)/opt/coreutils/libexec/gnubin/ /usr/local/bin /usr/bin /bin /usr/sbin /sbin $HOME/.local/bin /Applications/Emacs.app/Contents/MacOS /Applications/Emacs.app/Contents/MacOS/bin $HOME/.rvm/bin $HOME/fvm/default/bin
 set FLUTTER_STORAGE_BASE_URL https://storage.flutter-io.cn
 set PUB_HOSTED_URL https://pub.dev
+set LD_LIBRARY_PATH $(brew --prefix)/lib
 #pyenv init - | source
 starship init fish | source
 
@@ -22,8 +24,9 @@ alias lla='ll -A'
 alias llh='ll -h'
 alias md='mkdir -p'
 alias j='z'
-alias jj='z -I'
-alias zb='z -b'
+alias jj='zi'
+alias jb='zb'
+# alias zb='z -b'
 alias py='python3'
 alias py2='python2'
 alias py3='python3'
@@ -38,7 +41,11 @@ alias gcm='git commit -m'
 alias gp='git push'
 alias gc='git clone --depth 1'
 alias pipi='pip install --user -i https://pypi.douban.com/simple/'
+alias bh='dart run branch_helper'
 #alias ssh='ssh -o ServerAliveInterval=60'
+
+alias ff='_eat_msg "find-file"'
+alias dr='_eat_msg "dired"'
 
 set EDITOR nvim
 set PAGER 'less -irf'
@@ -52,12 +59,12 @@ set FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
 # private config
 [ -f $HOME/.config/fish/private.fish ] && source $HOME/.config/fish/private.fish
 
-[ -f $HOME/.config/fish/z.lua/z.lua ] && source (lua $HOME/.config/fish/z.lua/z.lua --init fish fzf | psub)
+# [ -f $HOME/.config/fish/z.lua/z.lua ] && source (lua $HOME/.config/fish/z.lua/z.lua --init fish fzf | psub)
 alias d="z -I"
 
 thefuck --alias | source
 
-if not command -s rbenv > /dev/null
+if not command -s rbenv >/dev/null
     echo "rbenv: command not found. See https://github.com/rbenv/rbenv"
     exit 1
 end
@@ -66,6 +73,7 @@ set -l rbenv_root ''
 if test -z "$RBENV_ROOT"
     set rbenv_root "$HOME/.rbenv"
     set -x RBENV_ROOT "$HOME/.rbenv"
+    fish_add_path $RBENV_ROOT/shims
 else
     set rbenv_root "$RBENV_ROOT"
 end
@@ -81,8 +89,10 @@ end
 # shell to send information to `vterm` via properly escaped sequences. A
 # function that helps in this task, `vterm_printf`, is defined below.
 
-function vterm_printf;
-    if begin; [  -n "$TMUX" ]  ; and  string match -q -r "screen|tmux" "$TERM"; end
+function vterm_printf
+    if begin
+            [ -n "$TMUX" ]; and string match -q -r "screen|tmux" "$TERM"
+        end
         # tell tmux to pass the escape sequences through
         printf "\ePtmux;\e\e]%s\007\e\\" "$argv"
     else if string match -q -- "screen*" "$TERM"
@@ -95,10 +105,10 @@ end
 
 # Completely clear the buffer. With this, everything that is not on screen
 # is erased.
-if [ "$INSIDE_EMACS" = 'vterm' ]
+if [ "$INSIDE_EMACS" = vterm ]
     function clear
-        vterm_printf "51;Evterm-clear-scrollback";
-        tput clear;
+        vterm_printf "51;Evterm-clear-scrollback"
+        tput clear
     end
 end
 
@@ -129,7 +139,7 @@ end
 #
 # The escape sequence "51;A" has also the role of identifying the end of the
 # prompt
-function vterm_prompt_end;
+function vterm_prompt_end
     vterm_printf '51;A'(whoami)'@'(hostname)':'(pwd)
 end
 
@@ -149,3 +159,9 @@ function f
     set -q argv[1]; or set argv[1] "."
     vterm_cmd +my/smart-vterm-find-file (realpath "$argv")
 end
+
+function dired
+    vterm_cmd dired
+end
+
+zoxide init fish | source
