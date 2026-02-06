@@ -1,0 +1,41 @@
+theme = nord
+shell-integration = fish
+font-family = "Hack Nerd Font Mono"
+font-size = 16
+window-decoration = true
+fullscreen = false
+macos-titlebar-style=transparent
+
+keybind = global:cmd+opt+grave_accent=toggle_quick_terminal
+keybind = ctrl+x>\=new_split:right
+keybind = ctrl+x>-=new_split:down
+keybind = global:cmd+shift+,=reload_config
+
+keybind = ctrl+x>j=goto_split:bottom
+keybind = ctrl+x>k=goto_split:top
+keybind = ctrl+x>h=goto_split:left
+keybind = ctrl+x>l=goto_split:right
+
+keybind = ctrl+x>1=goto_tab:1
+keybind = ctrl+x>2=goto_tab:2
+keybind = ctrl+x>3=goto_tab:3
+keybind = ctrl+x>4=goto_tab:4
+keybind = ctrl+x>5=goto_tab:5
+keybind = ctrl+x>6=goto_tab:6
+keybind = ctrl+x>7=goto_tab:7
+keybind = ctrl+x>8=goto_tab:8
+keybind = ctrl+x>9=goto_tab:9
+
+
+copy-on-select = clipboard
+clipboard-trim-trailing-spaces = true
+
+
+initial-window = true
+resize-overlay = never
+background-opacity = 1
+window-save-state = always
+window-step-resize = false
+background-blur-radius = 15
+window-padding-balance = true
+confirm-close-surface = false

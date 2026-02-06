@@ -6,10 +6,10 @@ end
 set fish_greeting
 fish_add_path -p /opt/homebrew/bin
 
-fish_add_path -a $(brew --prefix)/opt/fzf/bin $(brew --prefix)/bin $HOME/bin $HOME/.emacs.d/bin $(brew --prefix)/opt/coreutils/libexec/gnubin/ /usr/local/bin /usr/bin /bin /usr/sbin /sbin $HOME/.local/bin /Applications/Emacs.app/Contents/MacOS /Applications/Emacs.app/Contents/MacOS/bin $HOME/.rvm/bin $HOME/fvm/default/bin
-set FLUTTER_STORAGE_BASE_URL https://storage.flutter-io.cn
-set PUB_HOSTED_URL https://pub.dev
-set LD_LIBRARY_PATH $(brew --prefix)/lib
+fish_add_path -a $(brew --prefix)/opt/fzf/bin $(brew --prefix)/bin $HOME/bin $HOME/.emacs.d/bin $(brew --prefix)/opt/coreutils/libexec/gnubin/ /usr/local/bin /usr/bin /bin /usr/sbin /sbin $HOME/.local/bin /Applications/Emacs.app/Contents/MacOS /Applications/Emacs.app/Contents/MacOS/bin $HOME/.rvm/bin $HOME/fvm/default/bin $HOME/.pub-cache/bin $HOME/Library/Android/sdk/platform-tools
+set -x FLUTTER_STORAGE_BASE_URL https://storage.flutter-io.cn
+# set -x LD_LIBRARY_PATH $(brew --prefix)/lib
+fish_add_path -a $HOME/.puro/bin
 #pyenv init - | source
 starship init fish | source
 
@@ -44,17 +44,15 @@ alias pipi='pip install --user -i https://pypi.douban.com/simple/'
 alias bh='dart run branch_helper'
 #alias ssh='ssh -o ServerAliveInterval=60'
 
-alias ff='_eat_msg "find-file"'
-alias dr='_eat_msg "dired"'
-
-set EDITOR nvim
-set PAGER 'less -irf'
-set GREP_COLOR '40;33;01'
-set LANG en_US.UTF-8
-set LC_CTYPE en_US.UTF-8
+set -x EDITOR nvim
+set -x PAGER 'less -irf'
+set -x GREP_COLOR '40;33;01'
+set -x LANG en_US.UTF-8
+set -x LC_CTYPE en_US.UTF-8
 
 set FZF_DEFAULT_COMMAND 'fd --type file'
 set FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
+alias fo='emacsclient -n'
 
 # private config
 [ -f $HOME/.config/fish/private.fish ] && source $HOME/.config/fish/private.fish
@@ -165,3 +163,7 @@ function dired
 end
 
 zoxide init fish | source
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+set --export PATH $BUN_INSTALL/bin $PATH

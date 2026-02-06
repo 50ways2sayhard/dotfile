@@ -5,11 +5,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib
 export PYTHONPATH=$PYTHONPATH:/Library/Python/3.8/site-packages
 export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 export EDITOR=nvim
-
-
 export ALIAS_PASSWORD=Abc123456
 export KEY_ALIAS=flutter-app-keystore
 export KEYSTORE=$HOME/projects/ftnn_src/flutter-app-keystore.jks
 export KEYSTORE_PASSWORD=Abc123456
 export LSP_USE_PLISTS=true
-export PUB_HOSTED_URL=http://pub.futuoa.com
+export PUB_HOSTED_URL=https://pub.futuoa.com

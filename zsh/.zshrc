@@ -10,6 +10,8 @@ source $HOME/.alias
 
 eval "$(starship init zsh)"
 
+[ -n "$EAT_SHELL_INTEGRATION_DIR" ] && \
+  source "$EAT_SHELL_INTEGRATION_DIR/zsh"
 
 # GEOMETRY_PROMPT_PLUGINS=(virtualenv git hg exec_time)
 
@@ -215,7 +217,7 @@ export PATH=$PATH:"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/us
 PATH=$PATH:/opt/pkg_uninstaller
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
-eval "$(direnv hook zsh)"
+eval "$(hook zsh)"
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
@@ -240,6 +242,8 @@ vterm_cmd() {
 ff() {
     vterm_cmd find-file "$(realpath "${@:-.}")"
 }
+
+alias eff='_eat_msg ff'
 
 # Fig post block. Keep at the bottom of this file.
 [[ -f "$HOME/.fig/shell/zshrc.post.zsh" ]] && builtin source "$HOME/.fig/shell/zshrc.post.zsh"
