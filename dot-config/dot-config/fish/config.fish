@@ -1,7 +1,5 @@
-# Commands to run in interactive sessions can go here
-if status is-interactive
-    printf '\033[6 q'
-end
+# 禁用 CSI u 键盘协议，避免 Ctrl-C 中断交互式程序后终端状态异常
+set -g fish_features no-keyboard-protocols
 
 set fish_greeting
 fish_add_path -p /opt/homebrew/bin
@@ -26,7 +24,8 @@ alias md='mkdir -p'
 alias j='z'
 alias jj='zi'
 alias jb='zb'
-# alias zb='z -b'
+alias zbi='zb -i'
+alias zbf='zb -I'
 alias py='python3'
 alias py2='python2'
 alias py3='python3'
@@ -123,13 +122,13 @@ end
 # For example, vterm_cmd message "HI" will print "HI".
 # To enable new commands, you have to customize Emacs's variable
 # vterm-eval-cmds.
-function vterm_cmd --description 'Run an Emacs command among the ones defined in vterm-eval-cmds.'
-    set -l vterm_elisp ()
-    for arg in $argv
-        set -a vterm_elisp (printf '"%s" ' (string replace -a -r '([\\\\"])' '\\\\\\\\$1' $arg))
-    end
-    vterm_printf '51;E'(string join '' $vterm_elisp)
-end
+# function vterm_cmd --description 'Run an Emacs command among the ones defined in vterm-eval-cmds.'
+#     set -l vterm_elisp ()
+#     for arg in $argv
+#         set -a vterm_elisp (printf '"%s" ' (string replace -a -r '([\\\\"])' '\\\\\\\\$1' $arg))
+#     end
+#     vterm_printf '51;E'(string join '' $vterm_elisp)
+# end
 
 # Sync directory and host in the shell with Emacs's current directory.
 # You may need to manually specify the hostname instead of $(hostname) in case
@@ -137,33 +136,44 @@ end
 #
 # The escape sequence "51;A" has also the role of identifying the end of the
 # prompt
-function vterm_prompt_end
-    vterm_printf '51;A'(whoami)'@'(hostname)':'(pwd)
-end
+# function vterm_prompt_end
+#     vterm_printf '51;A'(whoami)'@'(hostname)':'(pwd)
+# end
 
 # We are going to add a portion to the prompt, so we copy the old one
-functions --copy fish_prompt vterm_old_fish_prompt
+# functions --copy fish_prompt vterm_old_fish_prompt
 
-function fish_prompt --description 'Write out the prompt; do not replace this. Instead, put this at end of your file.'
-    # Remove the trailing newline from the original prompt. This is done
-    # using the string builtin from fish, but to make sure any escape codes
-    # are correctly interpreted, use %b for printf.
-    printf "%b" (string join "\n" (vterm_old_fish_prompt))
-    vterm_prompt_end
-end
+# function fish_prompt --description 'Write out the prompt; do not replace this. Instead, put this at end of your file.'
+#     # Remove the trailing newline from the original prompt. This is done
+#     # using the string builtin from fish, but to make sure any escape codes
+#     # are correctly interpreted, use %b for printf.
+#     printf "%b" (string join "\n" (vterm_old_fish_prompt))
+#     vterm_prompt_end
+# end
 
 
-function f
-    set -q argv[1]; or set argv[1] "."
-    vterm_cmd +my/smart-vterm-find-file (realpath "$argv")
-end
+# function f
+#     set -q argv[1]; or set argv[1] "."
+#     vterm_cmd +my/smart-vterm-find-file (realpath "$argv")
+# end
 
-function dired
-    vterm_cmd dired
-end
+# function dired
+#     vterm_cmd dired
+# end
 
 zoxide init fish | source
 
 # bun
 set --export BUN_INSTALL "$HOME/.bun"
 set --export PATH $BUN_INSTALL/bin $PATH
+
+# Auto-attach to tmux on interactive shell start.
+# MUST be at the very end so tmux server inherits a fully-built PATH/env.
+# Opt-in: only fires when ENABLE_TMUX=1 is set by the terminal emulator
+# (Ghostty / Kitty inject it via their `env` directive). Emacs shell-mode,
+# IDE terminals, scripts etc. don't set it, so they stay tmux-free.
+if status is-interactive
+    and not set -q TMUX
+    and set -q ENABLE_TMUX
+    exec tmux new-session -A -s main
+end

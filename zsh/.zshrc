@@ -4,7 +4,7 @@
 # if [ "$TMUX" = "" ]; then tmux; fi
 os=`uname -s`
 
-export PATH="~/.pyenv/bin:$PATH"
+export PATH="/bin:/usr/bin:/usr/local/bin:~/.pyenv/bin:$PATH"
 # alias
 source $HOME/.alias
 

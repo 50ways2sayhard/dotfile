@@ -1,4 +1,4 @@
-export PATH=$HOME/fvm/default/bin:$HOME/Library/Android/sdk/tools/bin:/usr/local/opt/openjdk@11/bin:$PATH:$HOME/.poetry/bin:$HOME/.node_modules/bin:/usr/bin:$HOME/.emacs.d/bin:$HOME/Library/Python/3.8/bin:$HOME/go/bin:$HOME/Library/Python/3.9/bin
+export PATH=$HOME/fvm/default/bin:$HOME/Library/Android/sdk/tools/bin:/usr/local/opt/openjdk@11/bin:$PATH:$HOME/.poetry/bin:$HOME/.node_modules/bin:/usr/bin:$HOME/.emacs.d/bin:$HOME/Library/Python/3.8/bin:$HOME/go/bin:$HOME/Library/Python/3.9/bin:$PATH
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 export npm_config_prefix=/usr/local
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib

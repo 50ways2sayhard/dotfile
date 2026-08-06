@@ -1,8 +1,8 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
-SETUVAR __fish_initialized:3800
+SETUVAR __fish_initialized:4300
 SETUVAR _tide_left_items:pwd\x1egit\x1enewline\x1echaracter
 SETUVAR _tide_prompt_57252:\x1b\x5bm\x0f\x1b\x5bm\x0f\x1b\x5bm\x0f\x1b\x5bm\x0f\x1b\x5bm\x0f\x40PWD\x40\x1b\x5bm\x0f\x1b\x5bm\x0f\x1b\x5bm\x0f\x20\x1e\x1b\x5b38\x3b2\x3b95\x3b215\x3b0m\u276f\x1e\x1b\x5bm\x0f\x1b\x5bm\x0f\x1b\x5bm\x0f\x20\x1b\x5bm\x0f\x1b\x5bm\x0f\x1b\x5b38\x3b2\x3b95\x3b135\x3b135m14\x3a17\x3a43\x1b\x5bm\x0f\x1b\x5bm\x0f\x1b\x5bm\x0f
 SETUVAR _tide_right_items:status\x1ecmd_duration\x1econtext\x1ejobs\x1evirtual_env\x1etime
-SETUVAR fish_key_bindings:fish_default_key_bindings
+SETUVAR fish_features:no\x2dkeyboard\x2dprotocols
 SETUVAR fish_user_paths:/opt/homebrew/opt/openjdk\x4017/bin\x1e/Users/johngong/\x2erbenv/shims\x1e/Users/johngong/\x2egem/ruby/3\x2e0\x2e0/bin\x1e/opt/homebrew/opt/fzf/bin\x1e/opt/homebrew/opt/coreutils/libexec/gnubin\x1e/usr/local/bin\x1e/usr/bin\x1e/bin\x1e/usr/sbin\x1e/sbin\x1e/Users/johngong/\x2elocal/bin\x1e/Applications/Emacs\x2eapp/Contents/MacOS\x1e/Applications/Emacs\x2eapp/Contents/MacOS/bin\x1e/Users/johngong/\x2ervm/bin\x1e/opt/homebrew/bin\x1e/Users/johngong/fvm/default/bin\x1e/Users/johngong/\x2epub\x2dcache/bin\x1e/Users/johngong/\x2epuro/bin\x1e/Users/johngong/Library/Android/sdk/platform\x2dtools\x1e/Applications/Ghostty\x2eapp/Contents/MacOS
