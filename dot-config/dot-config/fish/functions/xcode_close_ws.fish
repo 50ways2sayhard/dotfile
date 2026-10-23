@@ -2,7 +2,7 @@ function xcode_close_ws --description 'Close open Xcode workspaces (fzf or --pat
     if set -q argv[1]; and contains -- $argv[1] -h --help
         echo "用法:"
         echo "  xcode_close_ws                 # fzf 多选关闭"
-        echo "  xcode_close_ws --path <path>…  # 非交互关闭指定 path"
+        echo "  xcode_close_ws --path <path>…  # 非交互关闭 workspace 或目录下的 workspace"
         return 0
     end
 
@@ -10,10 +10,26 @@ function xcode_close_ws --description 'Close open Xcode workspaces (fzf or --pat
     if set -q argv[1]; and test "$argv[1]" = --path
         set -e argv[1]
         if test (count $argv) -eq 0
-            set_color red; echo "[error] --path 需要至少一个 workspace 路径"; set_color normal
+            set_color red; echo "[error] --path 需要至少一个 workspace 路径或目录"; set_color normal
             return 1
         end
-        set paths $argv
+        for path in $argv
+            if test -d "$path"; and not string match -q '*.xcworkspace' (path basename "$path")
+                set -l workspaces "$path"/*.xcworkspace
+                set -l found 0
+                for workspace in $workspaces
+                    if test -d "$workspace"
+                        set -a paths "$workspace"
+                        set found 1
+                    end
+                end
+                if test $found -eq 0
+                    set_color yellow; printf '[warn] 目录下没有 workspace，跳过: %s\n' "$path"; set_color normal
+                end
+            else
+                set -a paths "$path"
+            end
+        end
     else if test (count $argv) -gt 0
         set_color red; echo "[error] 未知参数: $argv"; set_color normal
         echo "用法: xcode_close_ws [--path <path>…]"
@@ -55,7 +71,28 @@ function xcode_close_ws --description 'Close open Xcode workspaces (fzf or --pat
                     set targetPath to \"$ws_path\"
                     repeat with d in (every workspace document)
                         if (path of d) is targetPath then
-                            close d
+                            -- Stop the active build/run/test before closing without prompting.
+                            try
+                                set actionResult to last scheme action result of d
+                            on error
+                                set actionResult to missing value
+                            end try
+                            try
+                                stop d
+                            end try
+                            if actionResult is not missing value then
+                                repeat 50 times
+                                    try
+                                        if completed of actionResult then exit repeat
+                                    on error
+                                        exit repeat
+                                    end try
+                                    delay 0.1
+                                end repeat
+                            else
+                                delay 0.2
+                            end if
+                            close d saving no
                             return \"Closed\"
                         end if
                     end repeat
